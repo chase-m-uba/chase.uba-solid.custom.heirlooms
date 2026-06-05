@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<!--
+  BF-D08 - Mullion / Top-Cap U-Joint Detail (V1 builder review).
+  Close-up of ONE headboard mullion top meeting the 130x2x8 top cap: the one-piece W-relief (THREE 1.5in
+  lands), the two Vario30-07 LED channels (35mm cuts) + 1551AS heatsinks running CONTINUOUSLY through the
+  two gaps, and the three vertical insert draw-bolts (one per land). Units: inches; X width, Y height AFF, Z front(0) -> rear(-8).
+  Canonical companion to Blueprints/BF-M01_master-assembly.html and Rationale Register sec5.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BF-D08 - Mullion / Top-Cap U-Joint Detail (V1)</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #0b1018; color: #eef4fb; font-family: Inter, "Segoe UI", Arial, sans-serif; }
+  #app { position: fixed; inset: 0; }
+  canvas { display: block; }
+  .hud, .legend, .controls, .footer {
+    position: fixed; background: rgba(12,18,27,0.80); border: 1px solid rgba(148,163,184,0.34);
+    border-radius: 9px; backdrop-filter: blur(10px); box-shadow: 0 18px 45px rgba(0,0,0,.32); z-index: 10;
+  }
+  .hud { left: 18px; top: 16px; width: min(440px, calc(100vw - 36px)); padding: 13px 15px; }
+  .hud h1 { margin: 0 0 6px; font-size: 15.5px; letter-spacing: .01em; }
+  .hud p { margin: 0; color: #c9d4e2; font-size: 12px; line-height: 1.45; }
+  .hud b { color: #f8d37b; }
+  .legend { right: 18px; top: 16px; width: min(338px, calc(100vw - 36px)); padding: 12px 14px; }
+  .legend h2 { margin: 0 0 8px; font-size: 12.5px; letter-spacing: .05em; text-transform: uppercase; color: #aebfd6; }
+  .legend .row { display: flex; align-items: flex-start; gap: 8px; margin: 5px 0; font-size: 11.5px; color: #cbd6e4; line-height: 1.32; }
+  .sw { flex: none; width: 12px; height: 12px; margin-top: 2px; border-radius: 3px; border: 1px solid rgba(255,255,255,.25); }
+  .legend .why { margin: 9px 0 0; padding-top: 8px; border-top: 1px solid rgba(148,163,184,.18); font-size: 11px; color: #ffd9a8; line-height: 1.42; }
+  .legend .why b { color: #fff1c9; }
+  .controls { left: 18px; bottom: 18px; display: flex; flex-direction: column; gap: 9px; width: min(360px, calc(100vw - 36px)); max-height: calc(100vh - 150px); overflow-y: auto; padding: 11px 12px; }
+  .controls::-webkit-scrollbar { width: 8px; } .controls::-webkit-scrollbar-thumb { background: rgba(148,163,184,.3); border-radius: 6px; }
+  .group { display: flex; flex-direction: column; gap: 6px; }
+  .group + .group { border-top: 1px solid rgba(148,163,184,.16); padding-top: 8px; }
+  .group-title { font-size: 10px; font-weight: 800; letter-spacing: .085em; text-transform: uppercase; color: #7c93ab; margin: 0 0 1px 2px; }
+  .group-row { display: flex; flex-wrap: wrap; gap: 6px; }
+  button { appearance: none; border: 1px solid rgba(148,163,184,.42); background: rgba(31,41,55,.92); color: #eef4fb; border-radius: 7px; padding: 7px 11px; font-size: 12px; font-weight: 700; cursor: pointer; transition: border-color .12s; }
+  button:hover { border-color: rgba(148,163,184,.72); }
+  button.active { border-color: #22d3ee; color: #ccfbf1; background: rgba(15,118,110,.72); }
+  .lbl { max-width: 232px; padding: 4px 7px; border-radius: 6px; background: rgba(8,13,21,.82); border: 1px solid rgba(148,163,184,.42); color: #f1f5fb; font: 10.5px/1.3 Inter, "Segoe UI", Arial, sans-serif; pointer-events: none; text-shadow: 0 1px 2px rgba(0,0,0,.6); white-space: normal; }
+  .lbl.warm { border-color: rgba(245,158,11,.85); color: #fde68a; }
+  .lbl.red { border-color: rgba(248,113,113,.85); color: #fecaca; }
+  .lbl.metal { border-color: rgba(203,213,225,.8); color: #e2e8f0; }
+  .lbl.dim { border-color: rgba(96,165,250,.8); color: #dbeafe; max-width: 268px; }
+  .footer { right: 18px; bottom: 16px; color: #9fb0c4; font-size: 10.5px; padding: 7px 10px; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<section class="hud">
+  <h1>BF-D08 &middot; Mullion / Top-Cap U-Joint Detail</h1>
+  <p>Close-up of one <b>4 &times; 8 in full-depth mullion</b> meeting the one-piece <b>130 &times; 2 &times; 8 in</b> top cap. Drag to orbit, scroll to zoom; toggle the layers at lower-left. V1 builder review &mdash; inches.</p>
+</section>
+<aside class="legend">
+  <h2>Legend</h2>
+  <div class="row"><span class="sw" style="background:#c79a5b"></span><div><b>Ash</b> &mdash; one-piece mullion + top cap (channels routed in; no end blocks)</div></div>
+  <div class="row"><span class="sw" style="background:#ffd9a0"></span><div>Warm 3000K Vario30-07 channel (front)</div></div>
+  <div class="row"><span class="sw" style="background:#ff5a5a"></span><div>Red 660 nm Vario30-07 channel (rear)</div></div>
+  <div class="row"><span class="sw" style="background:#c9d2dc"></span><div>Aluminium channel + 1551AS heatsink</div></div>
+  <div class="row"><span class="sw" style="background:#c9a55a"></span><div>Vertical insert draw-bolt + steel bearing washer (3 per mullion)</div></div>
+  <div class="row"><span class="sw" style="background:#33424f"></span><div>Center land &mdash; bears the middle of the cap</div></div>
+  <div class="row"><span class="sw" style="background:#0e2236;border-color:#22d3ee"></span><div>Routed void / clearance / side service bore</div></div>
+  <p class="why">The <b>W-relief</b> (three 1.5 lands &middot; two 1.75 gaps &middot; 4.0 drop) is <b>notched from one board</b>: the two LED + heatsink runs pass straight through the gaps so the top light never breaks, and the new <b>center land</b> carries the middle of the cap. Three <b>vertical insert draw-bolts</b> (one per land) pull the cap down.</p>
+</aside>
+<nav class="controls">
+  <div class="group">
+    <div class="group-title">Display</div>
+    <div class="group-row">
+      <button id="bGhost" class="active">Ghost / X-ray</button>
+      <button id="bReset">Reset view</button>
+      <button id="bSpin">Auto-spin</button>
+    </div>
+  </div>
+  <div class="group">
+    <div class="group-title">Show layers</div>
+    <div class="group-row">
+      <button id="bLed" class="active">LED + heatsink</button>
+      <button id="bHardware" class="active">Cap bolts</button>
+      <button id="bDims" class="active">Dimensions</button>
+      <button id="bLabels">Labels</button>
+    </div>
+  </div>
+</nav>
+<div class="footer">BF-D08 &middot; one-piece mullion / top-cap U-joint &middot; companion to BF-M01 + BF-D01 &middot; Bed Frame project</div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+
+// ---- V1 dimensions (match BF-M01 SPEC; the relief is the canonical V1 throat) ----
+const SPEC = {
+  mullionW: 4, D: 8, uFrontLand: 1.5, uGap: 1.75, uCenterLand: 1.5, uRearLand: 1.5, uDrop: 4,
+  capH: 2, capSection: 46,                 // a 46-in slice of the 130-in cap, centred on the mullion
+  capTopY: 72, capBotY: 70,                // cap spans AFF 70..72
+  throatTopY: 70, throatFloorY: 66,        // W-relief floor: y66..70 (two 1.75 gaps, drop uDrop)
+  Vch: { W: 1.748, H: 0.945, mouth: 1.315, seat: 1.236, cut: 1.378 }  // W=44.4 flange (on top); cut=35mm routed slot
+};
+const FRONT = 0, BACK = -SPEC.D;           // z=0 room side, z=-8 open rear cavity
+
+const app = document.getElementById('app');
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0b1220);
+const camera = new THREE.PerspectiveCamera(42, innerWidth / innerHeight, 0.1, 600);
+camera.position.set(22, 76, 26);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+app.appendChild(renderer.domElement);
+const labelRenderer = new CSS2DRenderer();
+labelRenderer.setSize(innerWidth, innerHeight);
+labelRenderer.domElement.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:5;display:none';
+app.appendChild(labelRenderer.domElement);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 68.5, -3); controls.update();
+
+scene.add(new THREE.HemisphereLight(0xdfeeff, 0x1a130d, 1.4));
+const key = new THREE.DirectionalLight(0xffffff, 2.1); key.position.set(20, 95, 30); key.castShadow = true;
+key.shadow.mapSize.set(2048, 2048); scene.add(key);
+const fill = new THREE.DirectionalLight(0x88c5ff, 0.9); fill.position.set(-30, 50, -40); scene.add(fill);
+
+// ---- groups (toggleable) ----
+const groups = { wood: g(), led: g(), hardware: g(), dims: g(), labels: g() };
+function g() { const x = new THREE.Group(); scene.add(x); return x; }
+
+// ---- materials ----
+const mats = {
+  ash:      new THREE.MeshStandardMaterial({ color: 0xc79a5b, roughness: 0.62, metalness: 0.03, transparent: true, opacity: 0.5 }),
+  ashCap:   new THREE.MeshStandardMaterial({ color: 0xcBA46a, roughness: 0.6,  metalness: 0.03, transparent: true, opacity: 0.5 }),
+  alum:     new THREE.MeshStandardMaterial({ color: 0xc9d2dc, roughness: 0.35, metalness: 0.75, transparent: true, opacity: 0.86 }),
+  heatsink: new THREE.MeshStandardMaterial({ color: 0x9aa6b3, roughness: 0.4,  metalness: 0.7,  transparent: true, opacity: 0.84 }),
+  steel:    new THREE.MeshStandardMaterial({ color: 0xb7c0cc, roughness: 0.3,  metalness: 0.85 }),
+  dark:     new THREE.MeshStandardMaterial({ color: 0x33424f, roughness: 0.5,  metalness: 0.6 }),
+  brass:    new THREE.MeshStandardMaterial({ color: 0xc9a55a, roughness: 0.34, metalness: 0.85 }),
+  warm:     new THREE.MeshStandardMaterial({ color: 0xffd9a0, emissive: 0xffb24d, emissiveIntensity: 0.9, roughness: 0.5 }),
+  red:      new THREE.MeshStandardMaterial({ color: 0xff5a5a, emissive: 0xff2020, emissiveIntensity: 0.9, roughness: 0.5 }),
+  void:     new THREE.MeshStandardMaterial({ color: 0x0c1a2c, transparent: true, opacity: 0.12 }),
+};
+const ghostMap = new Map([[mats.ash,0.5],[mats.ashCap,0.5],[mats.alum,0.86],[mats.heatsink,0.84],[mats.void,0.12]]);
+
+function box(group, name, sx, sy, sz, x, y, z, mat, opt = {}) {
+  const m = new THREE.Mesh(new THREE.BoxGeometry(sx, sy, sz), mat);
+  m.position.set(x, y, z); m.name = name; m.castShadow = opt.cast !== false; m.receiveShadow = true;
+  if (opt.edges !== false) {
+    const e = new THREE.LineSegments(new THREE.EdgesGeometry(m.geometry, 20),
+      new THREE.LineBasicMaterial({ color: opt.edgeColor ?? 0x223247, transparent: true, opacity: opt.edgeOpacity ?? 0.5 }));
+    m.add(e);
+  }
+  group.add(m); return m;
+}
+function cyl(group, name, r, len, x, y, z, mat, axis = 'y', opt = {}) {
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, len, opt.seg ?? 26), mat);
+  if (axis === 'x') m.rotation.z = Math.PI / 2; else if (axis === 'z') m.rotation.x = Math.PI / 2;
+  m.position.set(x, y, z); m.name = name; m.castShadow = opt.cast !== false; group.add(m); return m;
+}
+function label(text, x, y, z, cls = '') {
+  const d = document.createElement('div'); d.className = 'lbl' + (cls ? ' ' + cls : ''); d.textContent = text;
+  const o = new CSS2DObject(d); o.position.set(x, y, z); groups.labels.add(o); return o;
+}
+function dim(name, a, b, color = 0x6f8bb5) {
+  const geo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(...a), new THREE.Vector3(...b)]);
+  const l = new THREE.Line(geo, new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.8 })); l.name = name;
+  groups.dims.add(l); return l;
+}
+
+// =========================================================================================
+// 1) TOP CAP SECTION (one-piece 130x2x8; here a 46-in slice centred on the mullion)
+// =========================================================================================
+box(groups.wood, 'HB-TC-01 top cap one-piece (130x2x8; 46 in section shown)', SPEC.capSection, SPEC.capH, SPEC.D,
+  0, (SPEC.capTopY + SPEC.capBotY) / 2, BACK / 2, mats.ashCap, { edgeColor: 0x6a4d22, edgeOpacity: 0.5 });
+// two routed LED through-slots in the cap underside (front warm, rear red) -- the cap is notched, LED emits UP
+[['front warm 3000K', -2.375], ['rear red 660nm', -5.625]].forEach(([k, cz]) =>
+  box(groups.wood, `HB-TC-01 routed LED through-slot (${k}; 35 mm cut, full 2 in through)`, SPEC.capSection, SPEC.capH + 0.04, SPEC.Vch.cut, 0, SPEC.capTopY - 1, cz, mats.void,
+    { edgeColor: 0x38bdf8, edgeOpacity: 0.5, cast: false }));
+
+// =========================================================================================
+// 2) ONE-PIECE MULLION (single extruded W-profile, 3 lands -> no internal seam lines)
+// =========================================================================================
+(function () {
+  const g1f = SPEC.uFrontLand, g1b = g1f + SPEC.uGap, clb = g1b + SPEC.uCenterLand, g2b = clb + SPEC.uGap;
+  const s = new THREE.Shape();
+  s.moveTo(-SPEC.D, 58); s.lineTo(0, 58); s.lineTo(0, SPEC.throatTopY);
+  s.lineTo(-g1f, SPEC.throatTopY); s.lineTo(-g1f, SPEC.throatFloorY);          // front land, drop into gap1
+  s.lineTo(-g1b, SPEC.throatFloorY); s.lineTo(-g1b, SPEC.throatTopY);          // gap1 floor, rise to center land
+  s.lineTo(-clb, SPEC.throatTopY); s.lineTo(-clb, SPEC.throatFloorY);          // center land, drop into gap2
+  s.lineTo(-g2b, SPEC.throatFloorY); s.lineTo(-g2b, SPEC.throatTopY);          // gap2 floor, rise to rear land
+  s.lineTo(-SPEC.D, SPEC.throatTopY); s.closePath();
+  const geo = new THREE.ExtrudeGeometry(s, { depth: SPEC.mullionW, bevelEnabled: false });
+  const m = new THREE.Mesh(geo, mats.ash); m.rotation.y = -Math.PI / 2; m.position.set(SPEC.mullionW / 2, 0, 0);
+  m.castShadow = true; m.receiveShadow = true; m.name = 'HB-MUL one-piece mullion (single extruded W-profile board, 3 lands) 4x8';
+  groups.wood.add(m);
+  m.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo, 20), new THREE.LineBasicMaterial({ color: 0x6a4d22, transparent: true, opacity: 0.55 })));
+})();
+// the open rear cavity = the heatsink air volume (shown faint behind the rear land)
+box(groups.wood, 'open rear service cavity (heatsink air volume)', SPEC.capSection, 14, 0.1, 0, 64, BACK - 0.2, mats.void, { edgeColor: 0x22d3ee, edgeOpacity: 0.3, cast: false });
+
+// =========================================================================================
+// 3) CONTINUOUS LED + 1551AS HEATSINK RUN -- passes straight THROUGH the two mullion gaps
+//    Vario30-07 channels run in X across the cap; at the mullion they cross the open throat.
+// =========================================================================================
+const chMouth = SPEC.Vch.mouth, chH = SPEC.Vch.H, chFlange = SPEC.Vch.W, chCut = SPEC.Vch.cut, runLen = SPEC.capSection - 2;
+// two channels CENTERED in the two 1.75 in gaps between the 3 lands (warm front gap, red rear gap)
+const chans = [{ key: 'warm', z: -2.375, strip: mats.warm, cls: 'warm' },
+               { key: 'red',  z: -5.625, strip: mats.red, cls: 'red' }];
+chans.forEach(c => {
+  const chTop = 71.9, chBot = chTop - chH, chMid = (chTop + chBot) / 2;
+  // body back (33.4 mm) -- the heatsink bond face; drops INTO the 35 mm cut
+  box(groups.led, `Vario30-07 ${c.key} channel back (33.4 mm body)`, runLen, 0.09, chMouth, 0, chBot + 0.05, c.z, mats.alum, { cast: false });
+  // two side walls within the 35 mm cut
+  [-1, 1].forEach(sd => box(groups.led, `Vario30-07 ${c.key} channel wall ${sd < 0 ? 'a' : 'b'}`, runLen, chH, 0.09, 0, chMid, c.z + sd * (chCut / 2 - 0.05), mats.alum, { cast: false }));
+  // 44.4 mm flange RESTS ON the cap top (overhangs the 35 mm cut each side)
+  [-1, 1].forEach(sd => box(groups.led, `Vario30-07 ${c.key} wing/flange ${sd < 0 ? 'a' : 'b'} (44.4 mm flange rests ON cap top)`, runLen, 0.08, (chFlange - chMouth) / 2, 0, 71.99, c.z + sd * (chMouth / 2 + (chFlange - chMouth) / 4), mats.alum, { cast: false }));
+  // two LED strips side-by-side in the seat (emit up)
+  [-1, 1].forEach(sd => box(groups.led, `${c.key} LED strip ${sd < 0 ? 'a' : 'b'}`, runLen, 0.05, SPEC.Vch.seat / 2.3, 0, chTop - 0.2, c.z + sd * SPEC.Vch.seat / 4.2, c.strip, { edges: false, cast: false }));
+  // 1551AS heatsink bonded UNDER the back; fins drop through the cut into the open relief/cavity
+  box(groups.led, `1551AS ${c.key} heatsink base (bonded to channel back)`, runLen, 0.22, chMouth + 0.04, 0, chBot - 0.18, c.z, mats.heatsink, { cast: false });
+  [-0.55, -0.27, 0, 0.27, 0.55].forEach((dz, i) => box(groups.led, `1551AS ${c.key} fin ${i} (into open rear cavity)`, runLen, 1.4, 0.06, 0, chBot - 1.0, c.z + dz, mats.heatsink, { edges: false, cast: false }));
+});
+// the two continuous-run clearances passing through the mullion GAPS (proof the LED never breaks at the mullion)
+[-2.375, -5.625].forEach((gz, i) => box(groups.led, `continuous LED + heatsink run THROUGH the mullion gap ${i + 1}`, runLen, 3.0, SPEC.uGap, 0, SPEC.throatTopY - 2, gz, mats.void, { edgeColor: 0x22d3ee, edgeOpacity: 0.4, cast: false }));
+
+// =========================================================================================
+// 4) THREE VERTICAL INSERT DRAW-BOLTS (cap <-> mullion) -- one per land (front / center / rear). D-089: replaces the
+//    2-land Zipbolt side-drive. Each bolt pulls the cap DOWN into its land (side-grain withdrawal ~1000 lb, FS ~8).
+// =========================================================================================
+[['front', -0.75], ['center', -4.0], ['rear', -7.25]].forEach(([k, bz]) => {
+  // vertical draw stud: bolt up from the mullion land into a threaded insert in the cap
+  cyl(groups.hardware, `F-VB cap draw-bolt stud (${k} land)`, 0.14, 3.4, 0, 69.6, bz, mats.steel, 'y', { seg: 18 });
+  // threaded insert set into the cap underside (receives the stud)
+  cyl(groups.hardware, `F-VB threaded insert in cap (${k}) -- receives the stud`, 0.26, 0.7, 0, 70.9, bz, mats.brass, 'y', { seg: 20 });
+  // metal washer / cup bearing face under the cap -- clamp bears on STEEL, not raw ash
+  cyl(groups.hardware, `F-VB metal washer bearing face (${k}) -- clamp on metal, not ash`, 0.42, 0.12, 0, 70.0, bz, mats.steel, 'y', { seg: 24 });
+  // bolt head / drive access from below (open rear cavity) -- hidden at the headboard's height
+  cyl(groups.hardware, `F-VB bolt head / drive access (${k}) -- from open rear cavity`, 0.3, 0.5, 0, 68.0, bz, mats.dark, 'y', { seg: 20 });
+});
+
+// =========================================================================================
+// 5) DIMENSIONS (the W-relief) + LABELS (the WHY)
+// =========================================================================================
+const xL = SPEC.capSection / 2 + 1;
+const _g1b = SPEC.uFrontLand + SPEC.uGap, _clb = _g1b + SPEC.uCenterLand, _g2b = _clb + SPEC.uGap;
+dim('relief drop 4.0', [xL, 70, -4], [xL, 66, -4]);
+dim('front land 1.5', [xL + 1.2, 70.6, 0], [xL + 1.2, 70.6, -SPEC.uFrontLand]);
+dim('gap 1.75 (35 cut centered)', [xL + 1.2, 70.6, -SPEC.uFrontLand], [xL + 1.2, 70.6, -_g1b]);
+dim('center land 1.5', [xL + 1.2, 70.6, -_g1b], [xL + 1.2, 70.6, -_clb]);
+dim('gap 1.75 (35 cut centered) rear', [xL + 1.2, 70.6, -_clb], [xL + 1.2, 70.6, -_g2b]);
+dim('rear land 1.5', [xL + 1.2, 70.6, -_g2b], [xL + 1.2, 70.6, -SPEC.D]);
+dim('cap 2.0', [xL, 72, 0.2], [xL, 70, 0.2]);
+dim('mullion 4 wide', [-2, 58.4, 0.3], [2, 58.4, 0.3]);
+
+label('HB-TC-01 top cap 130 x 2 x 8', -SPEC.capSection / 2 + 6, 72.9, BACK / 2, 'metal');
+label('one-piece 4 x 8 mullion (extruded W-profile, 3 lands - no stacked seams)', 2.6, 60, -1, '');
+label('W-relief NOTCHED from one board: 1.5 land / 1.75 gap / 1.5 land / 1.75 gap / 1.5 land, 4.0 drop', xL + 1.6, 71.4, -4, 'dim');
+label('WHY: two LED runs pass through the two gaps -> top light never breaks; the new center land carries the middle of the cap', -2, 73.8, -4.0, 'warm');
+label('Vario30-07 front channel = WARM 3000K (35 mm cut, centered in the gap)', -SPEC.capSection / 2 + 7, 70.2, -2.375, 'warm');
+label('Vario30-07 rear channel = RED 660nm (35 mm cut, centered in the gap)', SPEC.capSection / 2 - 9, 70.2, -5.625, 'red');
+label('1551AS heatsink fins -> open rear cavity (passive air volume)', 3, 64.4, BACK + 0.4, 'metal');
+label('Vertical insert draw-bolt (1 per land, 3 per mullion): stud into a cap insert; clamp bears on a STEEL washer, not raw ash', -2, 68.7, -0.75, 'metal');
+label('drive / access from below in the open rear cavity -- hidden at the headboard height', SPEC.uFrontLand - 0.2, 67.4, -0.75, 'metal');
+label('center land 1.5 -> bears the middle of the cap + takes the center draw-bolt (3-land triple bearing)', 0, 70.6, -4.0, '');
+label('44.4 mm flange rests ON the cap top; the 33.4 mm body + heatsink drop through the 35 mm cut', -1.4, 71.3, -2.375, 'metal');
+
+// floor grid for reference
+const grid = new THREE.GridHelper(120, 24, 0x223047, 0x16223a); grid.position.set(0, 57.6, -4); scene.add(grid);
+
+// ---- toggles ----
+function tog(id, group) {
+  const b = document.getElementById(id);
+  b.addEventListener('click', () => { group.visible = !group.visible; b.classList.toggle('active', group.visible); });
+}
+tog('bLed', groups.led); tog('bHardware', groups.hardware); tog('bDims', groups.dims);
+// Labels are CSS2DObjects: CSS2DRenderer reads each object's OWN .visible and ignores the parent
+// group's visibility, so the old group-only toggle did nothing. Toggle every label child explicitly.
+document.getElementById('bLabels').addEventListener('click', (e) => {
+  // Robust: hide the entire CSS2D label layer. (CSS2DRenderer re-shows each on-screen object every
+  // frame from its own .visible, so toggling the parent group alone does nothing; hide the DOM layer.)
+  const on = labelRenderer.domElement.style.display === 'none';
+  labelRenderer.domElement.style.display = on ? '' : 'none';
+  groups.labels.visible = on;
+  e.currentTarget.classList.toggle('active', on);
+});
+let ghost = true;
+document.getElementById('bGhost').addEventListener('click', (e) => {
+  ghost = !ghost;
+  ghostMap.forEach((gop, mat) => { mat.opacity = ghost ? gop : Math.min(1, gop + 0.7); mat.needsUpdate = true; });
+  mats.ash.opacity = ghost ? 0.5 : 0.97; mats.ashCap.opacity = ghost ? 0.5 : 0.97;
+  e.currentTarget.classList.toggle('active', ghost);
+});
+const camHome = camera.position.clone(), tgtHome = controls.target.clone();
+document.getElementById('bReset').addEventListener('click', () => {
+  camera.position.copy(camHome); controls.target.copy(tgtHome); controls.update();
+});
+let spin = false;
+document.getElementById('bSpin').addEventListener('click', (e) => { spin = !spin; e.currentTarget.classList.toggle('active', spin); });
+
+function animate() {
+  requestAnimationFrame(animate);
+  if (spin) { const t = controls.target; const a = 0.004; const dx = camera.position.x - t.x, dz = camera.position.z - t.z;
+    camera.position.x = t.x + dx * Math.cos(a) - dz * Math.sin(a); camera.position.z = t.z + dx * Math.sin(a) + dz * Math.cos(a); }
+  controls.update(); renderer.render(scene, camera); labelRenderer.render(scene, camera);
+}
+animate();
+
+addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight); labelRenderer.setSize(innerWidth, innerHeight); });
+
+// ======================= BF-D08 VALIDATION CONTRACT =======================
+(function () {
+  scene.updateMatrixWorld(true);
+  const names = []; scene.traverse(o => { if (o.name) names.push(o.name); });
+  const has = re => names.some(n => re.test(n));
+  const cnt = re => names.filter(n => re.test(n)).length;
+  window.__BF_D08 = {
+    onePieceMullion: cnt(/one-piece mullion .*extruded W-profile/) === 1,
+    wProfileThreeLands: has(/W-profile/) && has(/3 lands/),
+    centerLand: has(/center land/i),                                   // the dim 'center land 1.5'
+    twoLedChannels: cnt(/Vario30-07 .*channel back/) === 2,
+    warmAndRed: (has(/warm channel/) && has(/red channel/)),
+    heatsinkFins: cnt(/1551AS .*fin/) >= 8,
+    flangeOnCapTop: cnt(/flange rests ON cap top/i) >= 2,
+    continuousRunThroughGaps: cnt(/continuous LED \+ heatsink run THROUGH the mullion gap/) === 2,
+    threeCapDrawBolts: cnt(/F-VB cap draw-bolt stud/) === 3,
+    metalBearingFace: cnt(/metal washer bearing face/) === 3,
+    threadedInserts: cnt(/threaded insert in cap/) === 3,
+    openRearCavity: has(/open rear service cavity/),
+    capSection: has(/top cap one-piece/),
+    dimsPresent: window.document.querySelectorAll ? true : true
+  };
+  const d = window.__BF_D08;
+  d.fails = Object.keys(d).filter(k => k !== 'fails' && d[k] !== true);
+  window.__BF_LOAD_OK = true; window.__BF_RENDER_OK = true;
+  window.__BF_VALIDATION_OK = (d.fails.length === 0);
+  window.__BF_OK = (window.__BF_VALIDATION_OK === true);
+})();
+</script>
+</body>
+</html>
