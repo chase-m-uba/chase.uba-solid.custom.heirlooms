@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<!--
+  BF-D09 - Footboard <-> Base Dock Interface (detail model). Highly detailed, animated.
+  Units: inches. X = width (0 centered), Y = height AFF, Z = head(-) -> foot(+); seam plane at Z = 0.
+  Shows: 2x 3/8" steel locating dowels (x=+/-19, y=12), powerCON 120V AC (x=-33, y=6),
+  speakON NL4 speakers (x=+33, y=6), 4 bed bolts (x=+/-29,+/-11), recess pockets, dock/undock animation.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BF-D09 - Footboard Dock Interface (animated)</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; width: 100%; height: 100%; overflow: hidden;
+    background: #0e1218; color: #eef4fb; font-family: Inter, "Segoe UI", Arial, sans-serif; }
+  #app { position: fixed; inset: 0; }
+  canvas { display: block; }
+  #labels { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
+  .lbl { font-size: 11px; line-height: 1.25; color: #eaf2fb; background: rgba(12,18,27,.82);
+    border: 1px solid rgba(148,163,184,.4); border-radius: 6px; padding: 3px 7px; white-space: nowrap;
+    transform: translate(-50%, -50%); box-shadow: 0 6px 18px rgba(0,0,0,.4); }
+  .lbl b { color: #f8d37b; }
+  .lbl.ac { border-color: #e0962f; } .lbl.ac b { color: #f0b35f; }
+  .lbl.spk { border-color: #3b6fb0; } .lbl.spk b { color: #79a8dd; }
+  .lbl.dow { border-color: #9aa7b6; }
+  .panel { position: fixed; background: rgba(12,18,27,.84); border: 1px solid rgba(148,163,184,.34);
+    border-radius: 10px; backdrop-filter: blur(10px); box-shadow: 0 18px 45px rgba(0,0,0,.35); }
+  #hud { left: 14px; top: 14px; width: min(372px, calc(100vw - 28px)); padding: 13px 15px; }
+  #hud h1 { margin: 0 0 5px; font-size: 16px; }
+  #hud p { margin: 4px 0; font-size: 12px; color: #c9d4e2; line-height: 1.45; }
+  #hud .coords { margin-top: 8px; font-size: 11px; color: #9fb2c8; font-family: ui-monospace, Consolas, monospace; }
+  #hud b { color: #f8d37b; }
+  #ctrl { left: 14px; bottom: 14px; width: min(330px, calc(100vw - 28px)); padding: 12px 14px; }
+  #ctrl h2 { margin: 0 0 9px; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: #9fb2c8; }
+  .row { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+  button { flex: 1 1 auto; min-width: 92px; cursor: pointer; font-size: 12px; font-weight: 600;
+    color: #eaf2fb; background: rgba(31,41,55,.7); border: 1px solid rgba(148,163,184,.4);
+    border-radius: 7px; padding: 8px 10px; transition: .12s; }
+  button:hover { border-color: #22d3ee; background: rgba(15,118,110,.34); }
+  button.on { border-color: #f8d37b; background: rgba(120,90,20,.36); color: #ffe6a8; }
+  button.prime { border-color: #34d399; background: rgba(16,90,70,.46); }
+  .slab { display:flex; align-items:center; gap:9px; margin: 6px 0 2px; }
+  .slab label { font-size: 11px; color: #9fb2c8; width: 64px; }
+  input[type=range] { flex: 1; accent-color: #22d3ee; }
+  #seamval { font-size: 11px; color: #f8d37b; width: 52px; text-align: right; font-variant-numeric: tabular-nums; }
+  #legend { right: 14px; top: 14px; width: min(258px, calc(100vw - 28px)); padding: 12px 14px; }
+  #legend h2 { margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: #9fb2c8; }
+  #legend p { margin: 6px 0; font-size: 11.5px; color: #cbd6e4; line-height: 1.3; }
+  .sw { display:inline-block; width: 11px; height: 11px; margin-right: 7px; vertical-align: -1px; border-radius: 3px; }
+  #cam { right: 14px; bottom: 14px; width: min(208px, calc(100vw - 28px)); padding: 11px 13px; }
+  #cam h2 { margin: 0 0 8px; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: #9fb2c8; }
+  #cam .row button { min-width: 0; padding: 7px 6px; font-size: 11px; }
+  @media (max-width: 720px){ #legend,#cam{ display:none; } }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="labels"></div>
+
+<div id="hud" class="panel">
+  <h1>BF&#8209;D09 &#183; Footboard Dock Interface</h1>
+  <p>How the TV cabinet docks to the bed base. Only <b>two</b> connections cross the seam &#8212; <b>120&#8239;V AC</b> and <b>speakers L+R</b> &#8212; plus 2 steel locating dowels + the bed bolts.</p>
+  <p>Drag to orbit &#183; scroll to zoom &#183; hit <b>Dock</b> to watch them mate.</p>
+  <div class="coords">powerCON&#160;&#160;x&#8722;33 y&#8201;6&#160;&#160;&#183;&#160;&#160;speakON&#160;&#160;x+33 y&#8201;6<br>dowels&#160;&#160;x&#177;19 y&#8201;12&#160;&#160;&#183;&#160;&#160;bolts&#160;&#160;x&#177;29 / &#177;11</div>
+</div>
+
+<div id="legend" class="panel">
+  <h2>Legend</h2>
+  <p><span class="sw" style="background:#e0962f"></span><b>powerCON TRUE1</b> &#8212; 120&#8239;V AC (far&#8209;left, low)</p>
+  <p><span class="sw" style="background:#3b6fb0"></span><b>speakON NL4</b> &#8212; both speaker channels (far&#8209;right, low)</p>
+  <p><span class="sw" style="background:#c2c9d1"></span><b>&#8709;3/8&#8243; locating dowels</b> &#8212; register before connectors mate</p>
+  <p><span class="sw" style="background:#8a9098"></span><b>bed bolts &#215;4</b> &#8212; draw the seam tight</p>
+  <p><span class="sw" style="background:#caa64f"></span>recess pocket &#8212; faces close flush; caps when apart</p>
+</div>
+
+<div id="ctrl" class="panel">
+  <h2>Animation</h2>
+  <div class="row">
+    <button id="bDock" class="prime">&#9654; Dock</button>
+    <button id="bUndock">&#9664; Undock</button>
+    <button id="bAuto">&#8734; Auto</button>
+  </div>
+  <div class="slab"><label>Seam gap</label><input id="gap" type="range" min="0" max="24" step="0.1" value="12"><span id="seamval">12.0&#8243;</span></div>
+  <div class="row" style="margin-top:6px">
+    <button id="bGhost" class="on">Ghost cabinet</button>
+    <button id="bLabels" class="on">Labels</button>
+  </div>
+  <div class="row">
+    <button id="bExploded">Explode HW</button>
+    <button id="bSpin">Auto&#8209;spin</button>
+  </div>
+</div>
+
+<div id="cam" class="panel">
+  <h2>Camera</h2>
+  <div class="row"><button data-cam="iso">Iso</button><button data-cam="seam">Seam</button><button data-cam="top">Top</button></div>
+  <div class="row"><button data-cam="ac">AC corner</button><button data-cam="spk">Spk corner</button></div>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+
+// ---------- renderer ----------
+const app = document.getElementById('app');
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+app.appendChild(renderer.domElement);
+
+const labelRenderer = new CSS2DRenderer();
+labelRenderer.setSize(innerWidth, innerHeight);
+labelRenderer.domElement.style.position = 'fixed';
+labelRenderer.domElement.style.top = '0';
+labelRenderer.domElement.style.pointerEvents = 'none';
+document.getElementById('labels').appendChild(labelRenderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0e1218);
+scene.fog = new THREE.Fog(0x0e1218, 240, 520);
+
+const camera = new THREE.PerspectiveCamera(43, innerWidth / innerHeight, 0.5, 3000);
+camera.position.set(70, 44, 86);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.target.set(0, 13, 0);
+controls.minDistance = 18;
+controls.maxDistance = 360;
+
+// ---------- lights ----------
+scene.add(new THREE.HemisphereLight(0xcfe1f2, 0x2a2620, 0.85));
+const key = new THREE.DirectionalLight(0xfff4e2, 1.45);
+key.position.set(58, 96, 74);
+key.castShadow = true;
+key.shadow.mapSize.set(2048, 2048);
+key.shadow.camera.near = 10; key.shadow.camera.far = 320;
+key.shadow.camera.left = -90; key.shadow.camera.right = 90;
+key.shadow.camera.top = 90; key.shadow.camera.bottom = -30;
+key.shadow.bias = -0.0004;
+scene.add(key);
+const fill = new THREE.DirectionalLight(0x9fc0e6, 0.5);
+fill.position.set(-66, 42, -38); scene.add(fill);
+const rim = new THREE.DirectionalLight(0xffffff, 0.35);
+rim.position.set(0, 30, -90); scene.add(rim);
+
+// ---------- ground ----------
+const ground = new THREE.Mesh(
+  new THREE.CircleGeometry(220, 64),
+  new THREE.MeshStandardMaterial({ color: 0x141a22, roughness: 1, metalness: 0 })
+);
+ground.rotation.x = -Math.PI / 2; ground.position.y = -0.05; ground.receiveShadow = true;
+scene.add(ground);
+const grid = new THREE.GridHelper(220, 44, 0x2a3645, 0x1b232e);
+grid.position.y = 0; scene.add(grid);
+
+// ---------- materials ----------
+const ashMat   = new THREE.MeshStandardMaterial({ color: 0xd8bd88, roughness: 0.72, metalness: 0.04 });
+const ashWall  = new THREE.MeshStandardMaterial({ color: 0xe0c894, roughness: 0.68, metalness: 0.04 });
+const cabWallMat  = ashWall.clone();   // ghostable so seam connectors show through
+const baseWallMat = ashWall.clone();
+const ghostMat = new THREE.MeshStandardMaterial({ color: 0xd8bd88, roughness: 0.8, transparent: true, opacity: 0.14, depthWrite: false });
+const recessMat= new THREE.MeshStandardMaterial({ color: 0x6f5a32, roughness: 0.9, metalness: 0 });
+const steelMat = new THREE.MeshStandardMaterial({ color: 0xc4ccd4, roughness: 0.3, metalness: 0.92 });
+const darkSteel= new THREE.MeshStandardMaterial({ color: 0x8b929b, roughness: 0.4, metalness: 0.85 });
+const housing  = new THREE.MeshStandardMaterial({ color: 0x23282f, roughness: 0.5, metalness: 0.55 });
+const acMat    = new THREE.MeshStandardMaterial({ color: 0xe0962f, roughness: 0.45, metalness: 0.2, emissive: 0x3a2406, emissiveIntensity: 0.5 });
+const spkMat   = new THREE.MeshStandardMaterial({ color: 0x3b6fb0, roughness: 0.45, metalness: 0.2, emissive: 0x06182f, emissiveIntensity: 0.5 });
+
+// helper: box with crisp edges + optional shadow
+function box(w, h, d, mat, cast = true) {
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+  m.castShadow = cast; m.receiveShadow = true;
+  return m;
+}
+// helper: cylinder oriented along Z
+function zCyl(r1, r2, len, mat, seg = 28) {
+  const g = new THREE.CylinderGeometry(r1, r2, len, seg);
+  const m = new THREE.Mesh(g, mat); m.rotation.x = Math.PI / 2; m.castShadow = true; return m;
+}
+function edges(mesh, color = 0x3a2e18, op = 0.35) {
+  const e = new THREE.LineSegments(new THREE.EdgesGeometry(mesh.geometry),
+    new THREE.LineBasicMaterial({ color, transparent: true, opacity: op }));
+  mesh.add(e); return mesh;
+}
+
+// ============================================================
+//  BED BASE  (group; fixed). Foot-end face at Z=0, body in -Z.
+// ============================================================
+const base = new THREE.Group(); scene.add(base);
+// foot-end mounting wall: 74 x 17 x 1, face at z=0, back at z=-1
+const baseWall = box(74, 17, 1, baseWallMat); baseWall.position.set(0, 8.5, -0.5); edges(baseWall); base.add(baseWall);
+// translucent base body behind it
+const baseBody = box(74, 17, 19, ghostMat, false); baseBody.position.set(0, 8.5, -10.5); base.add(baseBody);
+// a couple of drawer-face hints on the body (so it reads as the drawer base)
+for (const dx of [-18.5, 18.5]) {
+  const df = box(32, 11, 0.6, new THREE.MeshStandardMaterial({ color: 0xcdb07c, roughness: .75 }), false);
+  df.position.set(dx, 8.5, -20.0); base.add(df);
+}
+base.add(new THREE.Mesh()); // noop spacer
+
+// ============================================================
+//  TV CABINET  (group; slides on Z by `gap`). Bed-facing wall at z=0, body in +Z.
+// ============================================================
+const cab = new THREE.Group(); scene.add(cab);
+// bed-facing mounting wall: 74 x 41 x 1, face at z=0, back at z=+1
+const cabWall = box(74, 41, 1, cabWallMat); cabWall.position.set(0, 20.5, 0.5); edges(cabWall); cab.add(cabWall);
+// translucent cabinet body
+const cabBody = box(74, 41, 15, ghostMat, false); cabBody.position.set(0, 20.5, 8.5); cab.add(cabBody);
+// solid frame outline of the cabinet body (so ghost still reads as a box)
+const frameMat = new THREE.LineBasicMaterial({ color: 0xb8a06a, transparent: true, opacity: 0.5 });
+const frame = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(74, 41, 16)), frameMat);
+frame.position.set(0, 20.5, 8); cab.add(frame);
+// lift slot hint on top
+const slot = box(30, 0.5, 8, new THREE.MeshStandardMaterial({ color: 0x2a2f36, roughness: .9 }), false);
+slot.position.set(0, 41.1, 8); cab.add(slot);
+// "TV / cubby" hint: an open dark rectangle on the room-facing side
+const cubby = box(60, 30, 0.4, new THREE.MeshStandardMaterial({ color: 0x161b22, roughness: 1 }), false);
+cubby.position.set(0, 16, 15.9); cab.add(cubby);
+
+// ---------- recess pocket helper (on a wall face) ----------
+function pocket(group, x, y, w, h, faceZ, into) {
+  // shallow inset rectangle reading as a routed pocket; `into` = +1 sinks toward -Z (base) or +Z
+  const p = box(w, h, 0.6, recessMat, false);
+  p.position.set(x, y, faceZ + into * 0.3); group.add(p);
+  const ring = new THREE.Mesh(new THREE.BoxGeometry(w + 0.6, h + 0.6, 0.2),
+    new THREE.MeshStandardMaterial({ color: 0xb89a5c, roughness: .7 }));
+  ring.position.set(x, y, faceZ + into * 0.05); group.add(ring);
+}
+
+// ============================================================
+//  INTERFACE HARDWARE
+// ============================================================
+// --- 2x locating dowels: 3/8" steel, on the CABINET wall, protrude -Z (toward base) ~2.5" ---
+const dowelGroup = new THREE.Group(); cab.add(dowelGroup);
+for (const x of [-19, 19]) {
+  const d = zCyl(0.1875, 0.1875, 3.2, steelMat); d.position.set(x, 12, -1.1); dowelGroup.add(d);
+  const tip = new THREE.Mesh(new THREE.ConeGeometry(0.1875, 0.5, 20), steelMat);
+  tip.rotation.x = -Math.PI / 2; tip.position.set(x, 12, -2.95); tip.castShadow = true; dowelGroup.add(tip);
+  // collar at the wall
+  const collar = zCyl(0.34, 0.34, 0.4, darkSteel); collar.position.set(x, 12, 0.2); dowelGroup.add(collar);
+}
+// --- matching bushings on the BASE wall (steel rings + dark bore) ---
+for (const x of [-19, 19]) {
+  const bush = zCyl(0.42, 0.42, 1.0, darkSteel); bush.position.set(x, 12, -0.5); base.add(bush);
+  const bore = zCyl(0.22, 0.22, 1.2, new THREE.MeshStandardMaterial({ color: 0x10141a, roughness: 1 }));
+  bore.position.set(x, 12, -0.5); base.add(bore);
+  const flange = zCyl(0.55, 0.55, 0.18, steelMat); flange.position.set(x, 12, 0.02); base.add(flange);
+}
+
+// --- connector builder ---
+function buildPlug(mat, npins) {
+  const g = new THREE.Group();
+  const h = zCyl(0.58, 0.58, 1.5, housing); h.position.z = -0.4; g.add(h);
+  const collar = zCyl(0.72, 0.66, 0.42, mat); collar.position.z = -1.05; g.add(collar);
+  const lockTab = box(0.5, 0.28, 0.5, mat, false); lockTab.position.set(0, 0.62, -0.55); g.add(lockTab);
+  // pins on the tip
+  const ring = npins === 3 ? [[0,0.26],[0.22,-0.13],[-0.22,-0.13]] : [[-0.2,0.2],[0.2,0.2],[-0.2,-0.2],[0.2,-0.2]];
+  for (const [px, py] of ring) {
+    const pin = zCyl(0.075, 0.075, 0.9, steelMat); pin.position.set(px, py, -1.5); g.add(pin);
+  }
+  return g;
+}
+function buildSocket(mat, npins) {
+  const g = new THREE.Group();
+  const shell = zCyl(0.74, 0.74, 1.2, housing); shell.position.z = -0.55; g.add(shell);
+  const face = zCyl(0.74, 0.74, 0.12, mat); face.position.z = 0.0; g.add(face);
+  const bore = zCyl(0.6, 0.6, 1.0, new THREE.MeshStandardMaterial({ color: 0x0d1014, roughness: 1 }));
+  bore.position.z = -0.5; g.add(bore);
+  // sockets (holes) - tiny dark cylinders
+  const ring = npins === 3 ? [[0,0.26],[0.22,-0.13],[-0.22,-0.13]] : [[-0.2,0.2],[0.2,0.2],[-0.2,-0.2],[0.2,-0.2]];
+  for (const [px, py] of ring) {
+    const hole = zCyl(0.1, 0.1, 0.5, new THREE.MeshStandardMaterial({ color: 0x05070a }));
+    hole.position.set(px, py, -0.3); g.add(hole);
+  }
+  return g;
+}
+
+// --- AC powerCON: far-left x=-33, y=6 ---
+pocket(cab, -33, 6, 2.4, 2.4, 0, -1);
+pocket(base, -33, 6, 2.4, 2.4, 0, +1);
+const acPlug = buildPlug(acMat, 3); acPlug.position.set(-33, 6, 0); cab.add(acPlug);
+const acSock = buildSocket(acMat, 3); acSock.position.set(-33, 6, 0); base.add(acSock);
+
+// --- speakON NL4: far-right x=+33, y=6 ---
+pocket(cab, 33, 6, 2.4, 2.4, 0, -1);
+pocket(base, 33, 6, 2.4, 2.4, 0, +1);
+const spkPlug = buildPlug(spkMat, 4); spkPlug.position.set(33, 6, 0); cab.add(spkPlug);
+const spkSock = buildSocket(spkMat, 4); spkSock.position.set(33, 6, 0); base.add(spkSock);
+
+// --- 4 bed bolts: x=+/-29,+/-11 at y=14, crossing the seam (steel + hex head on base side) ---
+const boltGroup = new THREE.Group(); base.add(boltGroup);
+for (const x of [-29, -11, 11, 29]) {
+  const shaft = zCyl(0.26, 0.26, 4.5, darkSteel); shaft.position.set(x, 14, -1.2); boltGroup.add(shaft);
+  const head = zCyl(0.5, 0.5, 0.5, steelMat, 6); head.position.set(x, 14, -3.4); boltGroup.add(head);
+}
+
+// ============================================================
+//  LABELS (CSS2D)
+// ============================================================
+const labelObjs = [];
+function addLabel(text, x, y, z, cls, parent) {
+  const el = document.createElement('div'); el.className = 'lbl ' + (cls || ''); el.innerHTML = text;
+  const o = new CSS2DObject(el); o.position.set(x, y, z); (parent || scene).add(o); labelObjs.push(o); return o;
+}
+addLabel('<b>powerCON TRUE1</b><br>120&#8239;V AC &#183; x&#8722;33, y&#8201;6', -33, 6, -3.4, 'ac', base);
+addLabel('<b>speakON NL4</b><br>speakers L+R &#183; x+33, y&#8201;6', 33, 6, -3.4, 'spk', base);
+addLabel('<b>&#8709;3/8&#8243; locating dowel</b> &#215;2<br>x&#177;19, y&#8201;12 &#183; registers first', 19, 16.5, 0, 'dow', base);
+addLabel('<b>bed bolts</b> &#215;4 &#183; x&#177;29 / &#177;11', -11, 14, -4.2, '', base);
+addLabel('<b>BED BASE</b> &#183; foot end', 0, 8.5, -19.5, '', base);
+const cabLbl = addLabel('<b>TV CABINET</b> &#183; bed-facing wall', 0, 36, 8, '', cab);
+
+// ============================================================
+//  STATE + ANIMATION
+// ============================================================
+const state = { gap: 12, target: 12, auto: false, autoDir: -1, spin: false, exploded: false, ghost: true, labels: true };
+const gapInput = document.getElementById('gap');
+const seamval = document.getElementById('seamval');
+
+function setGhost(on) {
+  state.ghost = on;
+  cabBody.visible = true;
+  ghostMat.opacity = on ? 0.1 : 0.92; ghostMat.depthWrite = !on;
+  for (const m of [cabWallMat, baseWallMat]) { m.transparent = true; m.opacity = on ? 0.22 : 1.0; m.depthWrite = !on; }
+  cubby.visible = true;
+  document.getElementById('bGhost').classList.toggle('on', on);
+}
+function setLabels(on) {
+  state.labels = on; labelObjs.forEach(o => o.visible = on);
+  document.getElementById('bLabels').classList.toggle('on', on);
+}
+function setExploded(on) {
+  state.exploded = on;
+  document.getElementById('bExploded').classList.toggle('on', on);
+}
+
+document.getElementById('bDock').onclick = () => { state.target = 0; state.auto = false; setAuto(false); };
+document.getElementById('bUndock').onclick = () => { state.target = 22; state.auto = false; setAuto(false); };
+function setAuto(on){ state.auto = on; document.getElementById('bAuto').classList.toggle('on', on); }
+document.getElementById('bAuto').onclick = () => setAuto(!state.auto);
+document.getElementById('bGhost').onclick = () => setGhost(!state.ghost);
+document.getElementById('bLabels').onclick = () => setLabels(!state.labels);
+document.getElementById('bExploded').onclick = () => setExploded(!state.exploded);
+document.getElementById('bSpin').onclick = (e) => { state.spin = !state.spin; e.target.classList.toggle('on', state.spin); };
+gapInput.oninput = () => { state.gap = state.target = parseFloat(gapInput.value); state.auto = false; setAuto(false); };
+
+// camera presets
+const views = {
+  iso:  { p: [70, 44, 86], t: [0, 13, 0] },
+  seam: { p: [0, 16, 96], t: [0, 13, 0] },
+  top:  { p: [2, 120, 26], t: [0, 8, -2] },
+  ac:   { p: [-44, 12, 30], t: [-33, 7, 0] },
+  spk:  { p: [44, 12, 30], t: [33, 7, 0] },
+};
+let camAnim = null;
+document.querySelectorAll('[data-cam]').forEach(b => b.onclick = () => {
+  const v = views[b.dataset.cam]; if (!v) return;
+  camAnim = { fp: camera.position.clone(), tp: new THREE.Vector3(...v.p),
+    ft: controls.target.clone(), tt: new THREE.Vector3(...v.t), k: 0 };
+});
+
+// explode offsets (radial push of hardware when exploded)
+function applyExplode(dt) {
+  const amt = state.exploded ? 1 : 0;
+  // smooth
+  applyExplode._a = (applyExplode._a ?? 0) + (amt - (applyExplode._a ?? 0)) * 0.12;
+  const a = applyExplode._a;
+  acPlug.position.x = -33 - a * 5; acSock.position.x = -33 - a * 5;
+  spkPlug.position.x = 33 + a * 5; spkSock.position.x = 33 + a * 5;
+  dowelGroup.position.y = a * 6;
+}
+
+const clock = new THREE.Clock();
+function tick() {
+  const dt = Math.min(clock.getDelta(), 0.05);
+  // auto ping-pong
+  if (state.auto) {
+    if (Math.abs(state.gap - state.target) < 0.15) {
+      state.autoDir *= -1; state.target = state.autoDir < 0 ? 0 : 22;
+    }
+  }
+  // ease gap toward target
+  state.gap += (state.target - state.gap) * Math.min(1, dt * 4.5);
+  cab.position.z = state.gap;
+  if (!document.activeElement || document.activeElement.tagName !== 'INPUT') gapInput.value = state.gap.toFixed(1);
+  seamval.textContent = state.gap.toFixed(1) + '″';
+
+  applyExplode(dt);
+  if (state.spin) { controls.autoRotate = true; controls.autoRotateSpeed = 0.9; } else controls.autoRotate = false;
+
+  // mate glow: when nearly docked, pulse connector emissive
+  const mated = state.gap < 0.6 ? 1 : 0;
+  acMat.emissiveIntensity = 0.5 + mated * 0.9;
+  spkMat.emissiveIntensity = 0.5 + mated * 0.9;
+
+  // camera tween
+  if (camAnim) {
+    camAnim.k = Math.min(1, camAnim.k + dt * 1.8);
+    const e = camAnim.k < .5 ? 2*camAnim.k*camAnim.k : 1 - Math.pow(-2*camAnim.k+2,2)/2;
+    camera.position.lerpVectors(camAnim.fp, camAnim.tp, e);
+    controls.target.lerpVectors(camAnim.ft, camAnim.tt, e);
+    if (camAnim.k >= 1) camAnim = null;
+  }
+  controls.update();
+  renderer.render(scene, camera);
+  labelRenderer.render(scene, camera);
+  requestAnimationFrame(tick);
+}
+
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight); labelRenderer.setSize(innerWidth, innerHeight);
+});
+
+setGhost(true); setLabels(true);
+tick();
+
+// readiness probe (no screenshot needed)
+window.__BFD09 = { ready: true, gap: () => state.gap,
+  parts: { dowels: 2, bolts: 4, connectors: ['powerCON@-33,6', 'speakON@+33,6'] } };
+</script>
+</body>
+</html>
