@@ -86,6 +86,10 @@
   <div class="slab"><label>Seam gap</label><input id="gap" type="range" min="0" max="24" step="0.1" value="12"><span id="seamval">12.0&#8243;</span></div>
   <div class="row" style="margin-top:6px">
     <button id="bGhost">Ghost / X&#8209;ray</button>
+    <button id="bLabels">Labels</button>
+    <button id="bWires">Wires</button>
+  </div>
+  <div class="row">
     <button id="bSpin">Auto&#8209;spin</button>
   </div>
 </div>
@@ -149,7 +153,7 @@ const rim = new THREE.DirectionalLight(0xffffff, 0.30); rim.position.set(0, 30, 
 
 const ground = new THREE.Mesh(new THREE.PlaneGeometry(700, 700), new THREE.MeshStandardMaterial({ color: 0x141a22, roughness: 1 }));
 ground.rotation.x = -Math.PI / 2; ground.position.y = -0.05; ground.receiveShadow = true; scene.add(ground);
-scene.add(new THREE.GridHelper(360, 72, 0x2a3645, 0x1b232e));
+const grid = new THREE.GridHelper(300, 24, 0x1e2731, 0x161d27); grid.material.transparent = true; grid.material.opacity = 0.4; scene.add(grid);
 
 // ---- shared geometry (identical to BF-M01) ----
 const mats = makeMaterials();
@@ -173,6 +177,7 @@ scene.add(baseGroup, cabinetGroup);
 
 const dock = buildDockHardware({ cabGroup: cabinetGroup, baseGroup });
 const acMat = dock.acMat, spkMat = dock.spkMat;
+groups.wiring.visible = false;   // cable wires off by default (toggle with "Wires")
 
 // solid (opaque) by default so the model is clearly visible; Ghost toggles see-through
 function setGhost(on) {
@@ -194,9 +199,10 @@ addLabel('<b>&#8709;3/8&#8243; dowels</b> seat first', 19, 17, SEAM, 'dow');
 addLabel('<b>bed bolts &#215;4</b>', -11, 14, SEAM - 4.6, '');
 addLabel('<b>BED BASE</b>', 0, 19, 52, '');
 addLabel('<b>TV CABINET</b>', 0, 37, SEAM + 8, '', cabinetGroup);
+dockLabels.forEach(o => o.visible = false);   // labels off by default (toggle with "Labels")
 
 // ---- state + UI ----
-const state = { gap: 12, target: 12, auto: false, dir: -1, spin: false, ghost: false };
+const state = { gap: 12, target: 12, auto: false, dir: -1, spin: false, ghost: false, labels: false, wires: false };
 const gapInput = document.getElementById('gap'), seamval = document.getElementById('seamval');
 function setBtn(id, on) { const b = document.getElementById(id); if (b) b.classList.toggle('on', on); }
 function go(id, fn) { const b = document.getElementById(id); if (b) b.onclick = fn; }
@@ -204,6 +210,8 @@ go('bDock', () => { state.target = 0; state.auto = false; setBtn('bAuto', false)
 go('bUndock', () => { state.target = 22; state.auto = false; setBtn('bAuto', false); });
 go('bAuto', () => { state.auto = !state.auto; setBtn('bAuto', state.auto); });
 go('bGhost', () => { state.ghost = !state.ghost; setGhost(state.ghost); });
+go('bLabels', () => { state.labels = !state.labels; dockLabels.forEach(o => o.visible = state.labels); setBtn('bLabels', state.labels); });
+go('bWires', () => { state.wires = !state.wires; groups.wiring.visible = state.wires; setBtn('bWires', state.wires); });
 go('bSpin', () => { state.spin = !state.spin; setBtn('bSpin', state.spin); });
 if (gapInput) gapInput.oninput = () => { state.gap = state.target = parseFloat(gapInput.value); state.auto = false; setBtn('bAuto', false); };
 
