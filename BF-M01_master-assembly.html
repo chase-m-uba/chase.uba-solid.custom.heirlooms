@@ -167,7 +167,8 @@
 {
   "imports": {
     "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/",
+    "bf-geometry": "./bf-geometry.js"
   }
 }
 </script>
@@ -299,57 +300,9 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+import { SPEC, buildBedBase, buildFootboardAndLift } from 'bf-geometry';
 
-const SPEC = Object.freeze({
-  W: 130,
-  H: 72,
-  D: 8,
-  topCapH: 2,
-  bottomCapH: 2,
-  sideW: 2,
-  panelTh: 1.0,
-  skinTh: 1.0,
-  frontPanelSeamAFF: 36,
-  loadReceiverRailDepth: 7,
-  mullionW: 4,
-  seamX: 36,
-  uDrop: 4,
-  uFrontLand: 1.5,
-  uGap: 1.75,
-  uCenterLand: 1.5,
-  uRearLand: 1.5,
-  speaker: {
-    weightLb: 28.4,
-    cutW: 11.26,
-    cutH: 20.71,
-    bodyW: 12.6,
-    bodyH: 22.1,
-    bodyD: 5.2,
-    centerX: 51,
-    bottom: 39.25,
-    top: 60
-  },
-  nightstand: { W: 26, D: 20, H: 11, bottom: 17, top: 28, centerX: 51, drwFaceH: 7.5, lipH: 1.4 },
-  switchPanel: {
-    W: 1.5,
-    H: 6.0,
-    D: 0.55,
-    centerY: 37.25,
-    buttonsAFF: [35.0, 36.5, 38.0, 39.5],
-    buttonDia: 12 / 25.4,
-    wireChaseDia: 0.5
-  },
-  base: { W: 74, L: 85, top: 17, bayW: 67, bayL: 81, shoulder: 3.5, toeH: 2.0, toeInset: 1.5, carcassBottom: 2.0 },
-  drawer: { perSide: 3, intH: 10.75, intW: 19, intD: 33, recess: 1.5, faceH: 12.0, faceGap: 0.25 },
-  footboard: { W: 74, H: 41, D: 16, sideTh: 2.0, faceTh: 1.0, deckTh: 1.0, rearTh: 0.75 },
-  lift: { travel: 36, retractBody: 31, raised: 68.5, baseW: 28.375, basePlateW: 9.875, basePlateD: 5.125, bodyD: 7.0, deckTopY: 8.0 },
-  tv: { W: 48.0, H: 27.8, D: 1.5, retractBottom: 11.95, raisedBottom: 47.0 },
-  lid: { W: 60, D: 14.25, T: 1.0, flushTop: 41, raisedTop: 76 },
-  soundbar: { W: 51.18, H: 2.5, D: 4.45, retractBottom: 8.35, raisedBottom: 43.35 },
-  cubby: { clearH: 6.0, W: 70, D: 14.25, floorY: 1.0 },
-  fullBedZ: { headBack: -8, headFront: 0, baseHead: 0, baseFoot: 85, footBack: 85, footFront: 101 }
-});
-
+// SPEC now imported from bf-geometry.js (single source of truth).
 window.__BF_HEADBOARD_GHOST = {
   pass: true,
   conceptOnly: true,
@@ -1478,123 +1431,10 @@ function addBaseSideBoltHead(x, y) {
 }
 
 function addFullBedBase() {
-  const B = SPEC.base;
-  const DWR = SPEC.drawer;
-  const group = groups.bedBase;
-  box(group, 'BF-BASE toe plinth ghost', B.W - 2 * B.toeInset, B.toeH, B.L - 2 * B.toeInset, 0, B.toeH / 2, baseMidZ, mats.baseWood, { edgeColor: 0x5f411a, edgeOpacity: 0.46 });
-  // Side exoskeleton as a FACE FRAME: a continuous TOP rail + BOTTOM rail per side with the 3 drawer OPENINGS between
-  // them, so a pulled drawer reveals the open bay (not solid wood). The divider walls frame the opening sides and the
-  // toe plinth ties the bottom; the top + bottom rails keep the continuous head-to-foot anti-racking load path.
-  [-1, 1].forEach(s => {
-    const xc = s * (B.W / 2 - 1.2);
-    box(group, `BF-BASE ${s < 0 ? 'left' : 'right'} continuous side exoskeleton chord top rail`, 2.4, 2.6, B.L, xc, 15.7, baseMidZ, mats.baseStructure);
-    box(group, `BF-BASE ${s < 0 ? 'left' : 'right'} continuous side exoskeleton chord bottom rail`, 2.4, 1.4, B.L, xc, 2.7, baseMidZ, mats.baseStructure);
-    // side-frame STILES close the opening where there is NO drawer (head end, between drawers, foot end) so the SIDE
-    // reads as solid wood there -- not a hole into the bay or the foot wiring gap.
-    [[3.8, 2.8], [30.65, 0.6], [56.35, 0.6], [81.8, 1.6]].forEach(([sz, sl], k) => box(group, `BF-BASE ${s < 0 ? 'left' : 'right'} side frame stile ${k}`, 2.4, 11, sl, xc, 8.9, sz, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false }));
-  });
-  box(group, 'BF-BASE head rail receiver face', B.W, B.top, 2.4, 0, B.top / 2, 1.2, mats.baseStructure);
-  box(group, 'BF-BASE foot rail receiver face', B.W, B.top, 2.4, 0, B.top / 2, B.L - 1.2, mats.baseStructure);
-  box(group, 'BF-BASE center spine continuous', 3.0, B.top - B.toeH, B.L, 0, (B.top + B.toeH) / 2, baseMidZ, mats.baseStructure);
-  box(group, 'BF-BASE left mattress shoulder rail', 2.0, 0.8, B.bayL, -B.bayW / 2 - 0.9, B.top + 0.15, 2 + B.bayL / 2, mats.baseWood);
-  box(group, 'BF-BASE right mattress shoulder rail', 2.0, 0.8, B.bayL, B.bayW / 2 + 0.9, B.top + 0.15, 2 + B.bayL / 2, mats.baseWood);
-  box(group, 'BF-BASE head mattress shoulder rail', B.bayW, 0.8, 1.6, 0, B.top + 0.15, 2.8, mats.baseWood);
-  box(group, 'BF-BASE foot mattress shoulder rail', B.bayW, 0.8, 1.6, 0, B.top + 0.15, 82.2, mats.baseWood);
-
-  for (let i = 0; i < 13; i += 1) {
-    const z = 5.5 + i * 6.15;
-    box(groups.slats, `BF-BASE removable slat ${i + 1}`, B.bayW, 0.45, 1.25, 0, 16.25, z, mats.ghost, { edgeColor: 0xe2e8f0, edgeOpacity: 0.34, cast: false });
-  }
-
-  // 6 deep full-extension drawers (3/side). Each bay is framed by divider walls that carry the slides (ref photo);
-  // the moving drawer sits in its own group so the Drawers slider pulls it out in X. Depth clears the center spine.
-  const drawerSpan = (B.L - 5 - 3) / 3;                       // 25.67 in -- bay length along the bed
-  const drawerDepth = 32.6;                                   // pull depth (X); inner edge stops 2 in from the centre spine (spine face at +-1.5)
-  [-1, 1].forEach(side => {
-    const faceX = side * (B.W / 2 + 0.08);
-    const boxXc = side * (B.W / 2 - 0.9 - drawerDepth / 2);   // drawer-box X centre (behind the face, toward centre)
-    const wallXc = side * (B.W / 2 - 0.9 - (drawerDepth + 1) / 2);
-    // divider / frame walls per side -- a wall between each drawer bay that the full-extension slides mount to.
-    [0, 1, 2].forEach(w => box(group, `BF-BASE drawer divider wall ${side < 0 ? 'L' : 'R'} ${w}`, drawerDepth + 1, DWR.intH + 1.6, 1.0, wallXc, 8.7, 5 + w * drawerSpan, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false }));
-    // FOOT drawer-rail support wall = ONE L-shaped piece: the slide leg sits at z=81 to meet the 1 in-short foot drawer,
-    // and the top return covers the 1 in wiring gap so an OPEN drawer shows a solid wall, not a hole into the cable space.
-    box(group, `BF-BASE foot drawer-rail support wall (L) slide leg ${side < 0 ? 'L' : 'R'}`, drawerDepth + 1, DWR.intH + 1.6, 1.0, wallXc, 8.7, 81, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false });
-    box(group, `BF-BASE foot drawer-rail support wall (L) gap-cover return ${side < 0 ? 'L' : 'R'}`, drawerDepth + 1, 1.0, 2.6, wallXc, 14.4, 82.3, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false });
-    // 5-SIDED drawer pocket: floor (bottom deck) + 2 divider walls + this TOP dust cover + a BACK wall = enclosed on 5
-    // sides (open only at the front for the drawer). Dust cannot settle into a closed drawer, and the centre wiring
-    // chase is walled off so cables never touch the drawer.
-    box(group, `BF-BASE drawer-bay TOP dust cover ${side < 0 ? 'L' : 'R'}`, drawerDepth, 0.6, 77, boxXc, 14.7, 43.5, mats.baseWood, { edgeColor: 0x5f411a, edgeOpacity: 0.4, cast: false });
-    box(group, `BF-BASE drawer-bay BACK wall (walls off the centre wiring chase) ${side < 0 ? 'L' : 'R'}`, 0.5, DWR.intH + 1.6, 77, side * 2.9, 8.7, 43.5, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false });
-    for (let i = 0; i < DWR.perSide; i += 1) {
-      const z = 5 + drawerSpan / 2 + i * drawerSpan;
-      const sName = side < 0 ? 'left' : 'right', sAbbr = side < 0 ? 'L' : 'R';
-      // the foot drawer is 1 in short on its foot side, so its foot-side slide (and support wall) move IN to match.
-      const isFoot = i === DWR.perSide - 1, gap = isFoot ? 1.0 : 0;
-      // STATIONARY full-extension slide rail (cabinet member) on each adjacent divider wall; foot-side moves in by gap.
-      [z - drawerSpan / 2 + 0.6, z + drawerSpan / 2 - 0.6 - gap].forEach((sz, s) => box(group, `BF-BASE full-extension slide rail (cabinet) ${sAbbr} ${i + 1}-${s}`, drawerDepth, 0.5, 0.32, boxXc, 11.6, sz, mats.steel, { edgeColor: 0x60a5fa, edgeOpacity: 0.45, cast: false }));
-      // MOVING drawer in its own group (face + box + interior + bevel pull + drawer slide member)
-      const dg = new THREE.Group(); group.add(dg); drawerGroups.push({ g: dg, axis: 'x', dir: side, ext: drawerDepth - 2 });
-      box(dg, `BF-BASE drawer face ${sName} ${i + 1}`, 0.7, DWR.faceH, drawerSpan - 0.5, faceX, 8.6, z, mats.baseWood, { edgeColor: 0x604618, edgeOpacity: 0.52 });
-      // real OPEN-TOP drawer (floor + 4 walls, NO lid). The drawer CLOSEST TO THE FOOTBOARD (last) is 1 in SHORTER on
-      // the foot side to leave a wiring gap; its FACE stays full size (built above), so all faces look identical from
-      // outside while a 1 in cable chase opens behind it for the TV-box -> base-centre -> headboard run.
-      const dW = drawerDepth, dH = DWR.intH, dL = drawerSpan - 2.0 - gap, tw = 0.5, dyc = 8.8, bz = z - gap / 2;
-      box(dg, `BF-BASE drawer ${sName} ${i + 1} floor`, dW, tw, dL, boxXc, dyc - dH / 2 + tw / 2, bz, mats.baseWood, { edgeColor: 0x8a6a32, edgeOpacity: 0.42, cast: false });
-      box(dg, `BF-BASE drawer ${sName} ${i + 1} inner wall`, tw, dH, dL, boxXc - side * (dW / 2 - tw / 2), dyc, bz, mats.baseWood, { edgeColor: 0x8a6a32, edgeOpacity: 0.42, cast: false });
-      box(dg, `BF-BASE drawer ${sName} ${i + 1} front wall`, tw, dH, dL, boxXc + side * (dW / 2 - tw / 2), dyc, bz, mats.baseWood, { edgeColor: 0x8a6a32, edgeOpacity: 0.42, cast: false });
-      box(dg, `BF-BASE drawer ${sName} ${i + 1} side wall A`, dW, dH, tw, boxXc, dyc, bz - dL / 2 + tw / 2, mats.baseWood, { edgeColor: 0x8a6a32, edgeOpacity: 0.42, cast: false });
-      box(dg, `BF-BASE drawer ${sName} ${i + 1} side wall B`, dW, dH, tw, boxXc, dyc, bz + dL / 2 - tw / 2, mats.baseWood, { edgeColor: 0x8a6a32, edgeOpacity: 0.42, cast: false });
-      const bbev = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.12, drawerSpan - 1.0), mats.baseWood);
-      bbev.position.set(faceX + side * 0.1, 14.35, z); bbev.rotation.z = -side * Math.PI / 4; bbev.castShadow = false;
-      bbev.name = `BF-BASE drawer ${sName} ${i + 1} beveled top-edge pull (handle-less sharknose)`;
-      dg.add(bbev);
-      [z - drawerSpan / 2 + 0.6, z + drawerSpan / 2 - 0.6 - gap].forEach((sz, s) => box(dg, `BF-BASE full-extension slide (drawer) ${sAbbr} ${i + 1}-${s}`, drawerDepth - 1, 0.34, 0.2, boxXc, 11.6, sz, mats.darkSteel, { edgeOpacity: 0.22, cast: false }));
-    }
-  });
-
-  [-36, -4, 4, 36].forEach(x => [5, 14.5].forEach(y => addBaseSideBoltHead(x, y)));
-  // cable pass-through bores THROUGH the base structure, aligned with the footboard's 2 in side ports (x +-31.5),
-  // so the electrical path is continuous and the holes are visible from the base even with the TV cabinet hidden.
-  // (No base SIDE cable chase: the deep side drawers fill the base sides, so ALL bed cabling runs the clear CENTRE
-  //  chase below. Footboard/cubby cables -- AC mains, LV/HDMI -- stay inside the TV cabinet and enter via its own ports.)
-  label('all bed cabling runs the CENTRE chase (side bays are full of drawers)', 0, 14.8, B.L - 9, 'blue', 'base');
-  // CENTRE cable chase for the TV-box -> headboard run (owner-requested): the foot drawer is 1 in short on its foot
-  // side, opening a gap behind its full-size face; the cable drops through that gap, runs up the CENTRE alongside the
-  // spine, and passes through a centre head-rail bore into the headboard -- not a side port.
-  box(groups.wiring, 'BF-BASE foot-gap cable drop behind the 1 in-short foot drawer', 5, 7, 1.8, 0, 9, 82, mats.void, { edgeColor: 0x38bdf8, edgeOpacity: 0.66, cast: false });
-  [-2, 2].forEach(x => {
-    box(groups.wiring, `BF-BASE centre foot-rail cable bore (TV-box run crosses the foot rail) x=${x}`, 1.4, 2.0, 2.8, x, 7, B.L - 1.2, mats.void, { edgeColor: 0x38bdf8, edgeOpacity: 0.72, cast: false });
-    box(groups.wiring, `BF-BASE centre base-to-headboard cable bore (head rail + bottom cap -> rear cavity) x=${x}`, 1.4, 2.2, 8.4, x, 1, -1.8, mats.void, { edgeColor: 0x38bdf8, edgeOpacity: 0.66, cast: false });
-    cyl(groups.wiring, `BF-BASE centre cable run foot-gap to head x=${x}`, 0.3, 80, x, 7, 42, mats.cableSpeaker, 'z', { segments: 16, cast: false });
-  });
-  // CENTRE cable raceway: a routed channel up the rear of the receiver ladder (the receiver/nightstand rails are solid
-  // z -1..-8), so the speaker + 24V verticals run in a DRILLED raceway, not through solid rail.
-  [-2, 2].forEach(x => box(groups.wiring, `centre cable raceway through receiver ladder x=${x}`, 1.4, 41, 1.4, x, 21.5, -5, mats.void, { edgeColor: 0x22d3ee, edgeOpacity: 0.5, cast: false }));
-  // cable bores through each mullion at the speaker-terminal height (ABOVE every rail), so the centre-fed speaker run crosses the collector through a DRILLED hole (not solid wood) to the side-bay speaker.
-  [-36, 36].forEach(x => box(groups.wiring, `mullion cable bore (speaker crossing) x=${x}`, 4.4, 1.4, 1.4, x, SPEC.speaker.bottom + 2, -5, mats.void, { edgeColor: 0x22d3ee, edgeOpacity: 0.6, cast: false }));
-  label('centre cable chase: foot gap -> up the spine -> bottom-frame bore -> headboard rear cavity', 0, 9.2, 60, 'blue', 'base');
-  // Grounded ORTHOGONAL cable runs (no diagonals): they follow the side ports, the base chase, the head pass-through,
-  // and the headboard verticals/rails -- never a straight diagonal through space.
-  // AC mains: wall -> LEFT footboard side port -> cubby strip. Stays INSIDE the TV cabinet (does not enter the bed base).
-  line3(groups.wiring, 'AC mains: left footboard side port -> cubby strip', [
-    [-31.5, 5.5, 90], [-31.5, 5.5, 93], [-10, 5.5, 93], [-10, 4, 93]
-  ], 0xf97316, 0.86);
-  // LV / HDMI / control: sources -> RIGHT footboard side port -> cubby gear (TV-cabinet internal).
-  line3(groups.wiring, 'LV/HDMI/control: right footboard side port -> cubby gear', [
-    [31.5, 5.5, 90], [31.5, 5.5, 93], [10, 5.5, 93], [10, 4, 93]
-  ], 0x38bdf8, 0.86);
-  // 24 V + Casambi to the headboard: base hub -> centre bottom-frame bore -> up the OPEN rear cavity to the top-cap LED
-  // (no longer threaded up the solid mullion).
-  line3(groups.wiring, '24V + Casambi: base hub -> centre bore -> up the rear cavity to the top-cap LED', [
-    [-2, 7, 6], [-2, 7, 2.5], [-2, 1, 2.5], [-2, 1, -5], [-2, 66, -5], [-2, 70, -5], [-2, 70, -4]
-  ], 0x38bdf8, 0.8);
-  label('74 x 85 grounded base; central spine and continuous side exoskeleton', 0, 19.5, 43, 'blue', 'base');
-  label('base/headboard bolts align to x=-36,-4,+4,+36 at AFF 5 and 14.5', 0, 17.5, 2.8, 'steel', 'base');
-  pieceLabel('BF-BASE-L-CHORD', 'left side chord (top+bottom rails, drawer openings between)', -36.5, 15.7, 42.5, '2.4 rails x 85', 'base');
-  pieceLabel('BF-BASE-R-CHORD', 'right side chord (top+bottom rails, drawer openings between)', 36.5, 15.7, 42.5, '2.4 rails x 85', 'base');
-  pieceLabel('BF-BASE-SPINE', 'base center spine', 0, 10, 42.5, '3 x 15 x 85', 'base');
+  // Geometry lives in bf-geometry.js (single source of truth, shared with BF-D09).
+  return buildBedBase({ box, cyl, line3, mats, groups, label, pieceLabel, drawerGroups });
 }
-
+// (retired) addFullBedBase geometry now lives in bf-geometry.js -> buildBedBase().
 function addDetailedNightstands() {
   const N = SPEC.nightstand;
   [-1, 1].forEach(side => {
@@ -1637,103 +1477,10 @@ function addDetailedNightstands() {
 }
 
 function addFootboardAndLift() {
-  const F = SPEC.footboard;
-  const C = SPEC.cubby;
-  const L = SPEC.lift;
-  const group = groups.footboard;
-  const cubbyCeilY = L.deckTopY - F.deckTh;                 // 7.0 — cubby ceiling = raised-deck underside
-  // cabinet shell
-  box(group, 'FB left side panel ghost', F.sideTh, F.H, F.D, -F.W / 2 + F.sideTh / 2, F.H / 2, footMidZ, mats.footWood);
-  box(group, 'FB right side panel ghost', F.sideTh, F.H, F.D, F.W / 2 - F.sideTh / 2, F.H / 2, footMidZ, mats.footWood);
-  box(group, 'FB bed-side service/back wall ghost (solid; no cubby holes)', F.W, F.H, F.rearTh, 0, F.H / 2, ZB.footBack + F.rearTh / 2, mats.footWood);
-  box(group, 'FB bottom deck / cubby floor (single floor)', F.W - 2 * F.sideTh, F.deckTh, F.D, 0, F.deckTh / 2, footMidZ, mats.footWood, { edgeColor: 0x5f411a, edgeOpacity: 0.4 });
-  // front APRON closes the upper front ABOVE the cubby ceiling only — the cubby opens at the lower front and the
-  // upper TV/lift compartment is NOT visible from outside (no horizontal slit / sightline).
-  const apronH = F.H - cubbyCeilY;
-  box(group, 'FB front apron (closes upper front above cubby; no lift-compartment sightline)', F.W - 2 * F.sideTh, apronH, F.faceTh, 0, cubbyCeilY + apronH / 2, ZB.footFront - F.faceTh / 2, mats.footWood, { edgeColor: 0x5f411a, edgeOpacity: 0.42 });
-  // empty open cubby: the BOTTOM DECK above IS the single cubby floor (no second floor); flat raised lift deck
-  // (= ceiling) at 8 AFF; two FULL-HEIGHT ribs (floor to ceiling) -> three clean bays.
-  box(group, 'FB flat raised lift deck / cubby ceiling 8 AFF', C.W, F.deckTh, C.D, 0, L.deckTopY - F.deckTh / 2, footMidZ, mats.footWood, { edgeColor: 0x5f411a, edgeOpacity: 0.4 });
-  box(group, 'FB left front-to-back lift-deck rib', 1.25, C.clearH, C.D, -15.625, C.floorY + C.clearH / 2, footMidZ, mats.footWood);
-  box(group, 'FB right front-to-back lift-deck rib', 1.25, C.clearH, C.D, 15.625, C.floorY + C.clearH / 2, footMidZ, mats.footWood);
-  // 4 rear-edge cubby-ceiling U-notches (cables rise to the carriage); NO rear-wall cubby holes, NO devices
-  [-25.625, -5, 5, 25.625].forEach((x, i) => {
-    box(group, `FB cubby rear-edge ceiling U-notch ${i + 1}`, 1.25, 1.25, 0.9, x, cubbyCeilY, ZB.footBack + F.rearTh + 0.45, mats.void, { edgeColor: 0x38bdf8, edgeOpacity: 0.78, cast: false });
-  });
-  // 2 side service pass-throughs (LEFT AC / RIGHT LV-data) on the bed-side wall, outside the AV travel zone
-  [-31.5, 31.5].forEach((x, i) => {
-    cyl(group, `FB ${i === 0 ? 'AC/power' : 'LV/data'} 2 in side pass-through`, 1.0, F.rearTh + 0.2, x, 12, ZB.footBack + F.rearTh / 2, i === 0 ? mats.cableAC : mats.cableLV, 'z', { segments: 40, cast: false });
-    label(`${i === 0 ? 'LEFT AC/power' : 'RIGHT LV/data'}\n2 in side pass-through`, x, 14.2, ZB.footBack - 1.0, i === 0 ? 'warn' : 'blue', 'footboard');
-  });
-  // fixed top deck closes the gaps beside the rising lid -> the top reads as a closed cabinet surface,
-  // the only opening being the controlled central lid slot/reveal.
-  const topInX = F.W / 2 - F.sideTh, lidHalf = SPEC.lid.W / 2 + 0.25, topY = F.H - 0.5;
-  const fillerW = topInX - lidHalf, topD = F.D - F.rearTh - F.faceTh;
-  // fixed top fillers close the gaps beside the lid with NO edge outlines, so the top reads as ONE continuous cabinet
-  // surface (the only opening is the central lid slot) -- matches the BF-M01 production top, not separate "wings".
-  [-1, 1].forEach(s => box(group, `FB fixed top filler ${s < 0 ? 'left' : 'right'} (closes gap beside lid slot)`, fillerW, 1.0, topD, s * (lidHalf + fillerW / 2), topY, ZB.footBack + F.rearTh + topD / 2, mats.footWood, { edges: false }));
-  label('TV-lift footboard 74 x 41 x 16: apron closes the upper front; cubby opens below; fixed fillers close the top beside the lid slot', 0, 44, footMidZ, 'gold', 'footboard');
-  label('empty flat cubby (3 bays / 2 ribs); 4 rear-edge ceiling U-notches; 2 side pass-throughs; no rear-wall holes; no devices', 0, 9.5, ZB.footBack - 1.4, 'blue', 'footboard');
-  pieceLabel('FB-CAB-01', 'TV-lift footboard cabinet ghost', 0, 41.8, footMidZ, '74 x 41 x 16', 'footboard');
-
-  // ---- Touchstone 23401 built bit-by-bit to the vendor dimensional drawing + manual p13 ----
-  // 8 mount points: 6 FLOOR (3 each side) + 2 REAR (back wall). 2-stage telescoping column; 28.375 TV bracket on top.
-  const lift = groups.liftSystem, bpTop = L.deckTopY + 0.4;
-  const bodyW = 5.5, bodyH = 22, bodyD = 3.6;
-  // 1) FLOOR BASE PLATE 9.875 W x 5.125 D (sheet-metal plate on the cabinet floor / 8 in deck)
-  box(lift, 'Touchstone 23401 floor base plate 9.875 x 5.125', L.basePlateW, 0.4, L.basePlateD, 0, L.deckTopY + 0.2, liftCenterZ, mats.liftSteel, { edgeColor: 0xd1d5db, edgeOpacity: 0.5 });
-  // 6 FLOOR MOUNT HOLES (manual p13: 3 each side of the lift) -- where the lift bolts into the box floor (+ screw heads)
-  [-3.55, 3.55].forEach(hx => [liftCenterZ - 1.7, liftCenterZ, liftCenterZ + 1.7].forEach(hz => {
-    cyl(lift, `Touchstone floor mount hole x=${hx} z=${hz.toFixed(1)}`, 0.22, 0.55, hx, L.deckTopY + 0.2, hz, mats.darkSteel, 'y', { segments: 18, cast: false });
-    cyl(lift, `Touchstone floor mount screw head x=${hx} z=${hz.toFixed(1)}`, 0.3, 0.12, hx, L.deckTopY + 0.44, hz, mats.steel, 'y', { segments: 18, cast: false });
-  }));
-  // 2) STATIONARY OUTER BODY / HOUSING (rectangular sheet-metal column) + front seam + service holes
-  box(lift, 'Touchstone stationary outer body / housing', bodyW, bodyH, bodyD, 0, bpTop + bodyH / 2, liftCenterZ, mats.liftSteel, { edgeColor: 0xd1d5db, edgeOpacity: 0.5 });
-  box(lift, 'Touchstone body front seam', bodyW - 0.5, bodyH - 1.0, 0.05, 0, bpTop + bodyH / 2, liftCenterZ - bodyD / 2 - 0.03, mats.steel, { edgeOpacity: 0.16, cast: false });
-  [bpTop + 5, bpTop + 11, bpTop + 17].forEach(sy => cyl(lift, `Touchstone body service hole y=${sy.toFixed(0)}`, 0.16, 0.12, 0, sy, liftCenterZ - bodyD / 2 - 0.05, mats.darkSteel, 'z', { segments: 14, cast: false }));
-  // 3) 2 REAR MOUNT TABS on the back of the body (manual p13: 2 back-wall screws), each with a hole
-  [bpTop + bodyH - 7, bpTop + bodyH - 2.5].forEach(ty => {
-    box(lift, `Touchstone rear mount tab y=${ty.toFixed(0)}`, 3.4, 1.5, 0.5, 0, ty, liftBackerZ - 0.25, mats.liftSteel, { edgeColor: 0xd1d5db, edgeOpacity: 0.5, cast: false });
-    [-1.0, 1.0].forEach(tx => cyl(lift, `Touchstone rear mount hole x=${tx} y=${ty.toFixed(0)}`, 0.16, 0.6, tx, ty, liftBackerZ - 0.25, mats.darkSteel, 'z', { segments: 14, cast: false }));
-  });
-  // 4) MIDDLE telescoping stage (emerges from the body) -> liftStage1 (half stroke)
-  box(liftStage1, 'Touchstone middle telescoping stage', bodyW - 1.4, bodyH - 2, bodyD - 0.8, 0, bpTop + (bodyH - 2) / 2 + 0.7, liftCenterZ, mats.steel, { edgeColor: 0xd1d5db, edgeOpacity: 0.45 });
-  // 5) INNER mast + TV bracket -> liftCarriage (full stroke)
-  const car = liftCarriage, carMidY = SPEC.tv.retractBottom + SPEC.tv.H / 2;          // ~25.85 (TV center, retracted)
-  box(car, 'Touchstone inner mast (telescoping)', bodyW - 2.6, bodyH - 3, bodyD - 1.4, 0, bpTop + (bodyH - 3) / 2 + 0.9, liftCenterZ, mats.liftSteel, { edgeColor: 0xd1d5db, edgeOpacity: 0.45 });
-  box(car, 'Touchstone TV bracket central mount plate', 5.5, 12, 0.5, 0, carMidY, liftFrontZ + 0.15, mats.liftSteel, { edgeOpacity: 0.32 });
-  [['upper', carMidY + 6.4], ['lower', carMidY - 6.4]].forEach(([k, ry]) => box(car, `Touchstone TV bracket ${k} horizontal rail 28.375`, L.baseW, 1.2, 0.55, 0, ry, liftFrontZ - 0.25, mats.steel, { edgeOpacity: 0.34 }));
-  [-6.0, 6.0].forEach(sx => {
-    box(car, `Touchstone vertical slotted VESA strap x=${sx}`, 1.5, 14.5, 0.45, sx, carMidY, liftFrontZ - 0.55, mats.liftSteel, { edgeOpacity: 0.32 });
-    for (let hy = -6; hy <= 6; hy += 1.7) box(car, `VESA slot x=${sx} y=${hy.toFixed(1)}`, 0.42, 0.6, 0.12, sx, carMidY + hy, liftFrontZ - 0.79, mats.darkSteel, { edges: false, cast: false });
-  });
-  cyl(car, 'Touchstone flat-top lid roller', 0.4, 5.5, 0, carMidY + 7.6, liftFrontZ - 0.1, mats.darkSteel, 'x', { segments: 16, cast: false });
-  const tvCenterY = SPEC.tv.retractBottom + SPEC.tv.H / 2;
-  box(car, '55 in Sony OLED ghost panel no stand', SPEC.tv.W, SPEC.tv.H, SPEC.tv.D, 0, tvCenterY, liftScreenZ + SPEC.tv.D / 2, mats.tvGlass, { edgeColor: 0x64748b, edgeOpacity: 0.5 });
-  const sbCenterY = SPEC.soundbar.retractBottom + SPEC.soundbar.H / 2;
-  box(car, 'Sony Bravia Theatre Bar 9 ghost body', SPEC.soundbar.W, SPEC.soundbar.H, SPEC.soundbar.D, 0, sbCenterY, soundbarCenterZ, mats.soundbar, { edgeColor: 0x94a3b8, edgeOpacity: 0.44 });
-  // --- Sanus WSBSBTV1-B2 soundbar TV mount (vendor technical drawing): a central plate + VESA width rails BOLT TO THE
-  //     TV VESA HOLES behind the TV; a vertical height-adjust column drops down; a 43.86 in bottom bar carries two
-  //     arms that project the soundbar 3.6 in FORWARD so its back sits flush with the screen. Co-moves on the carriage.
-  const vz = liftFrontZ - 0.55;                          // TV VESA plane (shared with the lift's TV-mount straps)
-  const sbFrontZ = soundbarFrontZ;                       // soundbar front (toward the viewer)
-  box(car, 'Sanus WSBSBTV1 VESA hub plate (bolts to TV VESA holes, behind TV)', 4.5, 5.0, 0.4, 0, carMidY, vz - 0.35, mats.darkSteel, { edgeColor: 0x94a3b8, edgeOpacity: 0.4 });
-  [carMidY + 2.4, carMidY - 2.4].forEach(ry => box(car, 'Sanus WSBSBTV1 VESA width rail', 16, 0.7, 0.3, 0, ry, vz - 0.55, mats.darkSteel, { edgeColor: 0x94a3b8, edgeOpacity: 0.36, cast: false }));
-  box(car, 'Sanus WSBSBTV1 vertical height-adjust column', 2.6, carMidY - 8.0, 1.5, 0, (carMidY + 8.0) / 2, vz - 0.35, mats.liftSteel, { edgeColor: 0xd1d5db, edgeOpacity: 0.4 });
-  box(car, 'Sanus WSBSBTV1 soundbar mount bar 43.86', 43.86, 1.0, 1.2, 0, 8.0, vz - 0.35, mats.darkSteel, { edgeColor: 0x94a3b8, edgeOpacity: 0.4 });
-  [-21.9, 21.9].forEach(ax => {
-    box(car, `Sanus WSBSBTV1 forward soundbar arm (3.6 in forward) x=${ax}`, 0.6, 0.6, (vz - 0.35) - sbFrontZ, ax, 8.0, ((vz - 0.35) + sbFrontZ) / 2, mats.darkSteel, { edgeColor: 0x94a3b8, edgeOpacity: 0.4, cast: false });
-    box(car, `Sanus WSBSBTV1 soundbar cradle lip x=${ax}`, 0.6, 1.6, 0.3, ax, 8.7, sbFrontZ + 0.15, mats.darkSteel, { edgeColor: 0x94a3b8, edgeOpacity: 0.42, cast: false });
-  });
-  [-5, 5].forEach(bx => [carMidY - 4, carMidY + 4].forEach(by => cyl(car, `Sanus VESA share bolt x=${bx} y=${by.toFixed(0)}`, 0.17, 1.4, bx, by, vz + 0.1, mats.steel, 'z', { segments: 14, cast: false })));
-  box(car, 'ash-faced lightweight connected lid ghost', SPEC.lid.W, SPEC.lid.T, SPEC.lid.D, 0, SPEC.lid.flushTop - SPEC.lid.T / 2, footMidZ, mats.footWood, { edgeColor: 0x5f411a, edgeOpacity: 0.42 });
-  label('Touchstone 23401 per the vendor drawing: 9.875 x 5.125 floor plate w/ 6 floor-mount holes (3/side) + 2 rear-wall tabs; 2-stage telescope; 28.375 TV bracket + slotted VESA straps', 0, 36.5, liftFrontZ - 2.2, 'steel', 'lift');
-  label('6 floor-mount holes (3 each side) bolt the base plate to the 8 AFF deck; 2 rear tabs bolt to the back wall (manual p13)', 0, 6.4, liftCenterZ + 1.0, 'warn', 'lift');
-  label('55 in TV + soundbar retract above the flat 8 AFF deck; no scabbard', 0, 12.2, soundbarFrontZ - 1.2, 'green', 'lift');
-  label('Sanus WSBSBTV1-B2: bolts to the TV VESA holes; column + 43.86 in bar project the soundbar 3.6 in FORWARD (back flush w/ screen); co-moves on the lift', 0, 5.5, soundbarFrontZ - 1.0, 'steel', 'lift');
-  pieceLabel('LIFT-23401', 'Touchstone 23401 ghost mechanism', 0, 32, liftCenterZ - 4.2, '9.875x5.125 plate (6 holes + 2 rear) + body + telescoping mast + 28.375 bracket', 'lift');
+  // Geometry lives in bf-geometry.js (single source of truth, shared with BF-D09).
+  return buildFootboardAndLift({ box, cyl, mats, groups, label, pieceLabel, liftStage1, liftCarriage });
 }
-
+// (retired) addFootboardAndLift geometry now lives in bf-geometry.js -> buildFootboardAndLift().
 // Telescoping lift groups (built in addFootboardAndLift): liftStage1 = middle stage (HALF stroke), liftCarriage =
 // inner mast + TV bracket + TV/soundbar/lid (FULL stroke). The base plate, floor mount holes, outer body and rear
 // tabs stay in groups.liftSystem (stationary). Two stages keep the column overlapped at every height.
