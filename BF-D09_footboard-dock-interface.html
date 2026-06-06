@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <!--
-  BF-D09 - Footboard <-> Base Dock Interface (detail model). HIGHLY DETAILED + ANIMATED.
+  BF-D09 - Footboard <-> Base Dock Interface (detail model, animated).
   The TV cabinet + lower bed are built from bf-geometry.js — the SAME shared builders BF-M01 uses,
-  so this model can never drift from the master. On top, this sheet adds the detachable dock hardware:
-  2x 3/8" steel locating dowels (x=+/-19), powerCON 120V AC (x=-33), speakON NL4 speakers (x=+33),
-  4 bed bolts, recess pockets — and a dock/undock animation.
+  so this model can never drift from the master. On top: the detachable dock hardware
+  (powerCON 120V AC, speakON NL4 speakers, 2 locating dowels, 4 bed bolts) + a dock/undock animation.
   Units: inches. X = width (0 centred), Y = height AFF, Z = head(0) -> foot(+). Seam plane Z = 85.
 -->
 <html lang="en">
@@ -26,8 +25,6 @@
   .lbl.ac { border-color: #e0962f; } .lbl.ac b { color: #f0b35f; }
   .lbl.spk { border-color: #3b6fb0; } .lbl.spk b { color: #79a8dd; }
   .lbl.dow { border-color: #9aa7b6; }
-  .glbl { font-size: 10px; color: #b9c6d6; background: rgba(12,18,27,.7); border: 1px solid rgba(120,140,160,.3);
-    border-radius: 5px; padding: 2px 5px; white-space: pre; transform: translate(-50%, -50%); max-width: 230px; }
   .panel { position: fixed; background: rgba(12,18,27,.84); border: 1px solid rgba(148,163,184,.34);
     border-radius: 10px; backdrop-filter: blur(10px); box-shadow: 0 18px 45px rgba(0,0,0,.35); }
   #hud { left: 14px; top: 14px; width: min(384px, calc(100vw - 28px)); padding: 13px 15px; }
@@ -39,7 +36,7 @@
   #ctrl { left: 14px; bottom: 14px; width: min(330px, calc(100vw - 28px)); padding: 12px 14px; }
   #ctrl h2 { margin: 0 0 9px; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: #9fb2c8; }
   .row { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
-  button { flex: 1 1 auto; min-width: 88px; cursor: pointer; font-size: 12px; font-weight: 600;
+  button { flex: 1 1 auto; min-width: 84px; cursor: pointer; font-size: 12px; font-weight: 600;
     color: #eaf2fb; background: rgba(31,41,55,.7); border: 1px solid rgba(148,163,184,.4);
     border-radius: 7px; padding: 8px 10px; transition: .12s; }
   button:hover { border-color: #22d3ee; background: rgba(15,118,110,.34); }
@@ -72,11 +69,11 @@
 
 <div id="legend" class="panel">
   <h2>Dock hardware</h2>
-  <p><span class="sw" style="background:#e0962f"></span><b>powerCON TRUE1</b> &#8212; 120&#8239;V AC (far&#8209;left, y&#8239;6)</p>
-  <p><span class="sw" style="background:#3b6fb0"></span><b>speakON NL4</b> &#8212; speakers L+R (far&#8209;right, y&#8239;6)</p>
-  <p><span class="sw" style="background:#c2c9d1"></span><b>&#8709;3/8&#8243; dowels &#215;2</b> &#8212; x&#177;19, y&#8239;12 &#183; seat first</p>
-  <p><span class="sw" style="background:#8a9098"></span><b>bed bolts &#215;4</b> &#8212; x&#177;29 / &#177;11</p>
-  <p style="color:#8aa0b6;font-size:11px">Cabinet/base shown translucent (ghost) so the seam reads through. Only AC + speakers cross the seam.</p>
+  <p><span class="sw" style="background:#e0962f"></span><b>powerCON TRUE1</b> &#8212; 120&#8239;V AC (far&#8209;left)</p>
+  <p><span class="sw" style="background:#3b6fb0"></span><b>speakON NL4</b> &#8212; speakers L+R (far&#8209;right)</p>
+  <p><span class="sw" style="background:#c2c9d1"></span><b>&#8709;3/8&#8243; dowels &#215;2</b> &#8212; seat first</p>
+  <p><span class="sw" style="background:#8a9098"></span><b>bed bolts &#215;4</b></p>
+  <p style="color:#8aa0b6;font-size:11px">Hit <b>Ghost</b> to see the connectors through the cabinet.</p>
 </div>
 
 <div id="ctrl" class="panel">
@@ -86,13 +83,9 @@
     <button id="bUndock">&#9664; Undock</button>
     <button id="bAuto">&#8734; Auto</button>
   </div>
-  <div class="slab"><label>Seam gap</label><input id="gap" type="range" min="0" max="24" step="0.1" value="14"><span id="seamval">14.0&#8243;</span></div>
+  <div class="slab"><label>Seam gap</label><input id="gap" type="range" min="0" max="24" step="0.1" value="12"><span id="seamval">12.0&#8243;</span></div>
   <div class="row" style="margin-top:6px">
-    <button id="bSolid">Solid</button>
-    <button id="bDock2" class="on">Dock labels</button>
-    <button id="bGeo">Master labels</button>
-  </div>
-  <div class="row">
+    <button id="bGhost">Ghost / X&#8209;ray</button>
     <button id="bSpin">Auto&#8209;spin</button>
   </div>
 </div>
@@ -116,18 +109,14 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
-import { SPEC, makeMaterials, makeEngine, deriveZ, buildBedBase, buildFootboardAndLift } from 'bf-geometry';
+import { SPEC, makeMaterials, makeEngine, buildBedBase, buildFootboardAndLift, buildDockHardware } from 'bf-geometry';
 
-// ---------- renderer ----------
 const app = document.getElementById('app');
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.setSize(innerWidth, innerHeight);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.05;
-renderer.outputColorSpace = THREE.SRGBColorSpace;
 app.appendChild(renderer.domElement);
 
 const labelRenderer = new CSS2DRenderer();
@@ -139,193 +128,114 @@ document.getElementById('labels').appendChild(labelRenderer.domElement);
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x0e1218);
-scene.fog = new THREE.Fog(0x0e1218, 320, 680);
 
-const camera = new THREE.PerspectiveCamera(43, innerWidth / innerHeight, 0.5, 4000);
-camera.position.set(96, 40, 116);
+const camera = new THREE.PerspectiveCamera(43, innerWidth / innerHeight, 0.5, 3000);
+camera.position.set(94, 40, 120);
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;
-controls.target.set(0, 14, 86);
-controls.minDistance = 16;
+controls.target.set(0, 13, 88);
+controls.minDistance = 14;
 controls.maxDistance = 520;
 
-// ---------- lights ----------
-scene.add(new THREE.HemisphereLight(0xcfe1f2, 0x2a2620, 0.9));
-const key = new THREE.DirectionalLight(0xfff4e2, 1.5);
-key.position.set(70, 110, 120); key.castShadow = true;
+scene.add(new THREE.HemisphereLight(0xcfe1f2, 0x2a2620, 1.05));
+const key = new THREE.DirectionalLight(0xfff4e2, 1.55);
+key.position.set(70, 120, 130); key.castShadow = true;
 key.shadow.mapSize.set(2048, 2048);
-key.shadow.camera.near = 10; key.shadow.camera.far = 420;
-key.shadow.camera.left = -120; key.shadow.camera.right = 120;
-key.shadow.camera.top = 120; key.shadow.camera.bottom = -40;
-key.shadow.bias = -0.0004; scene.add(key);
-const fill = new THREE.DirectionalLight(0x9fc0e6, 0.5); fill.position.set(-80, 50, 40); scene.add(fill);
-const rim = new THREE.DirectionalLight(0xffffff, 0.32); rim.position.set(0, 30, 160); scene.add(rim);
+scene.add(key);
+const fill = new THREE.DirectionalLight(0x9fc0e6, 0.55); fill.position.set(-90, 60, 40); scene.add(fill);
+const rim = new THREE.DirectionalLight(0xffffff, 0.30); rim.position.set(0, 30, 180); scene.add(rim);
 
-// ---------- ground ----------
-const ground = new THREE.Mesh(new THREE.CircleGeometry(340, 64),
-  new THREE.MeshStandardMaterial({ color: 0x141a22, roughness: 1 }));
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(700, 700), new THREE.MeshStandardMaterial({ color: 0x141a22, roughness: 1 }));
 ground.rotation.x = -Math.PI / 2; ground.position.y = -0.05; ground.receiveShadow = true; scene.add(ground);
-const grid = new THREE.GridHelper(340, 68, 0x2a3645, 0x1b232e); scene.add(grid);
+scene.add(new THREE.GridHelper(360, 72, 0x2a3645, 0x1b232e));
 
-// ---------- shared geometry engine + materials (IDENTICAL to BF-M01) ----------
+// ---- shared geometry (identical to BF-M01) ----
 const mats = makeMaterials();
-const { box, cyl, line3, addEdges } = makeEngine();
-const Z = deriveZ();
+const { box, cyl, line3 } = makeEngine();
+const wood = ['footWood', 'baseWood', 'baseStructure', 'shellGhost', 'skin', 'night', 'collector', 'receiver'];
+const woodBaseOpacity = {};
+wood.forEach(k => { if (mats[k]) woodBaseOpacity[k] = mats[k].opacity; });
 
-// host groups the shared builders populate
-const groups = {
-  bedBase: new THREE.Group(), slats: new THREE.Group(), wiring: new THREE.Group(),
-  footboard: new THREE.Group(), liftSystem: new THREE.Group()
-};
+const groups = { bedBase: new THREE.Group(), slats: new THREE.Group(), wiring: new THREE.Group(), footboard: new THREE.Group(), liftSystem: new THREE.Group() };
 const liftStage1 = new THREE.Group(); groups.liftSystem.add(liftStage1);
 const liftCarriage = new THREE.Group(); groups.liftSystem.add(liftCarriage);
 const drawerGroups = [];
+const noop = () => ({ element: { dataset: {} } });
 
-// host label sinks: the master's many labels go to a hidden group; our dock labels are separate
-const geoLabels = new THREE.Group(); geoLabels.visible = false; scene.add(geoLabels);
-function label(text, x, y, z) { const el = document.createElement('div'); el.className = 'glbl'; el.textContent = text;
-  const o = new CSS2DObject(el); o.position.set(x, y, z); geoLabels.add(o); return o; }
-function pieceLabel(id, name, x, y, z, dims) { return label(`${id}\n${name}${dims ? '\n' + dims : ''}`, x, y, z); }
+buildBedBase({ box, cyl, line3, mats, groups, label: noop, pieceLabel: noop, drawerGroups });
+buildFootboardAndLift({ box, cyl, mats, groups, label: noop, pieceLabel: noop, liftStage1, liftCarriage });
 
-// ---------- BUILD the real master geometry from the shared module ----------
-buildBedBase({ box, cyl, line3, mats, groups, label, pieceLabel, drawerGroups });
-buildFootboardAndLift({ box, cyl, mats, groups, label, pieceLabel, liftStage1, liftCarriage });
-
-// base stays fixed; cabinet (footboard + lift) rides a group we translate to dock/undock
-const baseGroup = new THREE.Group();
-baseGroup.add(groups.bedBase, groups.slats, groups.wiring);
-const cabinetGroup = new THREE.Group();
-cabinetGroup.add(groups.footboard, groups.liftSystem);
+const baseGroup = new THREE.Group(); baseGroup.add(groups.bedBase, groups.slats, groups.wiring);
+const cabinetGroup = new THREE.Group(); cabinetGroup.add(groups.footboard, groups.liftSystem);
 scene.add(baseGroup, cabinetGroup);
 
-// track the ghost-able wood materials so a Solid toggle can firm them up
-const ghostWood = [mats.footWood, mats.baseWood, mats.baseStructure, mats.shellGhost, mats.skin];
-const ghostBase = ghostWood.map(m => m.opacity);
+const dock = buildDockHardware({ cabGroup: cabinetGroup, baseGroup });
+const acMat = dock.acMat, spkMat = dock.spkMat;
 
-// ============================================================
-//  DOCK HARDWARE  (BF-D09-specific; added on top of the shared geometry)
-//  Seam plane Z = 85. Cabinet-side rides cabinetGroup (-Z protrusion); base-side fixed.
-// ============================================================
+// solid (opaque) by default so the model is clearly visible; Ghost toggles see-through
+function setGhost(on) {
+  wood.forEach(k => { const m = mats[k]; if (!m) return; m.opacity = on ? woodBaseOpacity[k] : 1; m.transparent = on; m.depthWrite = !on; m.needsUpdate = true; });
+  const b = document.getElementById('bGhost'); if (b) b.classList.toggle('on', on);
+}
+setGhost(false);
+
+// ---- dock labels (CSS2D) ----
 const SEAM = 85;
-const steelMat = mats.steel, darkSteel = mats.darkSteel;
-const housing = new THREE.MeshStandardMaterial({ color: 0x23282f, roughness: 0.5, metalness: 0.55 });
-const acMat = new THREE.MeshStandardMaterial({ color: 0xe0962f, roughness: 0.45, metalness: 0.2, emissive: 0x3a2406, emissiveIntensity: 0.5 });
-const spkMat = new THREE.MeshStandardMaterial({ color: 0x3b6fb0, roughness: 0.45, metalness: 0.2, emissive: 0x06182f, emissiveIntensity: 0.5 });
-const capMat = new THREE.MeshStandardMaterial({ color: 0xe7dcc4, roughness: 0.7, metalness: 0.05 });
-function zc(r1, r2, len, mat, seg = 26) { const m = new THREE.Mesh(new THREE.CylinderGeometry(r1, r2, len, seg), mat); m.rotation.x = Math.PI / 2; m.castShadow = true; return m; }
-
-// recess pocket on a wall face
-function pocket(group, x, y, faceZ, into) {
-  const ring = new THREE.Mesh(new THREE.BoxGeometry(3.0, 3.0, 0.2), new THREE.MeshStandardMaterial({ color: 0xb89a5c, roughness: .7 }));
-  ring.position.set(x, y, faceZ + into * 0.05); group.add(ring);
-  const p = new THREE.Mesh(new THREE.BoxGeometry(2.4, 2.4, 0.5), new THREE.MeshStandardMaterial({ color: 0x6f5a32, roughness: .9 }));
-  p.position.set(x, y, faceZ + into * 0.3); group.add(p);
-}
-function buildPlug(mat, npins) {
-  const g = new THREE.Group();
-  const h = zc(0.58, 0.58, 1.5, housing); h.position.z = -0.4; g.add(h);
-  const collar = zc(0.72, 0.66, 0.42, mat); collar.position.z = -1.05; g.add(collar);
-  const ring = npins === 3 ? [[0, 0.26], [0.22, -0.13], [-0.22, -0.13]] : [[-0.2, 0.2], [0.2, 0.2], [-0.2, -0.2], [0.2, -0.2]];
-  for (const [px, py] of ring) { const pin = zc(0.075, 0.075, 0.9, steelMat); pin.position.set(px, py, -1.5); g.add(pin); }
-  return g;
-}
-function buildSocket(mat) {
-  const g = new THREE.Group();
-  const shell = zc(0.74, 0.74, 1.2, housing); shell.position.z = -0.55; g.add(shell);
-  const face = zc(0.74, 0.74, 0.12, mat); g.add(face);
-  const bore = zc(0.6, 0.6, 1.0, new THREE.MeshStandardMaterial({ color: 0x0d1014, roughness: 1 })); bore.position.z = -0.5; g.add(bore);
-  return g;
-}
-
-// --- cabinet-side (rides cabinetGroup): plugs + dowels protrude -Z toward the base ---
-const cabHW = new THREE.Group(); cabinetGroup.add(cabHW);
-// AC plug far-left, SPK plug far-right (y=6)
-const acPlug = buildPlug(acMat, 3); acPlug.position.set(-33, 6, SEAM); cabHW.add(acPlug);
-const spkPlug = buildPlug(spkMat, 4); spkPlug.position.set(33, 6, SEAM); cabHW.add(spkPlug);
-pocket(cabHW, -33, 6, SEAM, -1); pocket(cabHW, 33, 6, SEAM, -1);
-// 2 locating dowels (x=+-19, y=12) — longer protrusion so they seat FIRST
-for (const x of [-19, 19]) {
-  const d = zc(0.1875, 0.1875, 3.4, steelMat); d.position.set(x, 12, SEAM - 1.5); cabHW.add(d);
-  const tip = new THREE.Mesh(new THREE.ConeGeometry(0.1875, 0.5, 18), steelMat);
-  tip.rotation.x = -Math.PI / 2; tip.position.set(x, 12, SEAM - 3.45); tip.castShadow = true; cabHW.add(tip);
-  const collar = zc(0.34, 0.34, 0.4, darkSteel); collar.position.set(x, 12, SEAM + 0.2); cabHW.add(collar);
-}
-
-// --- base-side (fixed): sockets + bushings + bolts, recessed into the base foot face ---
-const baseHW = new THREE.Group(); baseGroup.add(baseHW);
-const acSock = buildSocket(acMat); acSock.position.set(-33, 6, SEAM); baseHW.add(acSock);
-const spkSock = buildSocket(spkMat); spkSock.position.set(33, 6, SEAM); baseHW.add(spkSock);
-pocket(baseHW, -33, 6, SEAM, 1); pocket(baseHW, 33, 6, SEAM, 1);
-for (const x of [-19, 19]) {
-  const bush = zc(0.42, 0.42, 1.0, darkSteel); bush.position.set(x, 12, SEAM - 0.5); baseHW.add(bush);
-  const bore = zc(0.22, 0.22, 1.2, new THREE.MeshStandardMaterial({ color: 0x10141a, roughness: 1 })); bore.position.set(x, 12, SEAM - 0.5); baseHW.add(bore);
-  const flange = zc(0.55, 0.55, 0.18, steelMat); flange.position.set(x, 12, SEAM + 0.02); baseHW.add(flange);
-}
-for (const x of [-29, -11, 11, 29]) {
-  const shaft = zc(0.26, 0.26, 4.5, darkSteel); shaft.position.set(x, 14, SEAM - 1.2); baseHW.add(shaft);
-  const head = zc(0.5, 0.5, 0.5, steelMat, 6); head.position.set(x, 14, SEAM - 3.4); baseHW.add(head);
-}
-
-// ---------- dock labels (BF-D09-specific, on by default) ----------
 const dockLabels = [];
-function addDock(text, x, y, z, cls) { const el = document.createElement('div'); el.className = 'lbl ' + (cls || ''); el.innerHTML = text;
-  const o = new CSS2DObject(el); o.position.set(x, y, z); baseGroup.add(o); dockLabels.push(o); return o; }
-addDock('<b>powerCON TRUE1</b><br>120&#8239;V AC &#183; far-left', -33, 6, SEAM - 3.6, 'ac');
-addDock('<b>speakON NL4</b><br>speakers L+R &#183; far-right', 33, 6, SEAM - 3.6, 'spk');
-addDock('<b>&#8709;3/8&#8243; locating dowels &#215;2</b><br>x&#177;19 &#183; seat before the connectors', 19, 17, SEAM, 'dow');
-addDock('<b>bed bolts &#215;4</b> &#183; x&#177;29 / &#177;11', -11, 14, SEAM - 4.4);
-addDock('<b>BED BASE</b> (74&#215;85, 6 drawers)', 0, 19.5, 50);
-const cabNote = addDock('<b>TV CABINET</b> 74&#215;41&#215;16', 0, 37, SEAM + 8); cabinetGroup.add(cabNote); dockLabels.pop();
+function addLabel(html, x, y, z, cls, parent) {
+  const el = document.createElement('div'); el.className = 'lbl ' + (cls || ''); el.innerHTML = html;
+  const o = new CSS2DObject(el); o.position.set(x, y, z); (parent || baseGroup).add(o); dockLabels.push(o); return o;
+}
+addLabel('<b>powerCON</b> 120V AC', -33, 6, SEAM - 4, 'ac');
+addLabel('<b>speakON NL4</b> speakers', 33, 6, SEAM - 4, 'spk');
+addLabel('<b>&#8709;3/8&#8243; dowels</b> seat first', 19, 17, SEAM, 'dow');
+addLabel('<b>bed bolts &#215;4</b>', -11, 14, SEAM - 4.6, '');
+addLabel('<b>BED BASE</b>', 0, 19, 52, '');
+addLabel('<b>TV CABINET</b>', 0, 37, SEAM + 8, '', cabinetGroup);
 
-// ============================================================
-//  STATE + ANIMATION
-// ============================================================
-const state = { gap: 14, target: 14, auto: false, autoDir: -1, spin: false, solid: false, dockL: true, geoL: false };
+// ---- state + UI ----
+const state = { gap: 12, target: 12, auto: false, dir: -1, spin: false, ghost: false };
 const gapInput = document.getElementById('gap'), seamval = document.getElementById('seamval');
-function setSolid(on) { state.solid = on; ghostWood.forEach((m, i) => { m.opacity = on ? Math.min(1, ghostBase[i] + 0.42) : ghostBase[i]; });
-  document.getElementById('bSolid').classList.toggle('on', on); }
-function setDockL(on) { state.dockL = on; dockLabels.forEach(o => o.visible = on); cabNote.visible = on;
-  document.getElementById('bDock2').classList.toggle('on', on); }
-function setGeoL(on) { state.geoL = on; geoLabels.visible = on; document.getElementById('bGeo').classList.toggle('on', on); }
-function setAuto(on) { state.auto = on; document.getElementById('bAuto').classList.toggle('on', on); }
-document.getElementById('bDock').onclick = () => { state.target = 0; setAuto(false); };
-document.getElementById('bUndock').onclick = () => { state.target = 22; setAuto(false); };
-document.getElementById('bAuto').onclick = () => setAuto(!state.auto);
-document.getElementById('bSolid').onclick = () => setSolid(!state.solid);
-document.getElementById('bDock2').onclick = () => setDockL(!state.dockL);
-document.getElementById('bGeo').onclick = () => setGeoL(!state.geoL);
-document.getElementById('bSpin').onclick = (e) => { state.spin = !state.spin; e.target.classList.toggle('on', state.spin); };
-gapInput.oninput = () => { state.gap = state.target = parseFloat(gapInput.value); setAuto(false); };
+function setBtn(id, on) { const b = document.getElementById(id); if (b) b.classList.toggle('on', on); }
+function go(id, fn) { const b = document.getElementById(id); if (b) b.onclick = fn; }
+go('bDock', () => { state.target = 0; state.auto = false; setBtn('bAuto', false); });
+go('bUndock', () => { state.target = 22; state.auto = false; setBtn('bAuto', false); });
+go('bAuto', () => { state.auto = !state.auto; setBtn('bAuto', state.auto); });
+go('bGhost', () => { state.ghost = !state.ghost; setGhost(state.ghost); });
+go('bSpin', () => { state.spin = !state.spin; setBtn('bSpin', state.spin); });
+if (gapInput) gapInput.oninput = () => { state.gap = state.target = parseFloat(gapInput.value); state.auto = false; setBtn('bAuto', false); };
 
 const views = {
-  iso:   { p: [96, 40, 116], t: [0, 14, 86] },
-  side:  { p: [128, 30, 86], t: [0, 14, 86] },
-  whole: { p: [120, 84, 210], t: [0, 16, 50] },
-  top:   { p: [2, 130, 92], t: [0, 8, 86] },
-  ac:    { p: [-58, 12, 70], t: [-33, 7, 84] },
-  spk:   { p: [58, 12, 70], t: [33, 7, 84] },
+  iso:   { p: [94, 40, 120], t: [0, 13, 88] },
+  side:  { p: [130, 28, 88], t: [0, 13, 88] },
+  whole: { p: [120, 86, 210], t: [0, 16, 48] },
+  top:   { p: [2, 135, 92], t: [0, 8, 86] },
+  ac:    { p: [-60, 13, 64], t: [-33, 7, 84] },
+  spk:   { p: [60, 13, 64], t: [33, 7, 84] },
 };
 let camAnim = null;
-document.querySelectorAll('[data-cam]').forEach(b => b.onclick = () => { const v = views[b.dataset.cam]; if (!v) return;
-  camAnim = { fp: camera.position.clone(), tp: new THREE.Vector3(...v.p), ft: controls.target.clone(), tt: new THREE.Vector3(...v.t), k: 0 }; });
+document.querySelectorAll('[data-cam]').forEach(b => { b.onclick = () => { const v = views[b.dataset.cam]; if (!v) return;
+  camAnim = { fp: camera.position.clone(), tp: new THREE.Vector3(...v.p), ft: controls.target.clone(), tt: new THREE.Vector3(...v.t), k: 0 }; }; });
 
 const clock = new THREE.Clock();
 function tick() {
   const dt = Math.min(clock.getDelta(), 0.05);
-  if (state.auto && Math.abs(state.gap - state.target) < 0.15) { state.autoDir *= -1; state.target = state.autoDir < 0 ? 0 : 22; }
-  state.gap += (state.target - state.gap) * Math.min(1, dt * 4.2);
+  if (state.auto && Math.abs(state.gap - state.target) < 0.2) { state.dir *= -1; state.target = state.dir < 0 ? 0 : 22; }
+  state.gap += (state.target - state.gap) * Math.min(1, dt * 4.0);
   cabinetGroup.position.z = state.gap;
-  if (!document.activeElement || document.activeElement.tagName !== 'INPUT') gapInput.value = state.gap.toFixed(1);
-  seamval.textContent = state.gap.toFixed(1) + '″';
+  if (gapInput && document.activeElement !== gapInput) gapInput.value = state.gap.toFixed(1);
+  if (seamval) seamval.textContent = state.gap.toFixed(1) + '″';
   const mated = state.gap < 0.6 ? 1 : 0;
   acMat.emissiveIntensity = 0.5 + mated * 0.9; spkMat.emissiveIntensity = 0.5 + mated * 0.9;
-  controls.autoRotate = state.spin; controls.autoRotateSpeed = 0.85;
-  if (camAnim) { camAnim.k = Math.min(1, camAnim.k + dt * 1.7);
+  controls.autoRotate = state.spin; controls.autoRotateSpeed = 0.8;
+  if (camAnim) {
+    camAnim.k = Math.min(1, camAnim.k + dt * 1.7);
     const e = camAnim.k < .5 ? 2 * camAnim.k * camAnim.k : 1 - Math.pow(-2 * camAnim.k + 2, 2) / 2;
     camera.position.lerpVectors(camAnim.fp, camAnim.tp, e); controls.target.lerpVectors(camAnim.ft, camAnim.tt, e);
-    if (camAnim.k >= 1) camAnim = null; }
+    if (camAnim.k >= 1) camAnim = null;
+  }
   controls.update();
   renderer.render(scene, camera);
   labelRenderer.render(scene, camera);
@@ -333,11 +243,11 @@ function tick() {
 }
 addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight); labelRenderer.setSize(innerWidth, innerHeight); });
-
-setSolid(false); setDockL(true); setGeoL(false);
 tick();
 
-// readiness probe + shared-source proof
 window.__BFD09 = { ready: true, sharedGeometry: true, gap: () => state.gap,
   baseMeshes: groups.bedBase.children.length, footMeshes: groups.footboard.children.length,
   SPECfootboard: SPEC.footboard, seam: SEAM };
+</script>
+</body>
+</html>

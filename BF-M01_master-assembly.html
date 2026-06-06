@@ -300,7 +300,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
-import { SPEC, buildBedBase, buildFootboardAndLift } from 'bf-geometry';
+import { SPEC, buildBedBase, buildFootboardAndLift, buildDockHardware } from 'bf-geometry';
 
 // SPEC now imported from bf-geometry.js (single source of truth).
 window.__BF_HEADBOARD_GHOST = {
@@ -1493,6 +1493,8 @@ const drawerGroups = [];   // each: { g: THREE.Group, axis: 'x'|'z', dir: +-1, e
 addFullBedBase();
 addDetailedNightstands();
 addFootboardAndLift();
+// Detachable dock hardware at the foot seam (shared with BF-D09): powerCON + speakON + 2 locating dowels + 4 bed bolts.
+buildDockHardware({ cabGroup: groups.footboard, baseGroup: groups.bedBase });
 
 // Concept force-transfer overlay (see Concepts/BF-D19). Translucent "moment path" members highlight the
 // real structural members that carry the headboard lean down into the base; arrows show the path.

@@ -339,3 +339,67 @@ export function buildFootboardAndLift(ctx) {
   label('Sanus WSBSBTV1-B2: bolts to the TV VESA holes; column + 43.86 in bar project the soundbar 3.6 in FORWARD (back flush w/ screen); co-moves on the lift', 0, 5.5, soundbarFrontZ - 1.0, 'steel', 'lift');
   pieceLabel('LIFT-23401', 'Touchstone 23401 ghost mechanism', 0, 32, liftCenterZ - 4.2, '9.875x5.125 plate (6 holes + 2 rear) + body + telescoping mast + 28.375 bracket', 'lift');
 }
+
+// ----------------------------------------------------------------------------
+//  BUILDER: detachable dock hardware at the foot-of-bed seam (Z = 85).
+//  Shared so the master (BF-M01, docked) and the dock detail (BF-D09, animated)
+//  show the SAME powerCON / speakON / locating dowels / bed bolts.
+//  ctx: { cabGroup, baseGroup }  — cabinet-side parts go on cabGroup (which BF-D09
+//  translates to dock/undock); base-side parts go on baseGroup (fixed).
+//  Returns { acMat, spkMat } so a host can pulse the connectors on mate.
+// ----------------------------------------------------------------------------
+export function buildDockHardware(ctx) {
+  const { cabGroup, baseGroup } = ctx;
+  const SEAM = SPEC.fullBedZ.footBack;   // 85
+  const steel = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, roughness: 0.28, metalness: 0.85 });
+  const dark = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.36, metalness: 0.76 });
+  const housing = new THREE.MeshStandardMaterial({ color: 0x23282f, roughness: 0.5, metalness: 0.55 });
+  const acMat = new THREE.MeshStandardMaterial({ color: 0xe0962f, roughness: 0.45, metalness: 0.2, emissive: 0x3a2406, emissiveIntensity: 0.5 });
+  const spkMat = new THREE.MeshStandardMaterial({ color: 0x3b6fb0, roughness: 0.45, metalness: 0.2, emissive: 0x06182f, emissiveIntensity: 0.5 });
+  const bore = new THREE.MeshStandardMaterial({ color: 0x0d1014, roughness: 1 });
+  const pocketRing = new THREE.MeshStandardMaterial({ color: 0xb89a5c, roughness: 0.7 });
+  const pocketWell = new THREE.MeshStandardMaterial({ color: 0x6f5a32, roughness: 0.9 });
+  function zc(r1, r2, len, mat, seg = 26) { const m = new THREE.Mesh(new THREE.CylinderGeometry(r1, r2, len, seg), mat); m.rotation.x = Math.PI / 2; m.castShadow = true; return m; }
+  function plug(mat, npins, name) {
+    const g = new THREE.Group(); g.name = name;
+    const h = zc(0.58, 0.58, 1.5, housing); h.position.z = -0.4; g.add(h);
+    const collar = zc(0.72, 0.66, 0.42, mat); collar.position.z = -1.05; g.add(collar);
+    const ring = npins === 3 ? [[0, 0.26], [0.22, -0.13], [-0.22, -0.13]] : [[-0.2, 0.2], [0.2, 0.2], [-0.2, -0.2], [0.2, -0.2]];
+    for (const [px, py] of ring) { const pin = zc(0.075, 0.075, 0.9, steel); pin.position.set(px, py, -1.5); g.add(pin); }
+    return g;
+  }
+  function socket(mat, name) {
+    const g = new THREE.Group(); g.name = name;
+    const shell = zc(0.74, 0.74, 1.2, housing); shell.position.z = -0.55; g.add(shell);
+    const face = zc(0.74, 0.74, 0.12, mat); g.add(face);
+    const b = zc(0.6, 0.6, 1.0, bore); b.position.z = -0.5; g.add(b);
+    return g;
+  }
+  function pocket(group, x, y, into) {
+    const r = new THREE.Mesh(new THREE.BoxGeometry(3.0, 3.0, 0.2), pocketRing); r.position.set(x, y, SEAM + into * 0.05); group.add(r);
+    const w = new THREE.Mesh(new THREE.BoxGeometry(2.4, 2.4, 0.5), pocketWell); w.position.set(x, y, SEAM + into * 0.3); group.add(w);
+  }
+  // cabinet-side: plugs + dowels protrude -Z toward the base
+  const acPlug = plug(acMat, 3, 'powerCON plug (120V AC)'); acPlug.position.set(-33, 6, SEAM); cabGroup.add(acPlug);
+  const spkPlug = plug(spkMat, 4, 'speakON NL4 plug (speakers L+R)'); spkPlug.position.set(33, 6, SEAM); cabGroup.add(spkPlug);
+  pocket(cabGroup, -33, 6, -1); pocket(cabGroup, 33, 6, -1);
+  for (const x of [-19, 19]) {
+    const d = zc(0.1875, 0.1875, 3.4, steel); d.name = 'locating dowel'; d.position.set(x, 12, SEAM - 1.5); cabGroup.add(d);
+    const tip = new THREE.Mesh(new THREE.ConeGeometry(0.1875, 0.5, 18), steel); tip.rotation.x = -Math.PI / 2; tip.position.set(x, 12, SEAM - 3.45); tip.castShadow = true; cabGroup.add(tip);
+    const collar = zc(0.34, 0.34, 0.4, dark); collar.position.set(x, 12, SEAM + 0.2); cabGroup.add(collar);
+  }
+  // base-side: sockets + bushings + bed bolts, recessed into the base foot face
+  const acSock = socket(acMat, 'powerCON socket'); acSock.position.set(-33, 6, SEAM); baseGroup.add(acSock);
+  const spkSock = socket(spkMat, 'speakON socket'); spkSock.position.set(33, 6, SEAM); baseGroup.add(spkSock);
+  pocket(baseGroup, -33, 6, 1); pocket(baseGroup, 33, 6, 1);
+  for (const x of [-19, 19]) {
+    const bush = zc(0.42, 0.42, 1.0, dark); bush.name = 'dowel bushing'; bush.position.set(x, 12, SEAM - 0.5); baseGroup.add(bush);
+    const b = zc(0.22, 0.22, 1.2, bore); b.position.set(x, 12, SEAM - 0.5); baseGroup.add(b);
+    const flange = zc(0.55, 0.55, 0.18, steel); flange.position.set(x, 12, SEAM + 0.02); baseGroup.add(flange);
+  }
+  for (const x of [-29, -11, 11, 29]) {
+    const shaft = zc(0.26, 0.26, 4.5, dark); shaft.name = 'bed bolt'; shaft.position.set(x, 14, SEAM - 1.2); baseGroup.add(shaft);
+    const head = zc(0.5, 0.5, 0.5, steel, 6); head.position.set(x, 14, SEAM - 3.4); baseGroup.add(head);
+  }
+  return { acMat, spkMat };
+}
