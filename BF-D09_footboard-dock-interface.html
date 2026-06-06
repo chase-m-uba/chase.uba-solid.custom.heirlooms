@@ -80,7 +80,6 @@
   <h2>Animation</h2>
   <div class="row">
     <button id="bDock" class="prime">&#9654; Dock</button>
-    <button id="bUndock">&#9664; Undock</button>
     <button id="bAuto">&#8734; Auto</button>
   </div>
   <div class="slab"><label>Seam gap</label><input id="gap" type="range" min="0" max="24" step="0.1" value="12"><span id="seamval">12.0&#8243;</span></div>
@@ -206,8 +205,15 @@ const state = { gap: 12, target: 12, auto: false, dir: -1, spin: false, ghost: f
 const gapInput = document.getElementById('gap'), seamval = document.getElementById('seamval');
 function setBtn(id, on) { const b = document.getElementById(id); if (b) b.classList.toggle('on', on); }
 function go(id, fn) { const b = document.getElementById(id); if (b) b.onclick = fn; }
-go('bDock', () => { state.target = 0; state.auto = false; setBtn('bAuto', false); });
-go('bUndock', () => { state.target = 22; state.auto = false; setBtn('bAuto', false); });
+const dockBtn = document.getElementById('bDock');
+function syncDockBtn() {            // single button toggles + relabels to the NEXT action
+  if (!dockBtn) return;
+  const docked = state.target < 0.3;          // intent is "docked" -> offer Undock
+  if (dockBtn._docked === docked) return;
+  dockBtn._docked = docked;
+  dockBtn.innerHTML = docked ? '&#9664; Undock' : '&#9654; Dock';
+}
+go('bDock', () => { state.target = state.target > 0.3 ? 0 : 22; state.auto = false; setBtn('bAuto', false); });
 go('bAuto', () => { state.auto = !state.auto; setBtn('bAuto', state.auto); });
 go('bGhost', () => { state.ghost = !state.ghost; setGhost(state.ghost); });
 go('bLabels', () => { state.labels = !state.labels; dockLabels.forEach(o => o.visible = state.labels); setBtn('bLabels', state.labels); });
@@ -235,6 +241,7 @@ function tick() {
   cabinetGroup.position.z = state.gap;
   if (gapInput && document.activeElement !== gapInput) gapInput.value = state.gap.toFixed(1);
   if (seamval) seamval.textContent = state.gap.toFixed(1) + '″';
+  syncDockBtn();
   const mated = state.gap < 0.6 ? 1 : 0;
   acMat.emissiveIntensity = 0.5 + mated * 0.9; spkMat.emissiveIntensity = 0.5 + mated * 0.9;
   controls.autoRotate = state.spin; controls.autoRotateSpeed = 0.8;

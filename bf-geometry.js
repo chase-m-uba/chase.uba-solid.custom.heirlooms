@@ -235,17 +235,16 @@ export function buildBedBase(ctx) {
   label('all bed cabling runs the CENTRE chase (side bays are full of drawers)', 0, 14.8, B.L - 9, 'blue', 'base');
   box(groups.wiring, 'BF-BASE foot-gap cable drop behind the 1 in-short foot drawer', 5, 7, 1.8, 0, 9, 82, mats.void, { edgeColor: 0x38bdf8, edgeOpacity: 0.66, cast: false });
   [-2, 2].forEach(x => {
-    box(groups.wiring, `BF-BASE centre foot-rail cable bore (TV-box run crosses the foot rail) x=${x}`, 1.4, 2.0, 2.8, x, 7, B.L - 1.2, mats.void, { edgeColor: 0x38bdf8, edgeOpacity: 0.72, cast: false });
     box(groups.wiring, `BF-BASE centre base-to-headboard cable bore (head rail + bottom cap -> rear cavity) x=${x}`, 1.4, 2.2, 8.4, x, 1, -1.8, mats.void, { edgeColor: 0x38bdf8, edgeOpacity: 0.66, cast: false });
     cyl(groups.wiring, `BF-BASE centre cable run foot-gap to head x=${x}`, 0.3, 80, x, 7, 42, mats.cableSpeaker, 'z', { segments: 16, cast: false });
   });
   [-2, 2].forEach(x => box(groups.wiring, `centre cable raceway through receiver ladder x=${x}`, 1.4, 41, 1.4, x, 21.5, -5, mats.void, { edgeColor: 0x22d3ee, edgeOpacity: 0.5, cast: false }));
   [-36, 36].forEach(x => box(groups.wiring, `mullion cable bore (speaker crossing) x=${x}`, 4.4, 1.4, 1.4, x, SPEC.speaker.bottom + 2, -5, mats.void, { edgeColor: 0x22d3ee, edgeOpacity: 0.6, cast: false }));
   label('centre cable chase: foot gap -> up the spine -> bottom-frame bore -> headboard rear cavity', 0, 9.2, 60, 'blue', 'base');
-  line3(groups.wiring, 'AC mains: left footboard side port -> cubby strip', [
-    [-31.5, 5.5, 90], [-31.5, 5.5, 93], [-10, 5.5, 93], [-10, 4, 93]
+  line3(groups.wiring, 'AC mains: powerCON dock inlet -> cubby strip + lift', [
+    [-33, 6, 85.5], [-31.5, 5.5, 89], [-10, 5.5, 93], [-10, 4, 93]
   ], 0xf97316, 0.86);
-  line3(groups.wiring, 'LV/HDMI/control: right footboard side port -> cubby gear', [
+  line3(groups.wiring, 'LV/HDMI/control: internal cubby loom (cabinet-resident gear)', [
     [31.5, 5.5, 90], [31.5, 5.5, 93], [10, 5.5, 93], [10, 4, 93]
   ], 0x38bdf8, 0.86);
   line3(groups.wiring, '24V + Casambi: base hub -> centre bore -> up the rear cavity to the top-cap LED', [
@@ -282,15 +281,13 @@ export function buildFootboardAndLift(ctx) {
   [-25.625, -5, 5, 25.625].forEach((x, i) => {
     box(group, `FB cubby rear-edge ceiling U-notch ${i + 1}`, 1.25, 1.25, 0.9, x, cubbyCeilY, ZB.footBack + F.rearTh + 0.45, mats.void, { edgeColor: 0x38bdf8, edgeOpacity: 0.78, cast: false });
   });
-  [-31.5, 31.5].forEach((x, i) => {
-    cyl(group, `FB ${i === 0 ? 'AC/power' : 'LV/data'} 2 in side pass-through`, 1.0, F.rearTh + 0.2, x, 12, ZB.footBack + F.rearTh / 2, i === 0 ? mats.cableAC : mats.cableLV, 'z', { segments: 40, cast: false });
-    label(`${i === 0 ? 'LEFT AC/power' : 'RIGHT LV/data'}\n2 in side pass-through`, x, 14.2, ZB.footBack - 1.0, i === 0 ? 'warn' : 'blue', 'footboard');
-  });
+  // Cabinet side walls are SEALED — no cable holes. Power and speakers cross the foot seam through the
+  // dock connectors (powerCON 120V AC + speakON NL4), so the old AC/LV side pass-throughs were removed.
   const topInX = F.W / 2 - F.sideTh, lidHalf = SPEC.lid.W / 2 + 0.25, topY = F.H - 0.5;
   const fillerW = topInX - lidHalf, topD = F.D - F.rearTh - F.faceTh;
   [-1, 1].forEach(s => box(group, `FB fixed top filler ${s < 0 ? 'left' : 'right'} (closes gap beside lid slot)`, fillerW, 1.0, topD, s * (lidHalf + fillerW / 2), topY, ZB.footBack + F.rearTh + topD / 2, mats.footWood, { edges: false }));
   label('TV-lift footboard 74 x 41 x 16: apron closes the upper front; cubby opens below; fixed fillers close the top beside the lid slot', 0, 44, footMidZ, 'gold', 'footboard');
-  label('empty flat cubby (3 bays / 2 ribs); 4 rear-edge ceiling U-notches; 2 side pass-throughs; no rear-wall holes; no devices', 0, 9.5, ZB.footBack - 1.4, 'blue', 'footboard');
+  label('empty flat cubby (3 bays / 2 ribs); 4 rear-edge ceiling U-notches; sealed side walls (power + speakers cross at the dock connectors); no devices', 0, 9.5, ZB.footBack - 1.4, 'blue', 'footboard');
   pieceLabel('FB-CAB-01', 'TV-lift footboard cabinet ghost', 0, 41.8, footMidZ, '74 x 41 x 16', 'footboard');
 
   const lift = groups.liftSystem, bpTop = L.deckTopY + 0.4;
