@@ -3,7 +3,7 @@
   Dock-Interface - Footboard <-> Base Dock Interface (detail model, animated).
   The TV cabinet + lower bed are built from bf-geometry.js — the SAME shared builders Full-Bed uses,
   so this model can never drift from the master. On top: the detachable dock hardware
-  (powerCON 120V AC, speakON NL4 speakers, 2 locating dowels, 4 bed bolts) + a dock/undock animation.
+  (4 bed bolts in two rows = a moment couple + a 3/4 in grommeted bare-wire pass-through) + dock/undock + flip-to-standalone animation.
   Units: inches. X = width (0 centred), Y = height AFF, Z = head(0) -> foot(+). Seam plane Z = 85.
 -->
 <html lang="en">
@@ -63,17 +63,16 @@
 <div id="hud" class="panel">
   <h1>BF&#8209;D09 &#183; Footboard Dock Interface</h1>
   <p>The TV cabinet + lower bed are the <b>real master geometry</b>, built from the shared <code>bf&#8209;geometry.js</code> &#8212; identical to BF&#8209;M01. On top: the detachable dock hardware.</p>
-  <p>Drag to orbit &#183; scroll to zoom &#183; hit <b>Dock</b> to watch it seat.</p>
+  <p>Drag to orbit &#183; scroll to zoom &#183; hit <b>Dock</b> to seat it, <b>Flip</b> for standalone mode.</p>
   <span class="tag">&#10003; shared single source &#183; cannot drift from master</span>
 </div>
 
 <div id="legend" class="panel">
   <h2>Dock hardware</h2>
-  <p><span class="sw" style="background:#e0962f"></span><b>powerCON TRUE1</b> &#8212; 120&#8239;V AC (far&#8209;left)</p>
-  <p><span class="sw" style="background:#3b6fb0"></span><b>speakON NL4</b> &#8212; speakers L+R (far&#8209;right)</p>
-  <p><span class="sw" style="background:#c2c9d1"></span><b>&#8709;3/8&#8243; dowels &#215;2</b> &#8212; seat first</p>
-  <p><span class="sw" style="background:#8a9098"></span><b>bed bolts &#215;4</b></p>
-  <p style="color:#8aa0b6;font-size:11px">Hit <b>Ghost</b> to see the connectors through the cabinet.</p>
+  <p><span class="sw" style="background:#c2c9d1"></span><b>4 bed bolts</b> &#8212; two per side, two rows (a moment couple)</p>
+  <p><span class="sw" style="background:#b08d57"></span><b>cross&#8209;dowel / barrel nuts</b> &#8212; seated in the base foot framing</p>
+  <p><span class="sw" style="background:#111418"></span><b>3/4&#8243; grommeted pass&#8209;through</b> &#8212; bundled 120V + speaker, fed by the under&#8209;base gap</p>
+  <p style="color:#8aa0b6;font-size:11px">No seam connectors, no dowels. <b>Ghost</b> shows the bolts + wire path; <b>Flip</b> = standalone mode.</p>
 </div>
 
 <div id="ctrl" class="panel">
@@ -90,13 +89,14 @@
   </div>
   <div class="row">
     <button id="bSpin">Auto&#8209;spin</button>
+    <button id="bFlip">Flip 180&#176; (standalone)</button>
   </div>
 </div>
 
 <div id="cam" class="panel">
   <h2>Camera</h2>
   <div class="row"><button data-cam="iso">Iso</button><button data-cam="side">Side</button><button data-cam="whole">Whole bed</button></div>
-  <div class="row"><button data-cam="ac">AC corner</button><button data-cam="spk">Spk corner</button><button data-cam="top">Top</button></div>
+  <div class="row"><button data-cam="ac">Bolts L</button><button data-cam="spk">Bolts R</button><button data-cam="top">Top</button></div>
 </div>
 
 <script type="importmap">
@@ -169,7 +169,7 @@ const SPEC = Object.freeze({
   },
   base: { W: 74, L: 85, top: 17, bayW: 67, bayL: 81, shoulder: 3.5, toeH: 2.0, toeInset: 1.5, carcassBottom: 2.0 },
   drawer: { perSide: 3, intH: 10.75, intW: 19, intD: 33, recess: 1.5, faceH: 12.0, faceGap: 0.25 },
-  footboard: { W: 74, H: 41, D: 16, sideTh: 2.0, faceTh: 1.0, deckTh: 1.0, rearTh: 0.75 },
+  footboard: { W: 74, H: 41, D: 16, sideTh: 2.0, faceTh: 1.0, deckTh: 1.0, rearTh: 0.75, dock: { boltCenterX: 33, boltRowsAFF: [5, 14.5], wireHoleDia: 0.75, wireHoleCenterAFF: 3 } },
   lift: { travel: 36, retractBody: 31, raised: 68.5, baseW: 28.375, basePlateW: 9.875, basePlateD: 5.125, bodyD: 7.0, deckTopY: 8.0 },
   tv: { W: 48.0, H: 27.8, D: 1.5, retractBottom: 11.95, raisedBottom: 47.0 },
   lid: { W: 60, D: 14.25, T: 1.0, flushTop: 41, raisedTop: 76 },
@@ -355,8 +355,8 @@ function buildBedBase(ctx) {
   [-2, 2].forEach(x => box(groups.wiring, `centre cable raceway through receiver ladder x=${x}`, 1.4, 41, 1.4, x, 21.5, -5, mats.void, { edgeColor: 0x22d3ee, edgeOpacity: 0.5, cast: false }));
   [-36, 36].forEach(x => box(groups.wiring, `mullion cable bore (speaker crossing) x=${x}`, 4.4, 1.4, 1.4, x, SPEC.speaker.bottom + 2, -5, mats.void, { edgeColor: 0x22d3ee, edgeOpacity: 0.6, cast: false }));
   label('centre cable chase: foot gap -> up the spine -> bottom-frame bore -> headboard rear cavity', 0, 9.2, 60, 'blue', 'base');
-  line3(groups.wiring, 'AC mains: powerCON dock inlet -> cubby strip + lift', [
-    [-33, 6, 85.5], [-31.5, 5.5, 89], [-10, 5.5, 93], [-10, 4, 93]
+  line3(groups.wiring, 'AC + speaker: 3/4 in grommet pass-through (x0, AFF 3) -> riser -> cubby + lift', [
+    [0, 3, 85.5], [0, 5, 88], [-10, 5.5, 93], [-10, 4, 93]
   ], 0xf97316, 0.86);
   line3(groups.wiring, 'LV/HDMI/control: internal cubby loom (cabinet-resident gear)', [
     [31.5, 5.5, 90], [31.5, 5.5, 93], [10, 5.5, 93], [10, 4, 93]
@@ -395,13 +395,13 @@ function buildFootboardAndLift(ctx) {
   [-25.625, -5, 5, 25.625].forEach((x, i) => {
     box(group, `FB cubby rear-edge ceiling U-notch ${i + 1}`, 1.25, 1.25, 0.9, x, cubbyCeilY, ZB.footBack + F.rearTh + 0.45, mats.void, { edgeColor: 0x38bdf8, edgeOpacity: 0.78, cast: false });
   });
-  // Cabinet side walls are SEALED — no cable holes. Power and speakers cross the foot seam through the
-  // dock connectors (powerCON 120V AC + speakON NL4), so the old AC/LV side pass-throughs were removed.
+  // Cabinet side walls are SEALED. Power + speakers enter through ONE 3/4 in grommeted bare-wire pass-through
+  // low on the bed-side wall (x 0, AFF 3, D-090), fed by the under-base foot gap — no seam connectors, no dowels.
   const topInX = F.W / 2 - F.sideTh, lidHalf = SPEC.lid.W / 2 + 0.25, topY = F.H - 0.5;
   const fillerW = topInX - lidHalf, topD = F.D - F.rearTh - F.faceTh;
   [-1, 1].forEach(s => box(group, `FB fixed top filler ${s < 0 ? 'left' : 'right'} (closes gap beside lid slot)`, fillerW, 1.0, topD, s * (lidHalf + fillerW / 2), topY, ZB.footBack + F.rearTh + topD / 2, mats.footWood, { edges: false }));
   label('TV-lift footboard 74 x 41 x 16: apron closes the upper front; cubby opens below; fixed fillers close the top beside the lid slot', 0, 44, footMidZ, 'gold', 'footboard');
-  label('empty flat cubby (3 bays / 2 ribs); 4 rear-edge ceiling U-notches; sealed side walls (power + speakers cross at the dock connectors); no devices', 0, 9.5, ZB.footBack - 1.4, 'blue', 'footboard');
+  label('empty flat cubby (3 bays / 2 ribs); 4 rear-edge ceiling U-notches; sealed side walls (power + speakers enter via the low 3/4 in grommet pass-through, D-090); no devices', 0, 9.5, ZB.footBack - 1.4, 'blue', 'footboard');
   pieceLabel('FB-CAB-01', 'TV-lift footboard cabinet ghost', 0, 41.8, footMidZ, '74 x 41 x 16', 'footboard');
 
   const lift = groups.liftSystem, bpTop = L.deckTopY + 0.4;
@@ -454,65 +454,45 @@ function buildFootboardAndLift(ctx) {
 // ----------------------------------------------------------------------------
 //  BUILDER: detachable dock hardware at the foot-of-bed seam (Z = 85).
 //  Shared so the master (Full-Bed, docked) and the dock detail (Dock-Interface, animated)
-//  show the SAME powerCON / speakON / locating dowels / bed bolts.
+//  show the SAME bolts-only seam: 4 bed bolts (two per side, two rows = moment couple) + 1 grommeted wire hole.
 //  ctx: { cabGroup, baseGroup }  — cabinet-side parts go on cabGroup (which Dock-Interface
 //  translates to dock/undock); base-side parts go on baseGroup (fixed).
-//  Returns { acMat, spkMat } so a host can pulse the connectors on mate.
+//  Returns { boltMat } (a host may highlight the bolts on mate). No connectors, no dowels. [D-090]
 // ----------------------------------------------------------------------------
 function buildDockHardware(ctx) {
   const { cabGroup, baseGroup } = ctx;
   const SEAM = SPEC.fullBedZ.footBack;   // 85
+  const D = SPEC.footboard.dock;
+  const boltX = D.boltCenterX, rows = D.boltRowsAFF, holeR = D.wireHoleDia / 2, holeY = D.wireHoleCenterAFF;
   const steel = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, roughness: 0.28, metalness: 0.85 });
-  const dark = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.36, metalness: 0.76 });
-  const housing = new THREE.MeshStandardMaterial({ color: 0x23282f, roughness: 0.5, metalness: 0.55 });
-  const acMat = new THREE.MeshStandardMaterial({ color: 0xe0962f, roughness: 0.45, metalness: 0.2, emissive: 0x3a2406, emissiveIntensity: 0.5 });
-  const spkMat = new THREE.MeshStandardMaterial({ color: 0x3b6fb0, roughness: 0.45, metalness: 0.2, emissive: 0x06182f, emissiveIntensity: 0.5 });
+  const dark = new THREE.MeshStandardMaterial({ color: 0x1b1f24, roughness: 0.4, metalness: 0.7 });
+  const brass = new THREE.MeshStandardMaterial({ color: 0xb08d57, roughness: 0.35, metalness: 0.8 });
+  const boltMat = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, roughness: 0.3, metalness: 0.85, emissive: 0x0a0f16, emissiveIntensity: 0 });
   const bore = new THREE.MeshStandardMaterial({ color: 0x0d1014, roughness: 1 });
-  const pocketRing = new THREE.MeshStandardMaterial({ color: 0xb89a5c, roughness: 0.7 });
-  const pocketWell = new THREE.MeshStandardMaterial({ color: 0x6f5a32, roughness: 0.9 });
+  const rubber = new THREE.MeshStandardMaterial({ color: 0x111418, roughness: 0.95, metalness: 0 });
+  const copper = new THREE.MeshStandardMaterial({ color: 0xc07a3a, roughness: 0.5, metalness: 0.7 });
   function zc(r1, r2, len, mat, seg = 26) { const m = new THREE.Mesh(new THREE.CylinderGeometry(r1, r2, len, seg), mat); m.rotation.x = Math.PI / 2; m.castShadow = true; return m; }
-  function plug(mat, npins, name) {
-    const g = new THREE.Group(); g.name = name;
-    const h = zc(0.58, 0.58, 1.5, housing); h.position.z = -0.4; g.add(h);
-    const collar = zc(0.72, 0.66, 0.42, mat); collar.position.z = -1.05; g.add(collar);
-    const ring = npins === 3 ? [[0, 0.26], [0.22, -0.13], [-0.22, -0.13]] : [[-0.2, 0.2], [0.2, 0.2], [-0.2, -0.2], [0.2, -0.2]];
-    for (const [px, py] of ring) { const pin = zc(0.075, 0.075, 0.9, steel); pin.position.set(px, py, -1.5); g.add(pin); }
-    return g;
+  // 4 BED BOLTS — two per side (x = ±boltX) at two rows (low/high) => a tension/compression COUPLE that resists the
+  // raised-TV overturning moment (a single row would hinge). Bolt threads from inside the cabinet (-Z) into a
+  // cross-dowel / barrel nut seated in the base foot framing. [D-090]
+  for (const sx of [-boltX, boltX]) {
+    for (const y of rows) {
+      const shaft = zc(0.19, 0.19, 4.6, boltMat); shaft.name = 'dock bed bolt shaft'; shaft.position.set(sx, y, SEAM - 1.4); cabGroup.add(shaft);
+      const head = zc(0.42, 0.42, 0.55, steel, 6); head.name = 'dock bed bolt hex head'; head.position.set(sx, y, SEAM + 1.4); cabGroup.add(head);
+      const cup = zc(0.5, 0.5, 0.16, steel); cup.position.set(sx, y, SEAM + 1.0); cabGroup.add(cup);
+      const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.31, 0.31, 1.1, 22), brass); barrel.name = 'dock cross-dowel / barrel nut'; barrel.position.set(sx, y, SEAM - 3.0); baseGroup.add(barrel);
+      const b = zc(0.2, 0.2, 2.4, bore); b.position.set(sx, y, SEAM - 2.0); baseGroup.add(b);
+    }
   }
-  function socket(mat, name) {
-    const g = new THREE.Group(); g.name = name;
-    const shell = zc(0.74, 0.74, 1.2, housing); shell.position.z = -0.55; g.add(shell);
-    const face = zc(0.74, 0.74, 0.12, mat); g.add(face);
-    const b = zc(0.6, 0.6, 1.0, bore); b.position.z = -0.5; g.add(b);
-    return g;
-  }
-  function pocket(group, x, y, into) {
-    const r = new THREE.Mesh(new THREE.BoxGeometry(3.0, 3.0, 0.2), pocketRing); r.position.set(x, y, SEAM + into * 0.05); group.add(r);
-    const w = new THREE.Mesh(new THREE.BoxGeometry(2.4, 2.4, 0.5), pocketWell); w.position.set(x, y, SEAM + into * 0.3); group.add(w);
-  }
-  // cabinet-side: plugs + dowels protrude -Z toward the base
-  const acPlug = plug(acMat, 3, 'powerCON plug (120V AC)'); acPlug.position.set(-33, 6, SEAM); cabGroup.add(acPlug);
-  const spkPlug = plug(spkMat, 4, 'speakON NL4 plug (speakers L+R)'); spkPlug.position.set(33, 6, SEAM); cabGroup.add(spkPlug);
-  pocket(cabGroup, -33, 6, -1); pocket(cabGroup, 33, 6, -1);
-  for (const x of [-19, 19]) {
-    const d = zc(0.1875, 0.1875, 3.4, steel); d.name = 'locating dowel'; d.position.set(x, 12, SEAM - 1.5); cabGroup.add(d);
-    const tip = new THREE.Mesh(new THREE.ConeGeometry(0.1875, 0.5, 18), steel); tip.rotation.x = -Math.PI / 2; tip.position.set(x, 12, SEAM - 3.45); tip.castShadow = true; cabGroup.add(tip);
-    const collar = zc(0.34, 0.34, 0.4, dark); collar.position.set(x, 12, SEAM + 0.2); cabGroup.add(collar);
-  }
-  // base-side: sockets + bushings + bed bolts, recessed into the base foot face
-  const acSock = socket(acMat, 'powerCON socket'); acSock.position.set(-33, 6, SEAM); baseGroup.add(acSock);
-  const spkSock = socket(spkMat, 'speakON socket'); spkSock.position.set(33, 6, SEAM); baseGroup.add(spkSock);
-  pocket(baseGroup, -33, 6, 1); pocket(baseGroup, 33, 6, 1);
-  for (const x of [-19, 19]) {
-    const bush = zc(0.42, 0.42, 1.0, dark); bush.name = 'dowel bushing'; bush.position.set(x, 12, SEAM - 0.5); baseGroup.add(bush);
-    const b = zc(0.22, 0.22, 1.2, bore); b.position.set(x, 12, SEAM - 0.5); baseGroup.add(b);
-    const flange = zc(0.55, 0.55, 0.18, steel); flange.position.set(x, 12, SEAM + 0.02); baseGroup.add(flange);
-  }
-  for (const x of [-29, -11, 11, 29]) {
-    const shaft = zc(0.26, 0.26, 4.5, dark); shaft.name = 'bed bolt'; shaft.position.set(x, 14, SEAM - 1.2); baseGroup.add(shaft);
-    const head = zc(0.5, 0.5, 0.5, steel, 6); head.position.set(x, 14, SEAM - 3.4); baseGroup.add(head);
-  }
-  return { acMat, spkMat };
+  // ONE 3/4 in GROMMETED bare-wire pass-through, low + centered on the bed-facing wall, fed by the under-base foot
+  // gap; carries bundled 120V (L/N/G) + 2x 12ga speaker (separated inside); an internal riser carries it up to the lift. [D-090]
+  const grommet = zc(holeR + 0.18, holeR + 0.18, 0.6, rubber); grommet.name = 'wire pass-through grommet (3/4 in)'; grommet.position.set(0, holeY, SEAM); cabGroup.add(grommet);
+  const hole = zc(holeR, holeR, 1.2, bore); hole.position.set(0, holeY, SEAM); cabGroup.add(hole);
+  [[-0.18, copper], [0, copper], [0.18, dark]].forEach(([dx, m]) => {
+    const w = zc(0.05, 0.05, 2.2, m); w.position.set(dx, holeY, SEAM + 0.9); cabGroup.add(w);
+  });
+  const riser = new THREE.Mesh(new THREE.CylinderGeometry(holeR, holeR, 6.0, 20), bore); riser.name = 'wire riser to lift cavity'; riser.position.set(0, holeY + 2.5, SEAM - 1.0); cabGroup.add(riser);
+  return { boltMat };
 }
 
 // ----------------------------------------------------------------------------
@@ -1440,7 +1420,7 @@ const cabinetGroup = new THREE.Group(); cabinetGroup.add(groups.footboard, group
 scene.add(baseGroup, cabinetGroup);
 
 const dock = buildDockHardware({ cabGroup: cabinetGroup, baseGroup });
-const acMat = dock.acMat, spkMat = dock.spkMat;
+const boltMat = dock.boltMat;
 groups.wiring.visible = false;   // cable wires off by default (toggle with "Wires")
 
 // solid (opaque) by default so the model is clearly visible; Ghost toggles see-through
@@ -1457,16 +1437,14 @@ function addLabel(html, x, y, z, cls, parent) {
   const el = document.createElement('div'); el.className = 'lbl ' + (cls || ''); el.innerHTML = html;
   const o = new CSS2DObject(el); o.position.set(x, y, z); (parent || baseGroup).add(o); dockLabels.push(o); return o;
 }
-addLabel('<b>powerCON</b> 120V AC', -33, 6, SEAM - 4, 'ac');
-addLabel('<b>speakON NL4</b> speakers', 33, 6, SEAM - 4, 'spk');
-addLabel('<b>&#8709;3/8&#8243; dowels</b> seat first', 19, 17, SEAM, 'dow');
-addLabel('<b>bed bolts &#215;4</b>', -11, 14, SEAM - 4.6, '');
+addLabel('<b>bed bolts &#215;4</b> &#183; two rows = couple', -33, 14.5, SEAM - 4.6, '');
+addLabel('<b>3/4&#8243; wire pass-through</b> + grommet', 0, 3, SEAM - 4, '');
 addLabel('<b>BED BASE</b>', 0, 19, 52, '');
 addLabel('<b>TV CABINET</b>', 0, 37, SEAM + 8, '', cabinetGroup);
 dockLabels.forEach(o => o.visible = false);   // labels off by default (toggle with "Labels")
 
 // ---- state + UI ----
-const state = { gap: 12, target: 12, auto: false, dir: -1, spin: false, ghost: false, labels: false, wires: false };
+const state = { gap: 12, target: 12, auto: false, dir: -1, spin: false, ghost: false, labels: false, wires: false, flip: 0, flipTarget: 0 };
 const gapInput = document.getElementById('gap'), seamval = document.getElementById('seamval');
 function setBtn(id, on) { const b = document.getElementById(id); if (b) b.classList.toggle('on', on); }
 function go(id, fn) { const b = document.getElementById(id); if (b) b.onclick = fn; }
@@ -1484,6 +1462,7 @@ go('bGhost', () => { state.ghost = !state.ghost; setGhost(state.ghost); });
 go('bLabels', () => { state.labels = !state.labels; dockLabels.forEach(o => o.visible = state.labels); setBtn('bLabels', state.labels); });
 go('bWires', () => { state.wires = !state.wires; groups.wiring.visible = state.wires; setBtn('bWires', state.wires); });
 go('bSpin', () => { state.spin = !state.spin; setBtn('bSpin', state.spin); });
+go('bFlip', () => { state.flipTarget = state.flipTarget > 0.1 ? 0 : Math.PI; const on = state.flipTarget > 0.1; setBtn('bFlip', on); if (on) { state.target = 22; state.auto = false; setBtn('bAuto', false); } });
 if (gapInput) gapInput.oninput = () => { state.gap = state.target = parseFloat(gapInput.value); state.auto = false; setBtn('bAuto', false); };
 
 const views = {
@@ -1503,12 +1482,16 @@ function tick() {
   const dt = Math.min(clock.getDelta(), 0.05);
   if (state.auto && Math.abs(state.gap - state.target) < 0.2) { state.dir *= -1; state.target = state.dir < 0 ? 0 : 22; }
   state.gap += (state.target - state.gap) * Math.min(1, dt * 4.0);
-  cabinetGroup.position.z = state.gap;
+  state.flip += (state.flipTarget - state.flip) * Math.min(1, dt * 3.5);
+  const CZ = 93;                                   // cabinet centre Z — flip pivots here so it turns in place
+  cabinetGroup.rotation.y = state.flip;
+  cabinetGroup.position.x = -CZ * Math.sin(state.flip);
+  cabinetGroup.position.z = CZ * (1 - Math.cos(state.flip)) + state.gap;
   if (gapInput && document.activeElement !== gapInput) gapInput.value = state.gap.toFixed(1);
   if (seamval) seamval.textContent = state.gap.toFixed(1) + '″';
   syncDockBtn();
   const mated = state.gap < 0.6 ? 1 : 0;
-  acMat.emissiveIntensity = 0.5 + mated * 0.9; spkMat.emissiveIntensity = 0.5 + mated * 0.9;
+  boltMat.emissiveIntensity = mated * 0.85;        // bolts glow when seated
   controls.autoRotate = state.spin; controls.autoRotateSpeed = 0.8;
   if (camAnim) {
     camAnim.k = Math.min(1, camAnim.k + dt * 1.7);
