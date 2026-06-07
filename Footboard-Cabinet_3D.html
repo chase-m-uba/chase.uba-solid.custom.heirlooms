@@ -139,14 +139,15 @@ const SPEC = Object.freeze({
   uRearLand: 1.5,
   speaker: {
     weightLb: 28.4,
-    cutW: 11.26,
-    cutH: 20.71,
-    bodyW: 12.6,
-    bodyH: 22.1,
+    orientation: 'horizontal',        // rotated 90deg so the cutout fits one <=20 in glue-up course (D-080, 2026-06-07)
+    cutW: 20.71,                       // was 11.26 vertical; manufacturer cutout 526x286 mm now laid landscape
+    cutH: 11.26,
+    bodyW: 22.1,
+    bodyH: 12.6,
     bodyD: 5.2,
     centerX: 51,
-    bottom: 39.25,
-    top: 60
+    bottom: 43.995,                    // acoustic center held at 49.625 AFF (drivers now at ear height); cutH 11.26
+    top: 55.255
   },
   nightstand: { W: 26, D: 20, H: 11, bottom: 17, top: 28, centerX: 51, drwFaceH: 7.5, lipH: 1.4 },
   switchPanel: {
@@ -1309,17 +1310,20 @@ rearRailSegments.forEach(([x0, x1], i) => {
 // Speaker bodies: direct mount into 1.0 in wood face; no structural pocket frame in this concept.
 [-1, 1].forEach(side => {
   const cx = side * SPEC.speaker.centerX;
-  const cy = (SPEC.speaker.bottom + SPEC.speaker.top) / 2;
-  const tweeterY = SPEC.speaker.bottom + 16.75;
-  const wooferY = SPEC.speaker.bottom + 7.3;
+  const cy = (SPEC.speaker.bottom + SPEC.speaker.top) / 2;     // 49.625 AFF acoustic center, both drivers
+  // HORIZONTAL mount (D-080, 2026-06-07): the driver column lies on its side. AMT/mid cluster INSIDE (toward
+  // bed center), 8 in woofer OUTSIDE -- mirror-imaged L/R. Offsets carried from the vertical CAD (tweeter +6.375,
+  // woofer -3.075 about the cutout center) and mapped onto x so "tweeter end" points toward x=0.
+  const tweeterX = cx - side * 6.375;   // inner (toward mattress centerline)
+  const wooferX = cx + side * 3.075;    // outer (toward room edge)
   box(groups.speakers, `Aperion T83W sealed ghost back box ${side}`, SPEC.speaker.bodyW, SPEC.speaker.bodyH, SPEC.speaker.bodyD, cx, cy, -SPEC.panelTh - SPEC.speaker.bodyD / 2, mats.speaker, { edgeColor: 0x93a4b8, edgeOpacity: 0.52 });
   box(groups.speakers, `Aperion T83W exposed black baffle no grille ${side}`, SPEC.speaker.cutW, SPEC.speaker.cutH, 0.14, cx, cy, 0.08, mats.speakerBaffle, { edgeColor: 0x64748b, edgeOpacity: 0.55 });
   box(groups.speakers, `speaker gasket / rabbet sample-confirm ${side}`, SPEC.speaker.cutW + 0.8, SPEC.speaker.cutH + 0.8, 0.06, cx, cy, 0.14, mats.void, { edgeColor: 0x38bdf8, edgeOpacity: 0.45, cast: false });
-  cyl(groups.speakers, `Aperion T83W 8 in woofer rubber surround ${side}`, 4.12, 0.16, cx, wooferY, 0.22, mats.driverRubber, 'z', { segments: 72, cast: false });
-  cyl(groups.speakers, `Aperion T83W 8 in woofer cone ${side}`, 3.62, 0.18, cx, wooferY, 0.34, mats.speakerCone, 'z', { segments: 72, cast: false });
-  cyl(groups.speakers, `Aperion T83W dust cap ${side}`, 1.15, 0.2, cx, wooferY, 0.46, mats.darkSteel, 'z', { segments: 48, cast: false });
-  cyl(groups.speakers, `Aperion T83W tweeter waveguide ${side}`, 1.25, 0.16, cx, tweeterY, 0.24, mats.driverRubber, 'z', { segments: 48, cast: false });
-  cyl(groups.speakers, `Aperion T83W tweeter dome ${side}`, 0.56, 0.2, cx, tweeterY, 0.42, mats.steel, 'z', { segments: 40, cast: false });
+  cyl(groups.speakers, `Aperion T83W 8 in woofer rubber surround ${side}`, 4.12, 0.16, wooferX, cy, 0.22, mats.driverRubber, 'z', { segments: 72, cast: false });
+  cyl(groups.speakers, `Aperion T83W 8 in woofer cone ${side}`, 3.62, 0.18, wooferX, cy, 0.34, mats.speakerCone, 'z', { segments: 72, cast: false });
+  cyl(groups.speakers, `Aperion T83W dust cap ${side}`, 1.15, 0.2, wooferX, cy, 0.46, mats.darkSteel, 'z', { segments: 48, cast: false });
+  cyl(groups.speakers, `Aperion T83W AMT tweeter waveguide ${side}`, 1.25, 0.16, tweeterX, cy, 0.24, mats.driverRubber, 'z', { segments: 48, cast: false });
+  cyl(groups.speakers, `Aperion T83W AMT tweeter ${side}`, 0.56, 0.2, tweeterX, cy, 0.42, mats.steel, 'z', { segments: 40, cast: false });
   box(groups.speakers, `Aperion T83W rear terminal cup ${side}`, 2.1, 1.15, 0.18, cx + side * 3.9, SPEC.speaker.bottom + 2.0, -6.15, mats.darkSteel, { edgeColor: 0x94a3b8, edgeOpacity: 0.48, cast: false });
   // 12 AWG speaker cable -- fully grounded ORTHOGONAL route that never spears solid wood: amp in cubby -> centre
   // foot-rail bore -> UP THE CENTRE base chase -> bottom-frame bore into the OPEN REAR CAVITY -> up behind the panels
