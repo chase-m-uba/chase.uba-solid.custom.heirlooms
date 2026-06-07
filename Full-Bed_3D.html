@@ -355,7 +355,7 @@ const SPEC = Object.freeze({
     buttonDia: 12 / 25.4,
     wireChaseDia: 0.5
   },
-  base: { W: 74, L: 85, top: 17, bayW: 67, bayL: 81, shoulder: 3.5, toeH: 2.0, toeInset: 1.5, carcassBottom: 2.0 },
+  base: { W: 74, L: 85, top: 17, bayW: 67, bayL: 81, shoulder: 3.5, toeH: 2.0, toeInset: 1.5, caseBottom: 2.0 },
   drawer: { perSide: 3, intH: 10.75, intW: 19, intD: 33, recess: 1.5, faceH: 12.0, faceGap: 0.25 },
   footboard: { W: 74, H: 41, D: 16, sideTh: 2.0, faceTh: 1.0, deckTh: 1.0, rearTh: 0.75, dock: { boltCenterX: 33, boltRowsAFF: [5, 14.5], wireHoleDia: 0.75, wireHoleCenterAFF: 3 } },
   lift: { travel: 36, retractBody: 31, raised: 68.5, baseW: 28.375, basePlateW: 9.875, basePlateD: 5.125, bodyD: 7.0, deckTopY: 8.0 },
@@ -684,7 +684,7 @@ function buildDockHardware(ctx) {
 }
 
 // ----------------------------------------------------------------------------
-//  BUILDER: detailed floating nightstands — carcasses  (verbatim from master addDetailedNightstands)
+//  BUILDER: detailed floating nightstands — cases  (verbatim from master addDetailedNightstands)
 //  Shared so the master (Full-Bed) and the standalone nightstand model (Nightstands) cannot drift.
 //  ctx: { box, cyl, mats, groups:{detailedNightstands}, label, pieceLabel }
 //  Builds BOTH nightstands (mirror pair, centerX = +-51). The headboard-side receiver rails,
@@ -728,7 +728,7 @@ function buildNightstands(ctx) {
       cyl(groups.detailedNightstands, `NS-${sideName} inside-access bolt port x=${dx} y=${y}`, 0.24, 0.4, cx + dx, y, z0 + 0.62, mats.void, 'z', { segments: 24, cast: false });
     }));
     label(`NS-${sideName}: detailed floating nightstand\n8 bolts from drawer cavity into captive nuts`, cx, 29.6, zMid, 'green', 'nightstand');
-    pieceLabel(`NS-${sideName}-CARCASS`, `${sideName} full nightstand carcass`, cx, 22.5, zMid + 3, '26 x 20 x 11', 'nightstand');
+    pieceLabel(`NS-${sideName}-CASE`, `${sideName} full nightstand case`, cx, 22.5, zMid + 3, '26 x 20 x 11', 'nightstand');
   });
 }
 
@@ -2520,7 +2520,7 @@ addEventListener('resize', () => {
   window.__BF_BOARD_OUTLINES = { present: true, note: 'edge outlines on boards; one-piece mullion is a single-mesh silhouette' };
 
   // ---- 11 canonical validators (re-created, measured from the V1 scene) ----
-  window.__BF_CARCASS_KEEPOUT = { pass: cnt(/BF-BASE drawer face /) === 6, drawers: cnt(/BF-BASE drawer face /), note: '6 drawers in side face-frame openings; structure routes around the bays (5-sided pockets)' };
+  window.__BF_CASE_KEEPOUT = { pass: cnt(/BF-BASE drawer face /) === 6, drawers: cnt(/BF-BASE drawer face /), note: '6 drawers in side face-frame openings; structure routes around the bays (5-sided pockets)' };
   window.__BF_OPEN_BACK = { pass: !has(/headboard rear (slab|panel|skin)/i), note: 'open-back headboard: front removable panels only; rear cavity open (LED heatsink air volume)' };
   window.__BF_EDGE_STILES = { pass: has(/left side stile/) && has(/right side stile/), note: '2 full-depth 2x68x8 side stiles at x +-64' };
   window.__BF_HEADBOARD_PHYSICAL_FRAME = { pass: cnt(/mullion one-piece/) === 2 && has(/lower receiver/) && has(/top cap/) && has(/bottom cap/), mullions: cnt(/mullion one-piece/), note: '2 full-depth one-piece mullions + lower receiver ladder + top/bottom caps + 2 side stiles' };
@@ -2552,7 +2552,7 @@ addEventListener('resize', () => {
   };
 
   // ---- aggregate ----
-  const _canon = ['__BF_CARCASS_KEEPOUT', '__BF_OPEN_BACK', '__BF_EDGE_STILES', '__BF_HEADBOARD_PHYSICAL_FRAME', '__BF_CONTINUOUS_SIDE_CHORDS', '__BF_FLAT_LIFT_DECK', '__BF_FOOTBOARD_DEPTH_GATE', '__BF_LIFT_POSITION_GATE', '__BF_LENGTH_GATE', '__BF_CUBBY_CABLE_PORTS', '__BF_TOUCHSTONE_GEOMETRY'];
+  const _canon = ['__BF_CASE_KEEPOUT', '__BF_OPEN_BACK', '__BF_EDGE_STILES', '__BF_HEADBOARD_PHYSICAL_FRAME', '__BF_CONTINUOUS_SIDE_CHORDS', '__BF_FLAT_LIFT_DECK', '__BF_FOOTBOARD_DEPTH_GATE', '__BF_LIFT_POSITION_GATE', '__BF_LENGTH_GATE', '__BF_CUBBY_CABLE_PORTS', '__BF_TOUCHSTONE_GEOMETRY'];
   const _canonFails = _canon.filter(k => !(window[k] && window[k].pass === true));
   const _v1Fails = Object.keys(window.__BF_V1).filter(k => window.__BF_V1[k] !== true);
   window.__BF_LOAD_OK = true;
