@@ -1,0 +1,1456 @@
+<!DOCTYPE html>
+<!--
+  FILE: Nightstands_3D              (canonical — no _vN)
+  TITLE: Floating Nightstands (pair) — standalone interactive model
+  STATUS: CURRENT   DATE: 2026-06-06    (history in git)
+  DERIVES FROM: bf-geometry.js -> buildNightstands() (the SAME shared builder Full-Bed uses)
+  COORD/UNITS: standard (Folder Spec §4) — inches. X=width(0 centred), Y=AFF, Z=head(0)->foot(+).
+  CHANGE: New standalone nightstand model. Imports the shared builder, so it CANNOT drift from the master.
+  ASSUMPTIONS: none — geometry is single-sourced in bf-geometry.js.
+
+  The mirror pair of floating wood-receiver nightstands (26 x 20 x 11, centerX = +-51). Thin HOST:
+  all geometry comes from bf-geometry.js. Ghost reveals the floating-mount interface (rear locator
+  ledge + dowels, 8 inside-access captive-nut bolt ports, soft-close drawer box).
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Nightstands - Floating Nightstands (shared geometry)</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; width: 100%; height: 100%; overflow: hidden;
+    background: #0e1218; color: #eef4fb; font-family: Inter, "Segoe UI", Arial, sans-serif; }
+  #app { position: fixed; inset: 0; }
+  canvas { display: block; }
+  .panel { position: fixed; background: rgba(12,18,27,.84); border: 1px solid rgba(148,163,184,.34);
+    border-radius: 10px; backdrop-filter: blur(10px); box-shadow: 0 18px 45px rgba(0,0,0,.35); }
+  #hud { left: 14px; top: 14px; width: min(384px, calc(100vw - 28px)); padding: 13px 15px; }
+  #hud h1 { margin: 0 0 5px; font-size: 16px; }
+  #hud p { margin: 4px 0; font-size: 12px; color: #c9d4e2; line-height: 1.45; }
+  #hud b { color: #f8d37b; }
+  #hud .tag { display:inline-block; margin-top:7px; font-size: 10.5px; color: #34d399;
+    border:1px solid rgba(52,211,153,.5); border-radius: 5px; padding: 2px 7px; }
+  #ctrl { left: 14px; bottom: 14px; width: min(330px, calc(100vw - 28px)); padding: 12px 14px; }
+  #ctrl h2 { margin: 0 0 9px; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: #9fb2c8; }
+  .row { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+  button { flex: 1 1 auto; min-width: 84px; cursor: pointer; font-size: 12px; font-weight: 600;
+    color: #eaf2fb; background: rgba(31,41,55,.7); border: 1px solid rgba(148,163,184,.4);
+    border-radius: 7px; padding: 8px 10px; transition: .12s; }
+  button:hover { border-color: #22d3ee; background: rgba(15,118,110,.34); }
+  button.on { border-color: #f8d37b; background: rgba(120,90,20,.36); color: #ffe6a8; }
+  #cam { right: 14px; bottom: 14px; width: min(214px, calc(100vw - 28px)); padding: 11px 13px; }
+  #cam h2 { margin: 0 0 8px; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: #9fb2c8; }
+  #cam .row button { min-width: 0; padding: 7px 6px; font-size: 11px; }
+  #legend { right: 14px; top: 14px; width: min(258px, calc(100vw - 28px)); padding: 12px 14px; }
+  #legend h2 { margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: #9fb2c8; }
+  #legend p { margin: 6px 0; font-size: 11.5px; color: #cbd6e4; line-height: 1.3; }
+  .sw { display:inline-block; width: 11px; height: 11px; margin-right: 7px; vertical-align: -1px; border-radius: 3px; }
+  @media (max-width: 760px){ #legend,#cam{ display:none; } }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<div id="hud" class="panel">
+  <h1>BF&#8209;S04 &#183; Floating Nightstands</h1>
+  <p>The mirror pair of <b>26 &#215; 20 &#215; 11 in</b> floating nightstands (centerline &#177;51 in). Each cantilevers off the headboard rear on a wood receiver + 8 captive&#8209;nut bolts &#8212; no steel arm.</p>
+  <p>Drag to orbit &#183; scroll to zoom &#183; hit <b>Ghost</b> to see the mount + drawer box.</p>
+  <span class="tag">&#10003; shared single source &#183; cannot drift from BF&#8209;M01</span>
+</div>
+
+<div id="legend" class="panel">
+  <h2>Nightstand</h2>
+  <p><span class="sw" style="background:#8fb26a"></span>Carcass + drawer (ash)</p>
+  <p><span class="sw" style="background:#7dd3fc"></span>Locator dowels (seat first)</p>
+  <p><span class="sw" style="background:#22d3ee"></span>8 inside&#8209;access bolt ports</p>
+  <p><span class="sw" style="background:#ffd166"></span>Hidden top&#8209;lip LED wash</p>
+</div>
+
+<div id="ctrl" class="panel">
+  <h2>Nightstand controls</h2>
+  <div class="row">
+    <button id="bGhost">Ghost / X&#8209;ray</button>
+    <button id="bSpin">Auto&#8209;spin</button>
+  </div>
+</div>
+
+<div id="cam" class="panel">
+  <h2>Camera</h2>
+  <div class="row"><button data-cam="right">Right</button><button data-cam="left">Left</button></div>
+  <div class="row"><button data-cam="both">Both</button><button data-cam="top">Top</button></div>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+/* ==== BF-GEOMETRY INLINE — generated by `npm run bf:build`; DO NOT EDIT BETWEEN THESE MARKERS ==== */
+const { SPEC, makeMaterials, makeEngine, buildNightstands } = (() => {
+// bf-geometry.js — SINGLE SOURCE OF TRUTH for the shared bed geometry.
+// The TV-lift footboard, the Touchstone 23401 lift, and the 74x85 drawer base live HERE, once.
+// Full-Bed (full master) and Dock-Interface (dock-interface detail) both import these builders, so the
+// cabinet + base can never drift between models — change this file and both update.
+//
+// Design: dependency injection. The builder BODIES (every dimension + position — the actual shape)
+// are defined here verbatim from the master. Each host passes a `ctx` with its own engine bits
+// (box/cyl/line3 from makeEngine, mats from makeMaterials, its groups, and its label/pieceLabel).
+// Geometry is shared; labelling/ghosting stays per-host.
+//
+// Units: inches. X = width (0 centred), Y = height AFF, Z = head(0) -> foot(+). Seam plane Z = 85.
+
+// ----------------------------------------------------------------------------
+//  SPEC — the canonical dimensions (verified against ProjectData/bed-frame-spec.json)
+// ----------------------------------------------------------------------------
+const SPEC = Object.freeze({
+  W: 130,
+  H: 72,
+  D: 8,
+  topCapH: 2,
+  bottomCapH: 2,
+  sideW: 2,
+  panelTh: 1.0,
+  skinTh: 1.0,
+  frontPanelSeamAFF: 36,
+  loadReceiverRailDepth: 7,
+  mullionW: 4,
+  seamX: 36,
+  uDrop: 4,
+  uFrontLand: 1.5,
+  uGap: 1.75,
+  uCenterLand: 1.5,
+  uRearLand: 1.5,
+  speaker: {
+    weightLb: 28.4,
+    cutW: 11.26,
+    cutH: 20.71,
+    bodyW: 12.6,
+    bodyH: 22.1,
+    bodyD: 5.2,
+    centerX: 51,
+    bottom: 39.25,
+    top: 60
+  },
+  nightstand: { W: 26, D: 20, H: 11, bottom: 17, top: 28, centerX: 51, drwFaceH: 7.5, lipH: 1.4 },
+  switchPanel: {
+    W: 1.5,
+    H: 6.0,
+    D: 0.55,
+    centerY: 37.25,
+    buttonsAFF: [35.0, 36.5, 38.0, 39.5],
+    buttonDia: 12 / 25.4,
+    wireChaseDia: 0.5
+  },
+  base: { W: 74, L: 85, top: 17, bayW: 67, bayL: 81, shoulder: 3.5, toeH: 2.0, toeInset: 1.5, carcassBottom: 2.0 },
+  drawer: { perSide: 3, intH: 10.75, intW: 19, intD: 33, recess: 1.5, faceH: 12.0, faceGap: 0.25 },
+  footboard: { W: 74, H: 41, D: 16, sideTh: 2.0, faceTh: 1.0, deckTh: 1.0, rearTh: 0.75 },
+  lift: { travel: 36, retractBody: 31, raised: 68.5, baseW: 28.375, basePlateW: 9.875, basePlateD: 5.125, bodyD: 7.0, deckTopY: 8.0 },
+  tv: { W: 48.0, H: 27.8, D: 1.5, retractBottom: 11.95, raisedBottom: 47.0 },
+  lid: { W: 60, D: 14.25, T: 1.0, flushTop: 41, raisedTop: 76 },
+  soundbar: { W: 51.18, H: 2.5, D: 4.45, retractBottom: 8.35, raisedBottom: 43.35 },
+  cubby: { clearH: 6.0, W: 70, D: 14.25, floorY: 1.0 },
+  fullBedZ: { headBack: -8, headFront: 0, baseHead: 0, baseFoot: 85, footBack: 85, footFront: 101 }
+});
+
+// ----------------------------------------------------------------------------
+//  Materials — identical instances in both models
+// ----------------------------------------------------------------------------
+function makeMaterials() {
+  return {
+    shell: new THREE.MeshStandardMaterial({ color: 0xd7ad6d, roughness: 0.72, metalness: 0.02 }),
+    shellGhost: new THREE.MeshStandardMaterial({ color: 0xe9c98d, roughness: 0.75, transparent: true, opacity: 0.52, depthWrite: false }),
+    skin: new THREE.MeshStandardMaterial({ color: 0xe8cc98, roughness: 0.82, transparent: true, opacity: 0.48, depthWrite: false }),
+    collector: new THREE.MeshStandardMaterial({ color: 0xb9772e, roughness: 0.78, metalness: 0.02 }),
+    receiver: new THREE.MeshStandardMaterial({ color: 0x6f9cbc, roughness: 0.68, transparent: true, opacity: 0.78 }),
+    night: new THREE.MeshStandardMaterial({ color: 0x8fb26a, roughness: 0.74, transparent: true, opacity: 0.78 }),
+    baseWood: new THREE.MeshStandardMaterial({ color: 0xd4b477, roughness: 0.76, transparent: true, opacity: 0.50, depthWrite: false }),
+    baseStructure: new THREE.MeshStandardMaterial({ color: 0xc9974c, roughness: 0.72, transparent: true, opacity: 0.72, depthWrite: false }),
+    footWood: new THREE.MeshStandardMaterial({ color: 0xd2aa67, roughness: 0.78, transparent: true, opacity: 0.54, depthWrite: false }),
+    void: new THREE.MeshStandardMaterial({ color: 0x22d3ee, transparent: true, opacity: 0.16, depthWrite: false }),
+    speaker: new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.48, transparent: true, opacity: 0.64 }),
+    grille: new THREE.MeshStandardMaterial({ color: 0x05080d, roughness: 0.66 }),
+    speakerBaffle: new THREE.MeshStandardMaterial({ color: 0x101820, roughness: 0.52, metalness: 0.08 }),
+    speakerCone: new THREE.MeshStandardMaterial({ color: 0x263241, roughness: 0.62, metalness: 0.04 }),
+    driverRubber: new THREE.MeshStandardMaterial({ color: 0x030712, roughness: 0.70, metalness: 0.02 }),
+    steel: new THREE.MeshStandardMaterial({ color: 0xcbd5e1, roughness: 0.28, metalness: 0.82 }),
+    darkSteel: new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.36, metalness: 0.76 }),
+    liftSteel: new THREE.MeshStandardMaterial({ color: 0x3f4754, roughness: 0.34, metalness: 0.72 }),
+    brass: new THREE.MeshStandardMaterial({ color: 0xd8a33b, roughness: 0.24, metalness: 0.86 }),
+    tenon: new THREE.MeshStandardMaterial({ color: 0x7dd3fc, roughness: 0.58, transparent: true, opacity: 0.82 }),
+    switchPlate: new THREE.MeshStandardMaterial({ color: 0x0f766e, roughness: 0.48, metalness: 0.22 }),
+    panelScrew: new THREE.MeshStandardMaterial({ color: 0xb45309, roughness: 0.34, metalness: 0.72 }),
+    panelBatten: new THREE.MeshStandardMaterial({ color: 0xc9914b, roughness: 0.68, transparent: true, opacity: 0.66 }),
+    access: new THREE.MeshStandardMaterial({ color: 0xfb923c, transparent: true, opacity: 0.22, depthWrite: false }),
+    ledWarm: new THREE.MeshStandardMaterial({ color: 0xffd166, emissive: 0xff8a1c, emissiveIntensity: 0.56, roughness: 0.36 }),
+    ledRed: new THREE.MeshStandardMaterial({ color: 0xff4c5c, emissive: 0x7f0d17, emissiveIntensity: 0.62, roughness: 0.36 }),
+    tvGlass: new THREE.MeshStandardMaterial({ color: 0x020617, roughness: 0.18, metalness: 0.12, transparent: true, opacity: 0.68 }),
+    soundbar: new THREE.MeshStandardMaterial({ color: 0x050505, roughness: 0.52, metalness: 0.25, transparent: true, opacity: 0.82 }),
+    cableAC: new THREE.MeshStandardMaterial({ color: 0xf97316, roughness: 0.42, metalness: 0.02 }),
+    cableLV: new THREE.MeshStandardMaterial({ color: 0x38bdf8, roughness: 0.42, metalness: 0.02 }),
+    cableSpeaker: new THREE.MeshStandardMaterial({ color: 0xa78bfa, roughness: 0.42, metalness: 0.02 }),
+    ghost: new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.55, transparent: true, opacity: 0.12, depthWrite: false })
+  };
+}
+
+// ----------------------------------------------------------------------------
+//  Engine — box / cyl / line3 / addEdges, identical mesh creation in both models
+// ----------------------------------------------------------------------------
+function makeEngine() {
+  function addEdges(mesh, group, color = 0x17212b, opacity = 0.34) {
+    const e = new THREE.EdgesGeometry(mesh.geometry);
+    const line = new THREE.LineSegments(e, new THREE.LineBasicMaterial({ color, transparent: true, opacity }));
+    line.position.copy(mesh.position);
+    line.rotation.copy(mesh.rotation);
+    line.scale.copy(mesh.scale);
+    group.add(line);
+    return line;
+  }
+  function box(group, name, sx, sy, sz, x, y, z, mat, options = {}) {
+    const mesh = new THREE.Mesh(new THREE.BoxGeometry(sx, sy, sz), mat);
+    mesh.name = name;
+    mesh.position.set(x, y, z);
+    mesh.castShadow = options.cast !== false;
+    mesh.receiveShadow = true;
+    group.add(mesh);
+    if (options.edges !== false) addEdges(mesh, group, options.edgeColor || 0x17212b, options.edgeOpacity ?? 0.34);
+    return mesh;
+  }
+  function cyl(group, name, radius, length, x, y, z, mat, axis = 'z', options = {}) {
+    const mesh = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, length, options.segments || 32), mat);
+    mesh.name = name;
+    mesh.position.set(x, y, z);
+    if (axis === 'x') mesh.rotation.z = Math.PI / 2;
+    if (axis === 'z') mesh.rotation.x = Math.PI / 2;
+    mesh.castShadow = options.cast !== false;
+    mesh.receiveShadow = true;
+    group.add(mesh);
+    return mesh;
+  }
+  function line3(group, name, points, color = 0xf8fafc, opacity = 0.72) {
+    const geometry = new THREE.BufferGeometry().setFromPoints(points.map(p => new THREE.Vector3(...p)));
+    const material = new THREE.LineBasicMaterial({ color, transparent: true, opacity });
+    const line = new THREE.Line(geometry, material);
+    line.name = name;
+    group.add(line);
+    return line;
+  }
+  return { addEdges, box, cyl, line3 };
+}
+
+// ----------------------------------------------------------------------------
+//  Derived Z geometry (from SPEC) — identical in both models
+// ----------------------------------------------------------------------------
+function deriveZ() {
+  const ZB = SPEC.fullBedZ;
+  const baseMidZ = (ZB.baseHead + ZB.baseFoot) / 2;
+  const footMidZ = (ZB.footBack + ZB.footFront) / 2;
+  const liftBackerZ = ZB.footFront - SPEC.footboard.faceTh;
+  const liftFrontZ = liftBackerZ - SPEC.lift.bodyD;
+  const liftCenterZ = (liftBackerZ + liftFrontZ) / 2;
+  const liftScreenZ = liftFrontZ - SPEC.tv.D;
+  const soundbarFrontZ = liftScreenZ - SPEC.soundbar.D;
+  const soundbarCenterZ = (liftScreenZ + soundbarFrontZ) / 2;
+  return { ZB, baseMidZ, footMidZ, liftBackerZ, liftFrontZ, liftCenterZ, liftScreenZ, soundbarFrontZ, soundbarCenterZ };
+}
+
+// ----------------------------------------------------------------------------
+//  BUILDER: 74 x 85 grounded 6-drawer base  (verbatim from master addFullBedBase)
+//  ctx: { box, cyl, line3, mats, groups:{bedBase,slats,wiring}, label, pieceLabel, drawerGroups, THREE? }
+// ----------------------------------------------------------------------------
+function buildBedBase(ctx) {
+  const { box, cyl, line3, mats, groups, label, pieceLabel, drawerGroups } = ctx;
+  const { baseMidZ } = deriveZ();
+  function addBaseSideBoltHead(x, y) {
+    cyl(groups.bedBase, `bed-base side bolt head aligned x=${x} y=${y}`, 0.46, 0.18, x, y, 0.18, mats.steel, 'z', { segments: 32, cast: false });
+    cyl(groups.bedBase, `bed-base bolt shaft aligned x=${x} y=${y}`, 0.16, 2.2, x, y, 1.2, mats.darkSteel, 'z', { segments: 24, cast: false });
+  }
+  const B = SPEC.base;
+  const DWR = SPEC.drawer;
+  const group = groups.bedBase;
+  box(group, 'BF-BASE toe plinth ghost', B.W - 2 * B.toeInset, B.toeH, B.L - 2 * B.toeInset, 0, B.toeH / 2, baseMidZ, mats.baseWood, { edgeColor: 0x5f411a, edgeOpacity: 0.46 });
+  [-1, 1].forEach(s => {
+    const xc = s * (B.W / 2 - 1.2);
+    box(group, `BF-BASE ${s < 0 ? 'left' : 'right'} continuous side exoskeleton chord top rail`, 2.4, 2.6, B.L, xc, 15.7, baseMidZ, mats.baseStructure);
+    box(group, `BF-BASE ${s < 0 ? 'left' : 'right'} continuous side exoskeleton chord bottom rail`, 2.4, 1.4, B.L, xc, 2.7, baseMidZ, mats.baseStructure);
+    [[3.8, 2.8], [30.65, 0.6], [56.35, 0.6], [81.8, 1.6]].forEach(([sz, sl], k) => box(group, `BF-BASE ${s < 0 ? 'left' : 'right'} side frame stile ${k}`, 2.4, 11, sl, xc, 8.9, sz, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false }));
+  });
+  box(group, 'BF-BASE head rail receiver face', B.W, B.top, 2.4, 0, B.top / 2, 1.2, mats.baseStructure);
+  box(group, 'BF-BASE foot rail receiver face', B.W, B.top, 2.4, 0, B.top / 2, B.L - 1.2, mats.baseStructure);
+  box(group, 'BF-BASE center spine continuous', 3.0, B.top - B.toeH, B.L, 0, (B.top + B.toeH) / 2, baseMidZ, mats.baseStructure);
+  box(group, 'BF-BASE left mattress shoulder rail', 2.0, 0.8, B.bayL, -B.bayW / 2 - 0.9, B.top + 0.15, 2 + B.bayL / 2, mats.baseWood);
+  box(group, 'BF-BASE right mattress shoulder rail', 2.0, 0.8, B.bayL, B.bayW / 2 + 0.9, B.top + 0.15, 2 + B.bayL / 2, mats.baseWood);
+  box(group, 'BF-BASE head mattress shoulder rail', B.bayW, 0.8, 1.6, 0, B.top + 0.15, 2.8, mats.baseWood);
+  box(group, 'BF-BASE foot mattress shoulder rail', B.bayW, 0.8, 1.6, 0, B.top + 0.15, 82.2, mats.baseWood);
+
+  for (let i = 0; i < 13; i += 1) {
+    const z = 5.5 + i * 6.15;
+    box(groups.slats, `BF-BASE removable slat ${i + 1}`, B.bayW, 0.45, 1.25, 0, 16.25, z, mats.ghost, { edgeColor: 0xe2e8f0, edgeOpacity: 0.34, cast: false });
+  }
+
+  const drawerSpan = (B.L - 5 - 3) / 3;
+  const drawerDepth = 32.6;
+  [-1, 1].forEach(side => {
+    const faceX = side * (B.W / 2 + 0.08);
+    const boxXc = side * (B.W / 2 - 0.9 - drawerDepth / 2);
+    const wallXc = side * (B.W / 2 - 0.9 - (drawerDepth + 1) / 2);
+    [0, 1, 2].forEach(w => box(group, `BF-BASE drawer divider wall ${side < 0 ? 'L' : 'R'} ${w}`, drawerDepth + 1, DWR.intH + 1.6, 1.0, wallXc, 8.7, 5 + w * drawerSpan, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false }));
+    box(group, `BF-BASE foot drawer-rail support wall (L) slide leg ${side < 0 ? 'L' : 'R'}`, drawerDepth + 1, DWR.intH + 1.6, 1.0, wallXc, 8.7, 81, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false });
+    box(group, `BF-BASE foot drawer-rail support wall (L) gap-cover return ${side < 0 ? 'L' : 'R'}`, drawerDepth + 1, 1.0, 2.6, wallXc, 14.4, 82.3, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false });
+    box(group, `BF-BASE drawer-bay TOP dust cover ${side < 0 ? 'L' : 'R'}`, drawerDepth, 0.6, 77, boxXc, 14.7, 43.5, mats.baseWood, { edgeColor: 0x5f411a, edgeOpacity: 0.4, cast: false });
+    box(group, `BF-BASE drawer-bay BACK wall (walls off the centre wiring chase) ${side < 0 ? 'L' : 'R'}`, 0.5, DWR.intH + 1.6, 77, side * 2.9, 8.7, 43.5, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false });
+    for (let i = 0; i < DWR.perSide; i += 1) {
+      const z = 5 + drawerSpan / 2 + i * drawerSpan;
+      const sName = side < 0 ? 'left' : 'right', sAbbr = side < 0 ? 'L' : 'R';
+      const isFoot = i === DWR.perSide - 1, gap = isFoot ? 1.0 : 0;
+      [z - drawerSpan / 2 + 0.6, z + drawerSpan / 2 - 0.6 - gap].forEach((sz, s) => box(group, `BF-BASE full-extension slide rail (cabinet) ${sAbbr} ${i + 1}-${s}`, drawerDepth, 0.5, 0.32, boxXc, 11.6, sz, mats.steel, { edgeColor: 0x60a5fa, edgeOpacity: 0.45, cast: false }));
+      const dg = new THREE.Group(); group.add(dg); drawerGroups.push({ g: dg, axis: 'x', dir: side, ext: drawerDepth - 2 });
+      box(dg, `BF-BASE drawer face ${sName} ${i + 1}`, 0.7, DWR.faceH, drawerSpan - 0.5, faceX, 8.6, z, mats.baseWood, { edgeColor: 0x604618, edgeOpacity: 0.52 });
+      const dW = drawerDepth, dH = DWR.intH, dL = drawerSpan - 2.0 - gap, tw = 0.5, dyc = 8.8, bz = z - gap / 2;
+      box(dg, `BF-BASE drawer ${sName} ${i + 1} floor`, dW, tw, dL, boxXc, dyc - dH / 2 + tw / 2, bz, mats.baseWood, { edgeColor: 0x8a6a32, edgeOpacity: 0.42, cast: false });
+      box(dg, `BF-BASE drawer ${sName} ${i + 1} inner wall`, tw, dH, dL, boxXc - side * (dW / 2 - tw / 2), dyc, bz, mats.baseWood, { edgeColor: 0x8a6a32, edgeOpacity: 0.42, cast: false });
+      box(dg, `BF-BASE drawer ${sName} ${i + 1} front wall`, tw, dH, dL, boxXc + side * (dW / 2 - tw / 2), dyc, bz, mats.baseWood, { edgeColor: 0x8a6a32, edgeOpacity: 0.42, cast: false });
+      box(dg, `BF-BASE drawer ${sName} ${i + 1} side wall A`, dW, dH, tw, boxXc, dyc, bz - dL / 2 + tw / 2, mats.baseWood, { edgeColor: 0x8a6a32, edgeOpacity: 0.42, cast: false });
+      box(dg, `BF-BASE drawer ${sName} ${i + 1} side wall B`, dW, dH, tw, boxXc, dyc, bz + dL / 2 - tw / 2, mats.baseWood, { edgeColor: 0x8a6a32, edgeOpacity: 0.42, cast: false });
+      const bbev = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.12, drawerSpan - 1.0), mats.baseWood);
+      bbev.position.set(faceX + side * 0.1, 14.35, z); bbev.rotation.z = -side * Math.PI / 4; bbev.castShadow = false;
+      bbev.name = `BF-BASE drawer ${sName} ${i + 1} beveled top-edge pull (handle-less sharknose)`;
+      dg.add(bbev);
+      [z - drawerSpan / 2 + 0.6, z + drawerSpan / 2 - 0.6 - gap].forEach((sz, s) => box(dg, `BF-BASE full-extension slide (drawer) ${sAbbr} ${i + 1}-${s}`, drawerDepth - 1, 0.34, 0.2, boxXc, 11.6, sz, mats.darkSteel, { edgeOpacity: 0.22, cast: false }));
+    }
+  });
+
+  [-36, -4, 4, 36].forEach(x => [5, 14.5].forEach(y => addBaseSideBoltHead(x, y)));
+  label('all bed cabling runs the CENTRE chase (side bays are full of drawers)', 0, 14.8, B.L - 9, 'blue', 'base');
+  box(groups.wiring, 'BF-BASE foot-gap cable drop behind the 1 in-short foot drawer', 5, 7, 1.8, 0, 9, 82, mats.void, { edgeColor: 0x38bdf8, edgeOpacity: 0.66, cast: false });
+  [-2, 2].forEach(x => {
+    box(groups.wiring, `BF-BASE centre base-to-headboard cable bore (head rail + bottom cap -> rear cavity) x=${x}`, 1.4, 2.2, 8.4, x, 1, -1.8, mats.void, { edgeColor: 0x38bdf8, edgeOpacity: 0.66, cast: false });
+    cyl(groups.wiring, `BF-BASE centre cable run foot-gap to head x=${x}`, 0.3, 80, x, 7, 42, mats.cableSpeaker, 'z', { segments: 16, cast: false });
+  });
+  [-2, 2].forEach(x => box(groups.wiring, `centre cable raceway through receiver ladder x=${x}`, 1.4, 41, 1.4, x, 21.5, -5, mats.void, { edgeColor: 0x22d3ee, edgeOpacity: 0.5, cast: false }));
+  [-36, 36].forEach(x => box(groups.wiring, `mullion cable bore (speaker crossing) x=${x}`, 4.4, 1.4, 1.4, x, SPEC.speaker.bottom + 2, -5, mats.void, { edgeColor: 0x22d3ee, edgeOpacity: 0.6, cast: false }));
+  label('centre cable chase: foot gap -> up the spine -> bottom-frame bore -> headboard rear cavity', 0, 9.2, 60, 'blue', 'base');
+  line3(groups.wiring, 'AC mains: powerCON dock inlet -> cubby strip + lift', [
+    [-33, 6, 85.5], [-31.5, 5.5, 89], [-10, 5.5, 93], [-10, 4, 93]
+  ], 0xf97316, 0.86);
+  line3(groups.wiring, 'LV/HDMI/control: internal cubby loom (cabinet-resident gear)', [
+    [31.5, 5.5, 90], [31.5, 5.5, 93], [10, 5.5, 93], [10, 4, 93]
+  ], 0x38bdf8, 0.86);
+  line3(groups.wiring, '24V + Casambi: base hub -> centre bore -> up the rear cavity to the top-cap LED', [
+    [-2, 7, 6], [-2, 7, 2.5], [-2, 1, 2.5], [-2, 1, -5], [-2, 66, -5], [-2, 70, -5], [-2, 70, -4]
+  ], 0x38bdf8, 0.8);
+  label('74 x 85 grounded base; central spine and continuous side exoskeleton', 0, 19.5, 43, 'blue', 'base');
+  label('base/headboard bolts align to x=-36,-4,+4,+36 at AFF 5 and 14.5', 0, 17.5, 2.8, 'steel', 'base');
+  pieceLabel('BF-BASE-L-CHORD', 'left side chord (top+bottom rails, drawer openings between)', -36.5, 15.7, 42.5, '2.4 rails x 85', 'base');
+  pieceLabel('BF-BASE-R-CHORD', 'right side chord (top+bottom rails, drawer openings between)', 36.5, 15.7, 42.5, '2.4 rails x 85', 'base');
+  pieceLabel('BF-BASE-SPINE', 'base center spine', 0, 10, 42.5, '3 x 15 x 85', 'base');
+}
+
+// ----------------------------------------------------------------------------
+//  BUILDER: TV-lift footboard + Touchstone 23401  (verbatim from master addFootboardAndLift)
+//  ctx adds: groups:{footboard,liftSystem}, liftStage1, liftCarriage (THREE.Groups)
+// ----------------------------------------------------------------------------
+function buildFootboardAndLift(ctx) {
+  const { box, cyl, mats, groups, label, pieceLabel, liftStage1, liftCarriage } = ctx;
+  const { ZB, footMidZ, liftBackerZ, liftFrontZ, liftCenterZ, liftScreenZ, soundbarFrontZ, soundbarCenterZ } = deriveZ();
+  const F = SPEC.footboard;
+  const C = SPEC.cubby;
+  const L = SPEC.lift;
+  const group = groups.footboard;
+  const cubbyCeilY = L.deckTopY - F.deckTh;
+  box(group, 'FB left side panel ghost', F.sideTh, F.H, F.D, -F.W / 2 + F.sideTh / 2, F.H / 2, footMidZ, mats.footWood);
+  box(group, 'FB right side panel ghost', F.sideTh, F.H, F.D, F.W / 2 - F.sideTh / 2, F.H / 2, footMidZ, mats.footWood);
+  box(group, 'FB bed-side service/back wall ghost (solid; no cubby holes)', F.W, F.H, F.rearTh, 0, F.H / 2, ZB.footBack + F.rearTh / 2, mats.footWood);
+  box(group, 'FB bottom deck / cubby floor (single floor)', F.W - 2 * F.sideTh, F.deckTh, F.D, 0, F.deckTh / 2, footMidZ, mats.footWood, { edgeColor: 0x5f411a, edgeOpacity: 0.4 });
+  const apronH = F.H - cubbyCeilY;
+  box(group, 'FB front apron (closes upper front above cubby; no lift-compartment sightline)', F.W - 2 * F.sideTh, apronH, F.faceTh, 0, cubbyCeilY + apronH / 2, ZB.footFront - F.faceTh / 2, mats.footWood, { edgeColor: 0x5f411a, edgeOpacity: 0.42 });
+  box(group, 'FB flat raised lift deck / cubby ceiling 8 AFF', C.W, F.deckTh, C.D, 0, L.deckTopY - F.deckTh / 2, footMidZ, mats.footWood, { edgeColor: 0x5f411a, edgeOpacity: 0.4 });
+  box(group, 'FB left front-to-back lift-deck rib', 1.25, C.clearH, C.D, -15.625, C.floorY + C.clearH / 2, footMidZ, mats.footWood);
+  box(group, 'FB right front-to-back lift-deck rib', 1.25, C.clearH, C.D, 15.625, C.floorY + C.clearH / 2, footMidZ, mats.footWood);
+  [-25.625, -5, 5, 25.625].forEach((x, i) => {
+    box(group, `FB cubby rear-edge ceiling U-notch ${i + 1}`, 1.25, 1.25, 0.9, x, cubbyCeilY, ZB.footBack + F.rearTh + 0.45, mats.void, { edgeColor: 0x38bdf8, edgeOpacity: 0.78, cast: false });
+  });
+  // Cabinet side walls are SEALED — no cable holes. Power and speakers cross the foot seam through the
+  // dock connectors (powerCON 120V AC + speakON NL4), so the old AC/LV side pass-throughs were removed.
+  const topInX = F.W / 2 - F.sideTh, lidHalf = SPEC.lid.W / 2 + 0.25, topY = F.H - 0.5;
+  const fillerW = topInX - lidHalf, topD = F.D - F.rearTh - F.faceTh;
+  [-1, 1].forEach(s => box(group, `FB fixed top filler ${s < 0 ? 'left' : 'right'} (closes gap beside lid slot)`, fillerW, 1.0, topD, s * (lidHalf + fillerW / 2), topY, ZB.footBack + F.rearTh + topD / 2, mats.footWood, { edges: false }));
+  label('TV-lift footboard 74 x 41 x 16: apron closes the upper front; cubby opens below; fixed fillers close the top beside the lid slot', 0, 44, footMidZ, 'gold', 'footboard');
+  label('empty flat cubby (3 bays / 2 ribs); 4 rear-edge ceiling U-notches; sealed side walls (power + speakers cross at the dock connectors); no devices', 0, 9.5, ZB.footBack - 1.4, 'blue', 'footboard');
+  pieceLabel('FB-CAB-01', 'TV-lift footboard cabinet ghost', 0, 41.8, footMidZ, '74 x 41 x 16', 'footboard');
+
+  const lift = groups.liftSystem, bpTop = L.deckTopY + 0.4;
+  const bodyW = 5.5, bodyH = 22, bodyD = 3.6;
+  box(lift, 'Touchstone 23401 floor base plate 9.875 x 5.125', L.basePlateW, 0.4, L.basePlateD, 0, L.deckTopY + 0.2, liftCenterZ, mats.liftSteel, { edgeColor: 0xd1d5db, edgeOpacity: 0.5 });
+  [-3.55, 3.55].forEach(hx => [liftCenterZ - 1.7, liftCenterZ, liftCenterZ + 1.7].forEach(hz => {
+    cyl(lift, `Touchstone floor mount hole x=${hx} z=${hz.toFixed(1)}`, 0.22, 0.55, hx, L.deckTopY + 0.2, hz, mats.darkSteel, 'y', { segments: 18, cast: false });
+    cyl(lift, `Touchstone floor mount screw head x=${hx} z=${hz.toFixed(1)}`, 0.3, 0.12, hx, L.deckTopY + 0.44, hz, mats.steel, 'y', { segments: 18, cast: false });
+  }));
+  box(lift, 'Touchstone stationary outer body / housing', bodyW, bodyH, bodyD, 0, bpTop + bodyH / 2, liftCenterZ, mats.liftSteel, { edgeColor: 0xd1d5db, edgeOpacity: 0.5 });
+  box(lift, 'Touchstone body front seam', bodyW - 0.5, bodyH - 1.0, 0.05, 0, bpTop + bodyH / 2, liftCenterZ - bodyD / 2 - 0.03, mats.steel, { edgeOpacity: 0.16, cast: false });
+  [bpTop + 5, bpTop + 11, bpTop + 17].forEach(sy => cyl(lift, `Touchstone body service hole y=${sy.toFixed(0)}`, 0.16, 0.12, 0, sy, liftCenterZ - bodyD / 2 - 0.05, mats.darkSteel, 'z', { segments: 14, cast: false }));
+  [bpTop + bodyH - 7, bpTop + bodyH - 2.5].forEach(ty => {
+    box(lift, `Touchstone rear mount tab y=${ty.toFixed(0)}`, 3.4, 1.5, 0.5, 0, ty, liftBackerZ - 0.25, mats.liftSteel, { edgeColor: 0xd1d5db, edgeOpacity: 0.5, cast: false });
+    [-1.0, 1.0].forEach(tx => cyl(lift, `Touchstone rear mount hole x=${tx} y=${ty.toFixed(0)}`, 0.16, 0.6, tx, ty, liftBackerZ - 0.25, mats.darkSteel, 'z', { segments: 14, cast: false }));
+  });
+  box(liftStage1, 'Touchstone middle telescoping stage', bodyW - 1.4, bodyH - 2, bodyD - 0.8, 0, bpTop + (bodyH - 2) / 2 + 0.7, liftCenterZ, mats.steel, { edgeColor: 0xd1d5db, edgeOpacity: 0.45 });
+  const car = liftCarriage, carMidY = SPEC.tv.retractBottom + SPEC.tv.H / 2;
+  box(car, 'Touchstone inner mast (telescoping)', bodyW - 2.6, bodyH - 3, bodyD - 1.4, 0, bpTop + (bodyH - 3) / 2 + 0.9, liftCenterZ, mats.liftSteel, { edgeColor: 0xd1d5db, edgeOpacity: 0.45 });
+  box(car, 'Touchstone TV bracket central mount plate', 5.5, 12, 0.5, 0, carMidY, liftFrontZ + 0.15, mats.liftSteel, { edgeOpacity: 0.32 });
+  [['upper', carMidY + 6.4], ['lower', carMidY - 6.4]].forEach(([k, ry]) => box(car, `Touchstone TV bracket ${k} horizontal rail 28.375`, L.baseW, 1.2, 0.55, 0, ry, liftFrontZ - 0.25, mats.steel, { edgeOpacity: 0.34 }));
+  [-6.0, 6.0].forEach(sx => {
+    box(car, `Touchstone vertical slotted VESA strap x=${sx}`, 1.5, 14.5, 0.45, sx, carMidY, liftFrontZ - 0.55, mats.liftSteel, { edgeOpacity: 0.32 });
+    for (let hy = -6; hy <= 6; hy += 1.7) box(car, `VESA slot x=${sx} y=${hy.toFixed(1)}`, 0.42, 0.6, 0.12, sx, carMidY + hy, liftFrontZ - 0.79, mats.darkSteel, { edges: false, cast: false });
+  });
+  cyl(car, 'Touchstone flat-top lid roller', 0.4, 5.5, 0, carMidY + 7.6, liftFrontZ - 0.1, mats.darkSteel, 'x', { segments: 16, cast: false });
+  const tvCenterY = SPEC.tv.retractBottom + SPEC.tv.H / 2;
+  box(car, '55 in Sony OLED ghost panel no stand', SPEC.tv.W, SPEC.tv.H, SPEC.tv.D, 0, tvCenterY, liftScreenZ + SPEC.tv.D / 2, mats.tvGlass, { edgeColor: 0x64748b, edgeOpacity: 0.5 });
+  const sbCenterY = SPEC.soundbar.retractBottom + SPEC.soundbar.H / 2;
+  box(car, 'Sony Bravia Theatre Bar 9 ghost body', SPEC.soundbar.W, SPEC.soundbar.H, SPEC.soundbar.D, 0, sbCenterY, soundbarCenterZ, mats.soundbar, { edgeColor: 0x94a3b8, edgeOpacity: 0.44 });
+  const vz = liftFrontZ - 0.55;
+  const sbFrontZ = soundbarFrontZ;
+  box(car, 'Sanus WSBSBTV1 VESA hub plate (bolts to TV VESA holes, behind TV)', 4.5, 5.0, 0.4, 0, carMidY, vz - 0.35, mats.darkSteel, { edgeColor: 0x94a3b8, edgeOpacity: 0.4 });
+  [carMidY + 2.4, carMidY - 2.4].forEach(ry => box(car, 'Sanus WSBSBTV1 VESA width rail', 16, 0.7, 0.3, 0, ry, vz - 0.55, mats.darkSteel, { edgeColor: 0x94a3b8, edgeOpacity: 0.36, cast: false }));
+  box(car, 'Sanus WSBSBTV1 vertical height-adjust column', 2.6, carMidY - 8.0, 1.5, 0, (carMidY + 8.0) / 2, vz - 0.35, mats.liftSteel, { edgeColor: 0xd1d5db, edgeOpacity: 0.4 });
+  box(car, 'Sanus WSBSBTV1 soundbar mount bar 43.86', 43.86, 1.0, 1.2, 0, 8.0, vz - 0.35, mats.darkSteel, { edgeColor: 0x94a3b8, edgeOpacity: 0.4 });
+  [-21.9, 21.9].forEach(ax => {
+    box(car, `Sanus WSBSBTV1 forward soundbar arm (3.6 in forward) x=${ax}`, 0.6, 0.6, (vz - 0.35) - sbFrontZ, ax, 8.0, ((vz - 0.35) + sbFrontZ) / 2, mats.darkSteel, { edgeColor: 0x94a3b8, edgeOpacity: 0.4, cast: false });
+    box(car, `Sanus WSBSBTV1 soundbar cradle lip x=${ax}`, 0.6, 1.6, 0.3, ax, 8.7, sbFrontZ + 0.15, mats.darkSteel, { edgeColor: 0x94a3b8, edgeOpacity: 0.42, cast: false });
+  });
+  [-5, 5].forEach(bx => [carMidY - 4, carMidY + 4].forEach(by => cyl(car, `Sanus VESA share bolt x=${bx} y=${by.toFixed(0)}`, 0.17, 1.4, bx, by, vz + 0.1, mats.steel, 'z', { segments: 14, cast: false })));
+  box(car, 'ash-faced lightweight connected lid ghost', SPEC.lid.W, SPEC.lid.T, SPEC.lid.D, 0, SPEC.lid.flushTop - SPEC.lid.T / 2, footMidZ, mats.footWood, { edgeColor: 0x5f411a, edgeOpacity: 0.42 });
+  label('Touchstone 23401 per the vendor drawing: 9.875 x 5.125 floor plate w/ 6 floor-mount holes (3/side) + 2 rear-wall tabs; 2-stage telescope; 28.375 TV bracket + slotted VESA straps', 0, 36.5, liftFrontZ - 2.2, 'steel', 'lift');
+  label('6 floor-mount holes (3 each side) bolt the base plate to the 8 AFF deck; 2 rear tabs bolt to the back wall (manual p13)', 0, 6.4, liftCenterZ + 1.0, 'warn', 'lift');
+  label('55 in TV + soundbar retract above the flat 8 AFF deck; no scabbard', 0, 12.2, soundbarFrontZ - 1.2, 'green', 'lift');
+  label('Sanus WSBSBTV1-B2: bolts to the TV VESA holes; column + 43.86 in bar project the soundbar 3.6 in FORWARD (back flush w/ screen); co-moves on the lift', 0, 5.5, soundbarFrontZ - 1.0, 'steel', 'lift');
+  pieceLabel('LIFT-23401', 'Touchstone 23401 ghost mechanism', 0, 32, liftCenterZ - 4.2, '9.875x5.125 plate (6 holes + 2 rear) + body + telescoping mast + 28.375 bracket', 'lift');
+}
+
+// ----------------------------------------------------------------------------
+//  BUILDER: detachable dock hardware at the foot-of-bed seam (Z = 85).
+//  Shared so the master (Full-Bed, docked) and the dock detail (Dock-Interface, animated)
+//  show the SAME powerCON / speakON / locating dowels / bed bolts.
+//  ctx: { cabGroup, baseGroup }  — cabinet-side parts go on cabGroup (which Dock-Interface
+//  translates to dock/undock); base-side parts go on baseGroup (fixed).
+//  Returns { acMat, spkMat } so a host can pulse the connectors on mate.
+// ----------------------------------------------------------------------------
+function buildDockHardware(ctx) {
+  const { cabGroup, baseGroup } = ctx;
+  const SEAM = SPEC.fullBedZ.footBack;   // 85
+  const steel = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, roughness: 0.28, metalness: 0.85 });
+  const dark = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.36, metalness: 0.76 });
+  const housing = new THREE.MeshStandardMaterial({ color: 0x23282f, roughness: 0.5, metalness: 0.55 });
+  const acMat = new THREE.MeshStandardMaterial({ color: 0xe0962f, roughness: 0.45, metalness: 0.2, emissive: 0x3a2406, emissiveIntensity: 0.5 });
+  const spkMat = new THREE.MeshStandardMaterial({ color: 0x3b6fb0, roughness: 0.45, metalness: 0.2, emissive: 0x06182f, emissiveIntensity: 0.5 });
+  const bore = new THREE.MeshStandardMaterial({ color: 0x0d1014, roughness: 1 });
+  const pocketRing = new THREE.MeshStandardMaterial({ color: 0xb89a5c, roughness: 0.7 });
+  const pocketWell = new THREE.MeshStandardMaterial({ color: 0x6f5a32, roughness: 0.9 });
+  function zc(r1, r2, len, mat, seg = 26) { const m = new THREE.Mesh(new THREE.CylinderGeometry(r1, r2, len, seg), mat); m.rotation.x = Math.PI / 2; m.castShadow = true; return m; }
+  function plug(mat, npins, name) {
+    const g = new THREE.Group(); g.name = name;
+    const h = zc(0.58, 0.58, 1.5, housing); h.position.z = -0.4; g.add(h);
+    const collar = zc(0.72, 0.66, 0.42, mat); collar.position.z = -1.05; g.add(collar);
+    const ring = npins === 3 ? [[0, 0.26], [0.22, -0.13], [-0.22, -0.13]] : [[-0.2, 0.2], [0.2, 0.2], [-0.2, -0.2], [0.2, -0.2]];
+    for (const [px, py] of ring) { const pin = zc(0.075, 0.075, 0.9, steel); pin.position.set(px, py, -1.5); g.add(pin); }
+    return g;
+  }
+  function socket(mat, name) {
+    const g = new THREE.Group(); g.name = name;
+    const shell = zc(0.74, 0.74, 1.2, housing); shell.position.z = -0.55; g.add(shell);
+    const face = zc(0.74, 0.74, 0.12, mat); g.add(face);
+    const b = zc(0.6, 0.6, 1.0, bore); b.position.z = -0.5; g.add(b);
+    return g;
+  }
+  function pocket(group, x, y, into) {
+    const r = new THREE.Mesh(new THREE.BoxGeometry(3.0, 3.0, 0.2), pocketRing); r.position.set(x, y, SEAM + into * 0.05); group.add(r);
+    const w = new THREE.Mesh(new THREE.BoxGeometry(2.4, 2.4, 0.5), pocketWell); w.position.set(x, y, SEAM + into * 0.3); group.add(w);
+  }
+  // cabinet-side: plugs + dowels protrude -Z toward the base
+  const acPlug = plug(acMat, 3, 'powerCON plug (120V AC)'); acPlug.position.set(-33, 6, SEAM); cabGroup.add(acPlug);
+  const spkPlug = plug(spkMat, 4, 'speakON NL4 plug (speakers L+R)'); spkPlug.position.set(33, 6, SEAM); cabGroup.add(spkPlug);
+  pocket(cabGroup, -33, 6, -1); pocket(cabGroup, 33, 6, -1);
+  for (const x of [-19, 19]) {
+    const d = zc(0.1875, 0.1875, 3.4, steel); d.name = 'locating dowel'; d.position.set(x, 12, SEAM - 1.5); cabGroup.add(d);
+    const tip = new THREE.Mesh(new THREE.ConeGeometry(0.1875, 0.5, 18), steel); tip.rotation.x = -Math.PI / 2; tip.position.set(x, 12, SEAM - 3.45); tip.castShadow = true; cabGroup.add(tip);
+    const collar = zc(0.34, 0.34, 0.4, dark); collar.position.set(x, 12, SEAM + 0.2); cabGroup.add(collar);
+  }
+  // base-side: sockets + bushings + bed bolts, recessed into the base foot face
+  const acSock = socket(acMat, 'powerCON socket'); acSock.position.set(-33, 6, SEAM); baseGroup.add(acSock);
+  const spkSock = socket(spkMat, 'speakON socket'); spkSock.position.set(33, 6, SEAM); baseGroup.add(spkSock);
+  pocket(baseGroup, -33, 6, 1); pocket(baseGroup, 33, 6, 1);
+  for (const x of [-19, 19]) {
+    const bush = zc(0.42, 0.42, 1.0, dark); bush.name = 'dowel bushing'; bush.position.set(x, 12, SEAM - 0.5); baseGroup.add(bush);
+    const b = zc(0.22, 0.22, 1.2, bore); b.position.set(x, 12, SEAM - 0.5); baseGroup.add(b);
+    const flange = zc(0.55, 0.55, 0.18, steel); flange.position.set(x, 12, SEAM + 0.02); baseGroup.add(flange);
+  }
+  for (const x of [-29, -11, 11, 29]) {
+    const shaft = zc(0.26, 0.26, 4.5, dark); shaft.name = 'bed bolt'; shaft.position.set(x, 14, SEAM - 1.2); baseGroup.add(shaft);
+    const head = zc(0.5, 0.5, 0.5, steel, 6); head.position.set(x, 14, SEAM - 3.4); baseGroup.add(head);
+  }
+  return { acMat, spkMat };
+}
+
+// ----------------------------------------------------------------------------
+//  BUILDER: detailed floating nightstands — carcasses  (verbatim from master addDetailedNightstands)
+//  Shared so the master (Full-Bed) and the standalone nightstand model (Nightstands) cannot drift.
+//  ctx: { box, cyl, mats, groups:{detailedNightstands}, label, pieceLabel }
+//  Builds BOTH nightstands (mirror pair, centerX = +-51). The headboard-side receiver rails,
+//  locator bays and captive-nut bolts are headboard structure (built in Full-Bed), not here.
+// ----------------------------------------------------------------------------
+function buildNightstands(ctx) {
+  const { box, cyl, mats, groups, label, pieceLabel } = ctx;
+  const N = SPEC.nightstand;
+  [-1, 1].forEach(side => {
+    const cx = side * N.centerX;
+    const sideName = side < 0 ? 'L' : 'R';
+    const z0 = 0.35;
+    const zMid = z0 + N.D / 2;
+    box(groups.detailedNightstands, `NS-${sideName} top panel`, N.W, 0.75, N.D, cx, N.top - 0.38, zMid, mats.night, { edgeColor: 0x425830, edgeOpacity: 0.44 });
+    box(groups.detailedNightstands, `NS-${sideName} bottom panel`, N.W, 0.75, N.D, cx, N.bottom + 0.38, zMid, mats.night, { edgeColor: 0x425830, edgeOpacity: 0.44 });
+    box(groups.detailedNightstands, `NS-${sideName} outer side panel`, 0.75, N.H, N.D, cx + side * (N.W / 2 - 0.38), (N.top + N.bottom) / 2, zMid, mats.night);
+    box(groups.detailedNightstands, `NS-${sideName} inner side panel`, 0.75, N.H, N.D, cx - side * (N.W / 2 - 0.38), (N.top + N.bottom) / 2, zMid, mats.night);
+    box(groups.detailedNightstands, `NS-${sideName} back panel bolt plane`, N.W - 1.5, N.H - 1.5, 0.55, cx, (N.top + N.bottom) / 2, z0 + 0.28, mats.night);
+    box(groups.detailedNightstands, `NS-${sideName} drawer box full-extension ghost`, N.W - 4.0, 7.0, N.D - 3.2, cx, 21.7, zMid + 0.5, mats.ghost, { edgeColor: 0xd9f99d, edgeOpacity: 0.42, cast: false });
+    box(groups.detailedNightstands, `NS-${sideName} recessed drawer face`, N.W - 2.0, N.drwFaceH, 0.55, cx, 21.6, z0 + N.D - 1.05, mats.night, { edgeColor: 0x425830, edgeOpacity: 0.54 });
+    // handle-less sharknose pull: flat face + 45 deg beveled BOTTOM edge (nightstand drawer pulls from the bottom bevel)
+    const nbev = new THREE.Mesh(new THREE.BoxGeometry(N.W - 4.0, 0.12, 0.6), mats.night);
+    nbev.position.set(cx, 18.0, z0 + N.D - 0.85); nbev.rotation.x = Math.PI / 4; nbev.castShadow = false;
+    nbev.name = `NS-${sideName} drawer beveled bottom-edge pull (handle-less sharknose)`;
+    groups.detailedNightstands.add(nbev);
+    box(groups.detailedNightstands, `NS-${sideName} left slide`, 0.24, 0.28, N.D - 4.0, cx - 10.2, 22.2, zMid + 0.2, mats.steel, { edgeOpacity: 0.18, cast: false });
+    box(groups.detailedNightstands, `NS-${sideName} right slide`, 0.24, 0.28, N.D - 4.0, cx + 10.2, 22.2, zMid + 0.2, mats.steel, { edgeOpacity: 0.18, cast: false });
+    box(groups.detailedNightstands, `NS-${sideName} fixed top-lip LED wash`, N.W - 3.0, 0.22, 0.24, cx, N.top - 1.25, z0 + N.D - 1.15, mats.ledWarm, { edgeOpacity: 0.24, cast: false });
+    // fixed front top lip / valance (Full-Bed): the wash is hidden in its underside; nightstand reads finished
+    box(groups.detailedNightstands, `NS-${sideName} fixed front top lip / valance`, N.W, N.lipH, 0.7, cx, N.top - 0.75 - N.lipH / 2, z0 + N.D - 0.35, mats.night, { edgeColor: 0x425830, edgeOpacity: 0.5 });
+    // real soft-close drawer box (4 walls + bottom) inside the full-extension travel
+    const dbW = N.W - 4.0, dbD = N.D - 3.2, dbY = 21.7;
+    box(groups.detailedNightstands, `NS-${sideName} drawer box left wall`, 0.4, 6.6, dbD, cx - dbW / 2 + 0.2, dbY, zMid + 0.5, mats.night, { edgeOpacity: 0.3, cast: false });
+    box(groups.detailedNightstands, `NS-${sideName} drawer box right wall`, 0.4, 6.6, dbD, cx + dbW / 2 - 0.2, dbY, zMid + 0.5, mats.night, { edgeOpacity: 0.3, cast: false });
+    box(groups.detailedNightstands, `NS-${sideName} drawer box back wall`, dbW, 6.6, 0.4, cx, dbY, zMid + 0.5 - dbD / 2 + 0.2, mats.night, { edgeOpacity: 0.3, cast: false });
+    box(groups.detailedNightstands, `NS-${sideName} drawer box bottom`, dbW, 0.4, dbD, cx, dbY - 3.1, zMid + 0.5, mats.night, { edgeOpacity: 0.3, cast: false });
+    // rear locator ledge + 2 dowel pins: set the nightstand before the 8 captive-nut bolts clamp (no steel arm)
+    box(groups.detailedNightstands, `NS-${sideName} rear locator ledge`, N.W - 2.0, 0.6, 0.7, cx, N.bottom + 1.4, z0 + 0.55, mats.shell, { edgeColor: 0x5f411a, edgeOpacity: 0.4, cast: false });
+    [-6, 6].forEach(dx => cyl(groups.detailedNightstands, `NS-${sideName} locator dowel x=${dx}`, 0.18, 1.0, cx + dx, N.bottom + 2.4, z0 + 0.35, mats.tenon, 'z', { segments: 18, cast: false }));
+    [-9, -3, 3, 9].forEach(dx => [19.4, 26.1].forEach(y => {
+      cyl(groups.detailedNightstands, `NS-${sideName} inside-access bolt port x=${dx} y=${y}`, 0.24, 0.4, cx + dx, y, z0 + 0.62, mats.void, 'z', { segments: 24, cast: false });
+    }));
+    label(`NS-${sideName}: detailed floating nightstand\n8 bolts from drawer cavity into captive nuts`, cx, 29.6, zMid, 'green', 'nightstand');
+    pieceLabel(`NS-${sideName}-CARCASS`, `${sideName} full nightstand carcass`, cx, 22.5, zMid + 3, '26 x 20 x 11', 'nightstand');
+  });
+}
+
+// ----------------------------------------------------------------------------
+//  BUILDER: the full headboard — helpers + build  (verbatim from master Full-Bed)
+//  Shared so the master (Full-Bed) and the standalone headboard model (Headboard) cannot drift.
+//  ctx = engine (box,cyl,line3,addEdges) + label/pieceLabel + the fastener registry
+//  (registerFastener,fastenerLabel,FASTENER_TYPES) + the master state arrays + mats + groups.
+//  Returns { frontPanels } — the master's panel validator reads panel count/geometry from it.
+// ----------------------------------------------------------------------------
+function buildHeadboard(ctx) {
+  const { box, cyl, line3, addEdges, label, pieceLabel, registerFastener, fastenerLabel, mats, groups, FASTENER_TYPES, woodPieces, fastenerAssemblies, switchPanelAssemblies, switchRearExitAssemblies, bedBoltCutouts } = ctx;
+function addClampLine(group, name, from, to, color = 0xf59e0b) {
+  line3(group, `${name} clamp direction`, [from, to], color, 0.92);
+  const head = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.42, 18), new THREE.MeshStandardMaterial({ color, roughness: 0.42 }));
+  head.name = `${name} clamp arrow head`;
+  head.position.set(...to);
+  const dx = to[0] - from[0], dy = to[1] - from[1], dz = to[2] - from[2];
+  const dir = new THREE.Vector3(dx, dy, dz).normalize();
+  head.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
+  group.add(head);
+  return head;
+}
+
+function addTenonKey({ id, groupKey = 'alignmentKeys', labelSection = 'fastenerAlign', joint, pieceIds, x, y, z, sx = 0.34, sy = 1.1, sz = 0.46 }) {
+  const group = groups[groupKey];
+  box(group, `${id} dry loose tenon / dowel key`, sx, sy, sz, x, y, z, mats.tenon, { edgeColor: 0x0369a1, edgeOpacity: 0.72, cast: false });
+  registerFastener({ id, type: 'TENON', groupKey, labelSection, joint, pieceIds, position: { x, y, z }, notes: 'Alignment/shear key; dry fit, not the draw clamp.' });
+  fastenerLabel(id, 'TENON', x, y + 0.9, z, labelSection);
+}
+
+function addZipboltSideDrive({ id, groupKey, labelSection, joint, pieceIds, x, y, z, axis = 'x', dir = 1, socket = 'rear' }) {
+  const group = groups[groupKey];
+  const axisVector = axis === 'x'
+    ? new THREE.Vector3(dir, 0, 0)
+    : axis === 'z'
+      ? new THREE.Vector3(0, 0, dir)
+      : new THREE.Vector3(0, dir, 0);
+  const base = new THREE.Vector3(x, y, z);
+  const stud = base.clone().addScaledVector(axisVector, 0.65);
+  const insert = base.clone().addScaledVector(axisVector, 1.5);
+  const clampStart = base.clone().addScaledVector(axisVector, -0.22);
+  const clampEnd = base.clone().addScaledVector(axisVector, 1.25);
+  registerFastener({ id, type: 'ZB-SD', groupKey, labelSection, joint, pieceIds, position: { x, y, z }, notes: 'Side-drive housing, threaded stud, insert, access window, and metal bearing face shown conceptually.' });
+  cyl(group, `${id} side-drive housing`, 0.28, 1.05, x, y, z, mats.steel, socket === 'vertical' ? 'y' : 'z', { segments: 28 });
+  cyl(group, `${id} threaded draw stud`, 0.07, 1.95, stud.x, stud.y, stud.z, mats.darkSteel, axis);
+  cyl(group, `${id} brass insert / captured mating hardware`, 0.16, 0.42, insert.x, insert.y, insert.z, mats.brass, axis, { segments: 24 });
+  box(group, `${id} metal bearing washer / cup`, 0.72, 0.1, 0.72, x, y + 0.02, z, mats.steel, { edgeOpacity: 0.22 });
+  box(group, `${id} side access bore / service window`, 0.82, 0.58, 0.18, x, y, socket === 'rear' ? -7.93 : z, mats.access, { edgeColor: 0xfb923c, edgeOpacity: 0.72, cast: false });
+  addClampLine(group, id, clampStart.toArray(), clampEnd.toArray(), 0xf59e0b);
+  fastenerLabel(id, 'ZB-SD', insert.x, insert.y + 0.45, insert.z - 0.45, labelSection);
+}
+
+function addBedBoltCutoutVolumes({ id, group, x, y, z, axis = 'y' }) {
+  bedBoltCutouts.push({ id, axis, position: { x, y, z } });
+  if (axis === 'z') {
+    cyl(group, `${id} actual bolt shaft bore / cutout`, 0.24, 7.45, x, y, -4.05, mats.void, 'z', { segments: 28, cast: false });
+    cyl(group, `${id} actual base-side counterbore / access pocket`, 0.5, 0.22, x, y, 0.04, mats.access, 'z', { segments: 30, cast: false });
+    box(group, `${id} actual captured receiver pocket / cross-dowel cutout`, 1.25, 0.86, 0.38, x, y, -7.45, mats.access, { edgeColor: 0xfb923c, edgeOpacity: 0.7, cast: false });
+    return;
+  }
+  cyl(group, `${id} actual vertical bolt shaft bore / cutout`, 0.16, 2.92, x, y, z, mats.void, 'y', { segments: 28, cast: false });
+  cyl(group, `${id} actual washer counterbore / access pocket`, 0.36, 0.2, x, y - 1.35, z, mats.access, 'y', { segments: 30, cast: false });
+  cyl(group, `${id} actual transverse barrel-nut bore`, 0.27, 1.28, x, y + 1.25, z, mats.access, 'x', { segments: 28, cast: false });
+}
+
+function addVerticalBedBolt({ id, groupKey, labelSection, joint, pieceIds, x, y, z }) {
+  const group = groups[groupKey];
+  registerFastener({ id, type: 'BB-CD', groupKey, labelSection, joint, pieceIds, position: { x, y, z }, notes: 'Vertical bed bolt with washer/cup and cross dowel or captured nut bearing in the receiving member.' });
+  addBedBoltCutoutVolumes({ id, group, x, y, z, axis: 'y' });
+  cyl(group, `${id} bed bolt shaft`, 0.095, 2.65, x, y, z, mats.darkSteel, 'y', { segments: 24 });
+  cyl(group, `${id} counterbore washer / cup`, 0.26, 0.12, x, y - 1.35, z, mats.steel, 'y', { segments: 28 });
+  cyl(group, `${id} cross dowel / barrel nut`, 0.17, 1.0, x, y + 1.25, z, mats.brass, 'x', { segments: 24 });
+  addClampLine(group, id, [x, y - 1.2, z], [x, y + 1.05, z], 0xf59e0b);
+  fastenerLabel(id, 'BB-CD', x + 0.75, y + 1.55, z, labelSection);
+}
+
+function addBaseTieBolt({ id, x, y }) {
+  const groupKey = 'baseTieFasteners';
+  const labelSection = 'fastenerBase';
+  const group = groups[groupKey];
+  const receiverId = x === -36 ? 'HB-MUL-L' : x === 36 ? 'HB-MUL-R' : x === -4 ? 'HB-CD-L' : 'HB-CD-R';
+  registerFastener({
+    id,
+    type: 'BB-CD',
+    groupKey,
+    labelSection,
+    joint: 'headboard lower receiver ladder to bed-base exoskeleton / center spine',
+    pieceIds: [receiverId, 'HB-LR-U-01', 'HB-LR-L-01', 'bed-base ghost rail'],
+    position: { x, y, z: -4.1 },
+    notes: 'Primary headboard-to-base removable structural bolt.'
+  });
+  addBedBoltCutoutVolumes({ id, group, x, y, z: -4.1, axis: 'z' });
+  cyl(group, `${id} base tie bolt shaft`, 0.18, 7.2, x, y, -4.1, mats.darkSteel, 'z');
+  cyl(group, `${id} base-side washer cup`, 0.38, 0.16, x, y, 0.04, mats.steel, 'z', { segments: 30 });
+  box(group, `${id} captured base receiver / nut bearing`, 1.0, 0.65, 0.22, x, y, -7.45, mats.brass, { edgeOpacity: 0.25 });
+  addClampLine(group, id, [x, y, 0.1], [x, y, -7.1], 0xf59e0b);
+  fastenerLabel(id, 'BB-CD', x + 1.05, y + 0.65, -4.0, labelSection);
+}
+
+function addNightstandConnectorBolt({ id, sideName, x, y }) {
+  const groupKey = 'nightstandFasteners';
+  const labelSection = 'fastenerNightstand';
+  const group = groups[groupKey];
+  registerFastener({
+    id,
+    type: 'CN-SQ',
+    groupKey,
+    labelSection,
+    joint: `${sideName} nightstand to headboard receiver rail`,
+    pieceIds: [`nightstand-${sideName}`, `HB-NS-${y > 23 ? 'U' : 'L'}-${sideName}`, 'captured square nut'],
+    position: { x, y, z: 1.5 },
+    notes: 'Bolt enters from inside drawer cavity; square nut is mortised and retained from rear.'
+  });
+  cyl(group, `${id} connector bolt shaft`, 0.13, 7.2, x, y, 1.5, mats.darkSteel, 'z');
+  cyl(group, `${id} drawer-side washer`, 0.28, 0.12, x, y, 5.35, mats.steel, 'z', { segments: 28 });
+  box(group, `${id} captive square nut pocket`, 0.75, 0.55, 0.25, x, y, -6.9, mats.steel, { edgeOpacity: 0.38 });
+  box(group, `${id} rear wood keeper`, 1.0, 0.22, 0.14, x, y - 0.42, -7.88, mats.shell, { edgeOpacity: 0.22 });
+  addClampLine(group, id, [x, y, 5.25], [x, y, -6.65], 0xf59e0b);
+  fastenerLabel(id, 'CN-SQ', x + 0.8, y + 0.45, 2.4, labelSection);
+}
+
+function addSmallScrew({ id, groupKey, labelSection, type = 'KS', joint, pieceIds, x, y, z, axis = 'z', length = 0.8 }) {
+  const group = groups[groupKey];
+  registerFastener({ id, type, groupKey, labelSection, joint, pieceIds, position: { x, y, z }, notes: 'Small keeper screw/pin.' });
+  cyl(group, `${id} screw shaft`, 0.055, length, x, y, z, type === 'KS' ? mats.darkSteel : mats.panelScrew, axis, { segments: 18 });
+  cyl(group, `${id} screw head`, 0.14, 0.08, x, y, axis === 'z' ? z - length / 2 : z, mats.steel, axis, { segments: 22 });
+  fastenerLabel(id, type, x + 0.45, y + 0.25, z, labelSection);
+}
+
+function addPanelClamp({ id, panelId, x, y, fixed = false }) {
+  const groupKey = 'panelKeeperFasteners';
+  const labelSection = 'fastenerPanel';
+  const group = groups[groupKey];
+  const z = -1.46;
+  registerFastener({
+    id,
+    type: 'PF-CB',
+    groupKey,
+    labelSection,
+    joint: `${panelId} hidden rear clamp ${fixed ? 'fixed datum' : 'slotted seasonal point'}`,
+    pieceIds: [panelId, 'hidden retainer batten', 'threaded panel insert'],
+    position: { x, y, z },
+    notes: fixed
+      ? 'Fixed datum point: round retainer hole locates this panel.'
+      : 'Slotted retainer hole: clamps panel while allowing seasonal wood movement.'
+  });
+  box(group, `${id} retainer batten washer strip`, fixed ? 0.74 : 1.18, 0.32, 0.28, x, y, -1.28, mats.panelBatten, { edgeColor: 0x7c2d10, edgeOpacity: 0.42, cast: false });
+  box(group, `${id} ${fixed ? 'round datum hole clearance' : 'slotted retainer hole clearance'}`, fixed ? 0.34 : 0.92, 0.18, 0.34, x, y, -1.08, mats.access, { edgeColor: fixed ? 0xfacc15 : 0xfb923c, edgeOpacity: 0.75, cast: false });
+  cyl(group, `${id} rear machine screw shaft`, 0.06, 0.9, x, y, z, mats.darkSteel, 'z', { segments: 18 });
+  cyl(group, `${id} rear washer`, 0.18, 0.08, x, y, -1.88, mats.steel, 'z', { segments: 24 });
+  cyl(group, `${id} threaded insert in panel back`, 0.13, 0.28, x, y, -0.96, mats.brass, 'z', { segments: 24 });
+  addClampLine(group, id, [x, y, -1.9], [x, y, -1.02], fixed ? 0xfacc15 : 0xf59e0b);
+  fastenerLabel(id, 'PF-CB', x + 0.45, y + 0.35, -1.65, labelSection);
+}
+
+function addRetainerBattenFrameAnchor({ id, panelId, x, y, target }) {
+  const groupKey = 'panelKeeperFasteners';
+  const labelSection = 'fastenerPanel';
+  const group = groups[groupKey];
+  const z = -1.78;
+  registerFastener({
+    id,
+    type: 'RB-MF',
+    groupKey,
+    labelSection,
+    joint: `${panelId} retainer batten anchored to ${target}`,
+    pieceIds: [panelId, 'hidden retainer batten', target],
+    position: { x, y, z },
+    notes: 'Completes load path from panel insert to batten to structural frame.'
+  });
+  box(group, `${id} retainer batten bearing pad`, 0.58, 0.28, 0.18, x, y, -1.48, mats.panelBatten, { edgeColor: 0x7c2d10, edgeOpacity: 0.5, cast: false });
+  cyl(group, `${id} batten-to-frame machine screw`, 0.055, 0.86, x, y, z, mats.darkSteel, 'z', { segments: 18 });
+  cyl(group, `${id} rear washer`, 0.16, 0.08, x, y, -2.22, mats.steel, 'z', { segments: 22 });
+  cyl(group, `${id} threaded frame insert`, 0.12, 0.28, x, y, -1.2, mats.brass, 'z', { segments: 22 });
+  addClampLine(group, id, [x, y, -2.18], [x, y, -1.2], 0x94a3b8);
+  fastenerLabel(id, 'RB-MF', x + 0.55, y - 0.42, -2.05, labelSection);
+}
+
+function addMullionSwitchPanel({ sideName, x }) {
+  const group = groups.controlsHardware;
+  const sp = SPEC.switchPanel;
+  const id = `HB-SW-${sideName}`;
+  switchPanelAssemblies.push({
+    id,
+    sideName,
+    x,
+    yRange: [sp.centerY - sp.H / 2, sp.centerY + sp.H / 2],
+    recess: { W: sp.W, H: sp.H, D: sp.D },
+    buttonCount: sp.buttonsAFF.length,
+    buttonDia: sp.buttonDia,
+    wireChaseDia: sp.wireChaseDia
+  });
+  box(group, `${id} recessed switch-panel pocket cut into mullion face`, sp.W, sp.H, sp.D, x, sp.centerY, -sp.D / 2, mats.access, { edgeColor: 0xfb923c, edgeOpacity: 0.8, cast: false });
+  box(group, `${id} removable inset button plate`, sp.W - 0.16, sp.H - 0.18, 0.08, x, sp.centerY, 0.07, mats.switchPlate, { edgeColor: 0x99f6e4, edgeOpacity: 0.62, cast: false });
+  cyl(group, `${id} low-voltage rear wire chase`, sp.wireChaseDia / 2, 7.45, x, sp.centerY, -4.25, mats.void, 'z', { segments: 28, cast: false });
+  cyl(group, `${id} rear-face wire exit dark bore`, sp.wireChaseDia / 2, 0.16, x, sp.centerY, -8.04, mats.darkSteel, 'z', { segments: 32, cast: false });
+  cyl(group, `${id} rear-face wire exit grommet ring`, sp.wireChaseDia / 2 + 0.12, 0.08, x, sp.centerY, -8.13, mats.steel, 'z', { segments: 36, cast: false });
+  switchRearExitAssemblies.push({
+    id: `${id}-REAR-EXIT`,
+    x,
+    y: sp.centerY,
+    z: -8,
+    diameter: sp.wireChaseDia,
+    path: 'straight-through-mullion-to-open-rear'
+  });
+  sp.buttonsAFF.forEach((y, i) => {
+    cyl(group, `${id} FILN FLM12 12mm button hole ${i + 1}`, sp.buttonDia / 2, 0.7, x, y, -0.2, mats.void, 'z', { segments: 32, cast: false });
+    cyl(group, `${id} illuminated momentary button ${i + 1}`, sp.buttonDia / 2 * 0.82, 0.16, x, y, 0.14, i % 2 === 0 ? mats.ledWarm : mats.ledRed, 'z', { segments: 32, cast: false });
+  });
+  label(`${id}\n4x FILN FLM12\n0.5 in rear wire chase`, x + (sideName === 'L' ? -2.4 : 2.4), sp.centerY, 0.8, 'blue piece', 'controls');
+  label(`${id} rear wire exit\nstraight 0.5 in bore`, x + (sideName === 'L' ? -2.4 : 2.4), sp.centerY, -9.15, 'blue piece', 'controls');
+}
+
+function housedRail(group, name, x0, x1, y, h, d, z, mat, options = {}) {
+  const rail = box(group, name, x1 - x0, h, d, (x0 + x1) / 2, y, z, mat, options);
+  [x0, x1].forEach((x, i) => {
+    box(group, `${name} housed shoulder ${i}`, 0.22, h + 0.26, d + 0.08, x, y, z, mats.void, {
+      edgeColor: options.shoulderColor || 0x38bdf8,
+      edgeOpacity: 0.58,
+      cast: false
+    });
+  });
+  return rail;
+}
+
+// Coordinate convention: front face z=0, rear/open side z=-8.
+const W = SPEC.W, H = SPEC.H, D = SPEC.D;
+const zMid = -D / 2;
+const loadRailDepth = SPEC.loadReceiverRailDepth;
+const loadRailZ = -SPEC.panelTh - loadRailDepth / 2;
+
+// Shell.
+box(groups.lattice, 'top cap one-piece 130x2x8', W, 2, D, 0, 71, zMid, mats.shell);
+box(groups.lattice, 'bottom cap one-piece 130x2x8', W, 2, D, 0, 1, zMid, mats.shell);
+box(groups.lattice, 'left side stile 2x68x8', 2, 68, D, -64, 36, zMid, mats.shell);
+box(groups.lattice, 'right side stile 2x68x8', 2, 68, D, 64, 36, zMid, mats.shell);
+
+// Six removable front panels, 1.0 in thick, installed flush from the rear.
+const panelColumns = [
+  { key: 'L', x0: -63, x1: -38, name: 'left' },
+  { key: 'C', x0: -34, x1: 34, name: 'center' },
+  { key: 'R', x0: 38, x1: 63, name: 'right' }
+];
+const panelRows = [
+  { key: 'LOW', y0: 2, y1: SPEC.frontPanelSeamAFF, name: 'lower' },
+  { key: 'UP', y0: SPEC.frontPanelSeamAFF, y1: 70, name: 'upper' }
+];
+const frontPanels = [];
+panelRows.forEach(row => {
+  panelColumns.forEach(col => {
+    const id = `HB-FP-${col.key}-${row.key}`;
+    const width = col.x1 - col.x0;
+    const height = row.y1 - row.y0;
+    const cx = (col.x0 + col.x1) / 2;
+    const cy = (row.y0 + row.y1) / 2;
+    const isSpeakerPanel = row.key === 'UP' && col.key !== 'C';
+    frontPanels.push({ id, col: col.key, row: row.key, x0: col.x0, x1: col.x1, y0: row.y0, y1: row.y1, width, height, cx, cy, isSpeakerPanel });
+    box(groups.skins, `${id} ${col.name} ${row.name} flush removable panel 1.0 in`, width, height, SPEC.panelTh, cx, cy, -SPEC.panelTh / 2, mats.skin, { edgeOpacity: 0.28 });
+
+    // Shallow locating shoulders/rabbets; these locate the panel, while hidden clamps provide removable holding force.
+    box(groups.skins, `${id} top locating shoulder`, width, 0.16, 0.18, cx, row.y1, -1.04, mats.void, { edgeColor: 0x38bdf8, edgeOpacity: 0.16, cast: false });
+    box(groups.skins, `${id} bottom locating shoulder`, width, 0.16, 0.18, cx, row.y0, -1.04, mats.void, { edgeColor: 0x38bdf8, edgeOpacity: 0.16, cast: false });
+    box(groups.skins, `${id} left locating shoulder`, 0.16, height, 0.18, col.x0, cy, -1.04, mats.void, { edgeColor: 0x38bdf8, edgeOpacity: 0.16, cast: false });
+    box(groups.skins, `${id} right locating shoulder`, 0.16, height, 0.18, col.x1, cy, -1.04, mats.void, { edgeColor: 0x38bdf8, edgeOpacity: 0.16, cast: false });
+    box(groups.skins, `${id} seated gravity ledge / shoulder`, Math.max(4, width - 1.2), 0.24, 0.42, cx, row.y0 + 0.18, -0.86, mats.panelBatten, { edgeColor: 0x7c2d10, edgeOpacity: 0.42, cast: false });
+
+    // Hidden retainer battens are visible only from the open rear/service side.
+    box(groups.skins, `${id} hidden top retainer batten`, Math.max(4, width - 2), 0.46, 0.36, cx, row.y1 - 0.62, -1.22, mats.panelBatten, { edgeColor: 0x7c2d10, edgeOpacity: 0.38, cast: false });
+    box(groups.skins, `${id} hidden bottom retainer batten`, Math.max(4, width - 2), 0.46, 0.36, cx, row.y0 + 0.62, -1.22, mats.panelBatten, { edgeColor: 0x7c2d10, edgeOpacity: 0.38, cast: false });
+    box(groups.skins, `${id} hidden left retainer batten`, 0.46, Math.max(4, height - 2), 0.36, col.x0 + 0.62, cy, -1.22, mats.panelBatten, { edgeColor: 0x7c2d10, edgeOpacity: 0.38, cast: false });
+    box(groups.skins, `${id} hidden right retainer batten`, 0.46, Math.max(4, height - 2), 0.36, col.x1 - 0.62, cy, -1.22, mats.panelBatten, { edgeColor: 0x7c2d10, edgeOpacity: 0.38, cast: false });
+
+    const topBottomXs = width > 40
+      ? [col.x0 + 6, col.x0 + 16, col.x0 + 26, col.x1 - 26, col.x1 - 16, col.x1 - 6]
+      : [col.x0 + 5, col.x0 + 11, col.x1 - 11, col.x1 - 5];
+    const sideYs = width > 40
+      ? [row.y0 + 5, row.y0 + 10.5, row.y0 + 16, row.y1 - 16, row.y1 - 10.5, row.y1 - 5]
+      : [row.y0 + 5, row.y0 + 11.5, cy, row.y1 - 11.5, row.y1 - 5];
+    const fixedX = cx;
+    const fixedY = row.y0 + 1.15;
+    addPanelClamp({ id: `F-PF-${id}-DATUM`, panelId: id, x: fixedX, y: fixedY, fixed: true });
+    topBottomXs.forEach((x, i) => {
+      addPanelClamp({ id: `F-PF-${id}-TOP-${i + 1}`, panelId: id, x, y: row.y1 - 1.15 });
+      addPanelClamp({ id: `F-PF-${id}-BOT-${i + 1}`, panelId: id, x, y: row.y0 + 1.15 });
+    });
+    sideYs.forEach((y, i) => {
+      addPanelClamp({ id: `F-PF-${id}-L-${i + 1}`, panelId: id, x: col.x0 + 1.15, y });
+      addPanelClamp({ id: `F-PF-${id}-R-${i + 1}`, panelId: id, x: col.x1 - 1.15, y });
+    });
+
+    const seamRailId = `HB-SR36-${col.key}`;
+    const topTarget = row.key === 'UP' ? 'HB-TC-01' : seamRailId;
+    const bottomTarget = row.key === 'UP' ? seamRailId : 'HB-BC-01';
+    const leftTarget = col.key === 'L' ? 'HB-ST-L' : col.key === 'C' ? 'HB-MUL-L' : 'HB-MUL-R';
+    const rightTarget = col.key === 'L' ? 'HB-MUL-L' : col.key === 'C' ? 'HB-MUL-R' : 'HB-ST-R';
+    const rbTopBottomXs = width > 40 ? [col.x0 + 8, cx, col.x1 - 8] : [col.x0 + 6, col.x1 - 6];
+    const rbSideYs = width > 40 ? [row.y0 + 8, row.y1 - 8] : [row.y0 + 7, row.y1 - 7];
+    rbTopBottomXs.forEach((x, i) => {
+      addRetainerBattenFrameAnchor({ id: `F-RB-${id}-TOP-${i + 1}`, panelId: id, x, y: row.y1 - 0.62, target: topTarget });
+      addRetainerBattenFrameAnchor({ id: `F-RB-${id}-BOT-${i + 1}`, panelId: id, x, y: row.y0 + 0.62, target: bottomTarget });
+    });
+    rbSideYs.forEach((y, i) => {
+      addRetainerBattenFrameAnchor({ id: `F-RB-${id}-L-${i + 1}`, panelId: id, x: col.x0 + 0.62, y, target: leftTarget });
+      addRetainerBattenFrameAnchor({ id: `F-RB-${id}-R-${i + 1}`, panelId: id, x: col.x1 - 0.62, y, target: rightTarget });
+    });
+  });
+});
+line3(groups.skins, 'visible horizontal front-panel seam at AFF 36 left bay', [[-63, SPEC.frontPanelSeamAFF, 0.08], [-38, SPEC.frontPanelSeamAFF, 0.08]], 0x111827, 0.9);
+line3(groups.skins, 'visible horizontal front-panel seam at AFF 36 center bay', [[-34, SPEC.frontPanelSeamAFF, 0.08], [34, SPEC.frontPanelSeamAFF, 0.08]], 0x111827, 0.9);
+line3(groups.skins, 'visible horizontal front-panel seam at AFF 36 right bay', [[38, SPEC.frontPanelSeamAFF, 0.08], [63, SPEC.frontPanelSeamAFF, 0.08]], 0x111827, 0.9);
+
+// Full-depth visible mullions: ONE piece each, with the W-relief (THREE 1.5in lands) NOTCHED into the top (lands continuous with the body).
+[-SPEC.seamX, SPEC.seamX].forEach(x => {
+  const sideName = x < 0 ? 'L' : 'R';
+  const mullionId = `HB-MUL-${sideName}`;
+  // ONE-PIECE mullion: a single EXTRUDED W-profile board (TWO reliefs NOTCHED out of the TOP, leaving 3 lands:
+  // front / center / rear). Because it is ONE mesh, only the outer silhouette + the notch outlines draw -- there are
+  // NO internal seams / stacked-piece lines anywhere on the faces. Lands 1.5in; gaps 1.75in (35mm channel centered).
+  const g1f = SPEC.uFrontLand;                       // 1.5  gap1 front edge
+  const g1b = g1f + SPEC.uGap;                        // 3.25 gap1 back edge
+  const clb = g1b + SPEC.uCenterLand;                 // 4.75 center-land back edge
+  const g2b = clb + SPEC.uGap;                        // 6.5  gap2 back edge (= D - uRearLand)
+  const reliefY = 70 - SPEC.uDrop;                    // 66
+  const mShape = new THREE.Shape();
+  mShape.moveTo(-D, 2); mShape.lineTo(0, 2); mShape.lineTo(0, 70);
+  mShape.lineTo(-g1f, 70); mShape.lineTo(-g1f, reliefY);     // front land, drop into gap1
+  mShape.lineTo(-g1b, reliefY); mShape.lineTo(-g1b, 70);     // gap1 floor, rise to center land
+  mShape.lineTo(-clb, 70); mShape.lineTo(-clb, reliefY);     // center land top, drop into gap2
+  mShape.lineTo(-g2b, reliefY); mShape.lineTo(-g2b, 70);     // gap2 floor, rise to rear land
+  mShape.lineTo(-D, 70); mShape.closePath();
+  const mGeo = new THREE.ExtrudeGeometry(mShape, { depth: SPEC.mullionW, bevelEnabled: false });
+  const mMesh = new THREE.Mesh(mGeo, mats.collector);
+  mMesh.rotation.y = -Math.PI / 2;
+  mMesh.position.set(x + SPEC.mullionW / 2, 0, 0);
+  mMesh.castShadow = true; mMesh.receiveShadow = true;
+  mMesh.name = `mullion one-piece (single extruded W-profile board, 3 lands) x=${x}`;
+  groups.lattice.add(mMesh);
+  mMesh.add(new THREE.LineSegments(new THREE.EdgesGeometry(mGeo, 20), new THREE.LineBasicMaterial({ color: 0x17212b, transparent: true, opacity: 0.34 })));
+  addMullionSwitchPanel({ sideName, x });
+
+  // THREE vertical insert draw-bolts -- one per land (front / center / rear). Owner 2026-06-05 (D-089): replaces the
+  // former 2-land Zipbolt side-drive. Vertical bolts pull the cap into each land (side-grain withdrawal, FS ~8);
+  // the center bolt lands on the new center land (so the old loose-tenon alignment key is superseded / removed).
+  [['FRONT', -0.75], ['CENTER', -4.0], ['REAR', -7.25]].forEach(([pos, z]) => addVerticalBedBolt({
+    id: `F-VB-TC-${sideName}-${pos}`,
+    groupKey: 'capFasteners',
+    labelSection: 'fastenerCap',
+    joint: `${mullionId} ${pos.toLowerCase()} land to HB-TC-01 (vertical insert draw-bolt)`,
+    pieceIds: [mullionId, 'HB-TC-01'],
+    x,
+    y: 68.8,
+    z
+  }));
+});
+
+// Side stile / cap draw connectors and bottom-cap bed bolts.
+[-1, 1].forEach(side => {
+  const sideName = side < 0 ? 'L' : 'R';
+  const stileId = `HB-ST-${sideName}`;
+  const x = side * 64;
+  [-1.25, -6.75].forEach((z, i) => {
+    addVerticalBedBolt({
+      id: `F-BB-TC-ST-${sideName}-${i + 1}`,
+      groupKey: 'capFasteners',
+      labelSection: 'fastenerCap',
+      joint: `${stileId} to HB-TC-01 top-cap bed-bolt / barrel-connector drawdown`,
+      pieceIds: [stileId, 'HB-TC-01'],
+      x,
+      y: 70.75,
+      z
+    });
+  });
+  [-2.0, -6.0].forEach((z, i) => {
+    addVerticalBedBolt({
+      id: `F-BB-BC-ST-${sideName}-${i + 1}`,
+      groupKey: 'capFasteners',
+      labelSection: 'fastenerCap',
+      joint: `${stileId} to HB-BC-01 bottom-cap bed-bolt drawdown`,
+      pieceIds: [stileId, 'HB-BC-01'],
+      x,
+      y: 1.25,
+      z
+    });
+  });
+  addTenonKey({
+    id: `F-TENON-TC-ST-${sideName}`,
+    joint: `${stileId} to HB-TC-01 alignment key`,
+    pieceIds: [stileId, 'HB-TC-01'],
+    x,
+    y: 69.0,
+    z: -4.0,
+    sx: 0.46,
+    sy: 0.32,
+    sz: 2.2
+  });
+  addTenonKey({
+    id: `F-TENON-BC-ST-${sideName}`,
+    joint: `${stileId} to HB-BC-01 alignment key`,
+    pieceIds: [stileId, 'HB-BC-01'],
+    x,
+    y: 2.2,
+    z: -4.0,
+    sx: 0.46,
+    sy: 0.32,
+    sz: 2.2
+  });
+});
+
+[-SPEC.seamX, SPEC.seamX].forEach(x => {
+  const sideName = x < 0 ? 'L' : 'R';
+  const mullionId = `HB-MUL-${sideName}`;
+  [-2.0, -6.0].forEach((z, i) => {
+    addVerticalBedBolt({
+      id: `F-BB-BC-MUL-${sideName}-${i + 1}`,
+      groupKey: 'capFasteners',
+      labelSection: 'fastenerCap',
+      joint: `${mullionId} to HB-BC-01 bottom-cap bed-bolt drawdown`,
+      pieceIds: [mullionId, 'HB-BC-01'],
+      x,
+      y: 1.25,
+      z
+    });
+  });
+  addTenonKey({
+    id: `F-TENON-BC-MUL-${sideName}`,
+    joint: `${mullionId} to HB-BC-01 alignment key`,
+    pieceIds: [mullionId, 'HB-BC-01'],
+    x,
+    y: 2.2,
+    z: -4.0,
+    sx: 2.2,
+    sy: 0.32,
+    sz: 0.44
+  });
+});
+
+// Top-cap LED system to the REAL Vario30-07 profile (LED-Hardware-Reference): overall 44.4 mm (1.748 in) wide
+// x 24 mm (0.945 in) deep, inward wings to the 33.4 mm (1.315 in) mouth, TWO strips side-by-side in the 31.4 mm
+// (1.236 in) seat, ~31 mm light aperture; 1551AS bonded to the flat 33.4 mm back, fins into the open cavity.
+// 124 in routed run centered in the 130 in cap -> ~3 in solid ash ends. (warm front / red rear; light emits up.)
+const VchW = 1.748, VchH = 0.945, Vmouth = 1.315, Vseat = 1.236, Vcut = 1.378, Vflange = 1.748;
+// Two channels CENTERED in the two 1.75 in gaps between the 3 mullion lands (front/center/rear).
+// The routed CUT is 35 mm (1.378 in) wide x full 2 in THROUGH; the 44.4 mm (1.748 in) flange rests ON the cap top.
+[{ z: -2.375, mat: mats.ledWarm, key: 'warm' }, { z: -5.625, mat: mats.ledRed, key: 'red' }].forEach(ch => {
+  const chTop = 71.9, chBot = chTop - VchH, chMidY = (chTop + chBot) / 2;
+  box(groups.led, `${ch.key} routed through-slot in 8 in top cap (35 mm cut, full 2 in through; 124 in; emits up)`, 124, 2.0, Vcut + 0.06, 0, 71, ch.z, mats.void, { edgeColor: 0x22d3ee, edgeOpacity: 0.22, cast: false });
+  box(groups.led, `${ch.key} Vario30-07 channel back (33.4 mm body; heatsink bond face)`, 124, 0.12, Vmouth, 0, chBot + 0.06, ch.z, mats.liftSteel, { edgeOpacity: 0.22 });
+  [-1, 1].forEach(s => box(groups.led, `${ch.key} Vario30-07 channel side wall ${s < 0 ? 'a' : 'b'}`, 124, VchH, 0.09, 0, chMidY, ch.z + s * (Vcut / 2 - 0.05), mats.liftSteel, { edgeOpacity: 0.2, cast: false }));
+  [-1, 1].forEach(s => box(groups.led, `${ch.key} Vario30-07 wing/flange ${s < 0 ? 'a' : 'b'} (44.4 mm flange rests ON cap top)`, 124, 0.1, (Vflange - Vmouth) / 2, 0, 71.98, ch.z + s * (Vmouth / 2 + (Vflange - Vmouth) / 4), mats.liftSteel, { edgeOpacity: 0.18, cast: false }));
+  [-1, 1].forEach(s => box(groups.led, `${ch.key} Vario30-07 LED strip ${s < 0 ? '1' : '2'} (emits up)`, 124, 0.12, Vseat / 2 - 0.07, 0, chTop - 0.18, ch.z + s * Vseat / 4, ch.mat, { edgeOpacity: 0.14 }));
+  box(groups.led, `${ch.key} 1551AS heatsink base (bonded to channel back)`, 124, 0.45, Vmouth - 0.06, 0, chBot - 0.24, ch.z, mats.liftSteel, { edgeColor: 0xd1d5db, edgeOpacity: 0.24 });
+  [-0.62, -0.31, 0, 0.31, 0.62].forEach((dz, k) => box(groups.led, `${ch.key} 1551AS fin ${k} (into open cavity)`, 124, 1.5, 0.06, 0, chBot - 1.2, ch.z + dz, mats.steel, { edges: false, cast: false }));
+});
+// The cap is ONE 130 in board (see top cap one-piece, above); the 124 in run is routed INTO it, leaving ~3 in of
+// solid (un-routed) ash at each end. There are NO separate end blocks — the ends are just the same one-piece cap.
+[-2.375, -5.625].forEach((gz, i) => box(groups.led, `continuous LED/heatsink run through mullion gap ${i + 1} (124 in)`, 124, 4, 1.75, 0, 68, gz, mats.void, { edgeColor: 0x22d3ee, edgeOpacity: 0.32, cast: false }));
+
+// Segmented rear shear rails: each rail stops at the full-depth collectors.
+const rearRailSegments = [[-63, -38], [-34, 34], [38, 63]];
+[24].forEach(y => {
+  rearRailSegments.forEach(([x0, x1], i) => {
+    const suffix = ['L', 'C', 'R'][i];
+    const railId = `HB-RR${y}-${suffix}`;
+    housedRail(groups.lattice, `segmented rear shear rail y=${y} segment=${i}`, x0, x1, y, 3.5, 1.4, -7.3, mats.shellGhost);
+    [
+      { x: x0, receiver: x0 < -60 ? 'HB-ST-L' : x0 < 0 ? 'HB-MUL-L' : 'HB-MUL-R', tag: 'A' },
+      { x: x1, receiver: x1 > 60 ? 'HB-ST-R' : x1 < 0 ? 'HB-MUL-L' : 'HB-MUL-R', tag: 'B' }
+    ].forEach(({ x, receiver, tag }) => {
+      addZipboltSideDrive({
+        id: `F-ZB-${railId}-${tag}`,
+        groupKey: 'rearRailFasteners',
+        labelSection: 'fastenerRear',
+        joint: `${railId} housed end to ${receiver}`,
+        pieceIds: [railId, receiver],
+        x,
+        y,
+        z: -7.3,
+        axis: x < 0 ? 'x' : 'x',
+        dir: tag === 'A' ? -1 : 1,
+        socket: 'rear'
+      });
+      addTenonKey({
+        id: `F-TENON-${railId}-${tag}`,
+        joint: `${railId} housed end to ${receiver} alignment key`,
+        pieceIds: [railId, receiver],
+        x: x + (tag === 'A' ? 0.55 : -0.55),
+        y,
+        z: -7.3,
+        sx: 0.7,
+        sy: 0.3,
+        sz: 0.42
+      });
+    });
+  });
+});
+
+// Flat upper fan/service rails replace the old vertical RR60 role above the speaker tops.
+const fanRailY = 62.5;
+const fanRailH = 1.0;
+rearRailSegments.forEach(([x0, x1], i) => {
+  const suffix = ['L', 'C', 'R'][i];
+  const railId = `HB-FAN62-${suffix}`;
+  housedRail(groups.lattice, `flat upper fan/service rail AFF 62.5 segment=${suffix}`, x0, x1, fanRailY, fanRailH, loadRailDepth, loadRailZ, mats.shellGhost);
+  [
+    { x: x0, receiver: x0 < -60 ? 'HB-ST-L' : x0 < 0 ? 'HB-MUL-L' : 'HB-MUL-R', tag: 'A' },
+    { x: x1, receiver: x1 > 60 ? 'HB-ST-R' : x1 < 0 ? 'HB-MUL-L' : 'HB-MUL-R', tag: 'B' }
+  ].forEach(({ x, receiver, tag }) => {
+    addZipboltSideDrive({
+      id: `F-ZB-${railId}-${tag}`,
+      groupKey: 'rearRailFasteners',
+      labelSection: 'fastenerRear',
+      joint: `${railId} housed end to ${receiver}`,
+      pieceIds: [railId, receiver],
+      x,
+      y: fanRailY,
+      z: loadRailZ,
+      axis: 'x',
+      dir: tag === 'A' ? -1 : 1,
+      socket: 'rear'
+    });
+    addTenonKey({
+      id: `F-TENON-${railId}-${tag}`,
+      joint: `${railId} housed end to ${receiver} alignment key`,
+      pieceIds: [railId, receiver],
+      x: x + (tag === 'A' ? 0.55 : -0.55),
+      y: fanRailY,
+      z: loadRailZ,
+      sx: 0.7,
+      sy: 0.3,
+      sz: 0.42
+    });
+  });
+  const slotCount = suffix === 'C' ? 4 : 2;
+  const slotStep = (x1 - x0) / (slotCount + 1);
+  for (let s = 1; s <= slotCount; s += 1) {
+    const slotX = x0 + slotStep * s;
+    box(groups.lattice, `${railId} airflow slot ${s}`, 2.4, 0.14, 1.2, slotX, fanRailY + 0.02, loadRailZ, mats.void, { edgeColor: 0x38bdf8, edgeOpacity: 0.68, cast: false });
+  }
+  const fanCount = suffix === 'C' ? 2 : 1;
+  const fanStep = (x1 - x0) / (fanCount + 1);
+  for (let f = 1; f <= fanCount; f += 1) {
+    const fanX = x0 + fanStep * f;
+    box(groups.led, `${railId} low-profile fan ghost ${f}`, 4.75, 0.35, 4.75, fanX, fanRailY + 0.75, loadRailZ, mats.ghost, { edgeColor: 0x7dd3fc, edgeOpacity: 0.72, cast: false });
+    line3(groups.led, `${railId} fan airflow up ${f}`, [[fanX, fanRailY + 0.95, loadRailZ], [fanX, 69.4, -4.0]], 0x38bdf8, 0.8);
+  }
+});
+
+// Horizontal panel seam/retainer rails: full-depth segments behind the 36 in AFF face seam.
+rearRailSegments.forEach(([x0, x1], i) => {
+  const suffix = ['L', 'C', 'R'][i];
+  const railId = `HB-SR36-${suffix}`;
+  housedRail(groups.lattice, `panel seam retainer rail AFF 36 segment=${suffix}`, x0, x1, SPEC.frontPanelSeamAFF, 1.25, loadRailDepth, loadRailZ, mats.shellGhost);
+  [
+    { x: x0, receiver: x0 < -60 ? 'HB-ST-L' : x0 < 0 ? 'HB-MUL-L' : 'HB-MUL-R', tag: 'A' },
+    { x: x1, receiver: x1 > 60 ? 'HB-ST-R' : x1 < 0 ? 'HB-MUL-L' : 'HB-MUL-R', tag: 'B' }
+  ].forEach(({ x, receiver, tag }) => {
+    [loadRailZ - 1.5, loadRailZ + 1.5].forEach((bz, j) => addZipboltSideDrive({   // 2 draw bolts per end (front + rear) + key
+      id: `F-ZB-${railId}-${tag}-${j + 1}`,
+      groupKey: 'rearRailFasteners',
+      labelSection: 'fastenerRear',
+      joint: `${railId} housed end to ${receiver}`,
+      pieceIds: [railId, receiver],
+      x,
+      y: SPEC.frontPanelSeamAFF,
+      z: bz,
+      axis: 'x',
+      dir: tag === 'A' ? -1 : 1,
+      socket: 'rear'
+    }));
+    addTenonKey({
+      id: `F-TENON-${railId}-${tag}`,
+      joint: `${railId} housed end to ${receiver} alignment key`,
+      pieceIds: [railId, receiver],
+      x: x + (tag === 'A' ? 0.55 : -0.55),
+      y: SPEC.frontPanelSeamAFF,
+      z: loadRailZ,
+      sx: 0.7,
+      sy: 0.3,
+      sz: 0.42
+    });
+  });
+});
+
+// Lower-only center receiver doublet. It does not continue to the top cap.
+[-4, 4].forEach(x => {
+  box(groups.lattice, `lower-only center spine receiver block x=${x}`, 2.6, 15, loadRailDepth, x, 9.5, loadRailZ, mats.receiver);
+});
+
+// Simplified lower receiver ladder: two continuous rails between mullion inner faces, plus center receiver blocks.
+[
+  { railId: 'HB-LR-U-01', y: 14.5, h: 3, label: 'upper' },
+  { railId: 'HB-LR-L-01', y: 4.75, h: 2.5, label: 'lower' }
+].forEach(({ railId, y, h, label }) => {
+  housedRail(groups.lattice, `simplified lower receiver ${label} rail, mullion inner-face to inner-face`, -34, 34, y, h, loadRailDepth, loadRailZ, mats.receiver);
+  [
+    { x: -34, receiver: 'HB-MUL-L', tag: 'L', dir: -1 },
+    { x: 34, receiver: 'HB-MUL-R', tag: 'R', dir: 1 }
+  ].forEach(({ x, receiver, tag, dir }) => {
+    addZipboltSideDrive({
+      id: `F-ZB-${railId}-${tag}`,
+      groupKey: 'lowerLadderFasteners',
+      labelSection: 'fastenerLadder',
+      joint: `${railId} housed end to ${receiver}`,
+      pieceIds: [railId, receiver],
+      x,
+      y,
+      z: loadRailZ,
+      axis: 'x',
+      dir,
+      socket: 'rear'
+    });
+    addTenonKey({
+      id: `F-TENON-${railId}-${tag}`,
+      joint: `${railId} housed end to ${receiver} alignment key`,
+      pieceIds: [railId, receiver],
+      x: x + (tag === 'L' ? 0.42 : -0.42),
+      y,
+      z: loadRailZ,
+      sx: 0.62,
+      sy: 0.28,
+      sz: 0.45
+    });
+  });
+});
+
+[-4, 4].forEach((x, i) => {
+  [loadRailZ - 1.6, loadRailZ + 1.6].forEach((bz, j) => {     // 2 drawdown bolts per centre block (front + rear) -- no single-bolt hinge
+    addVerticalBedBolt({
+      id: `F-BB-BC-CD-${i + 1}-${j + 1}`,
+      groupKey: 'lowerLadderFasteners',
+      labelSection: 'fastenerLadder',
+      joint: `HB-CD-${i === 0 ? 'L' : 'R'} to HB-BC-01 center-block drawdown`,
+      pieceIds: [`HB-CD-${i === 0 ? 'L' : 'R'}`, 'HB-BC-01'],
+      x,
+      y: 1.25,
+      z: bz
+    });
+  });
+});
+
+// Headboard-to-base bolt clusters.
+[-36, 36, -4, 4].forEach(x => {
+  [5, 9.75, 14.5].forEach(y => {                       // 3 bolts per line (vertical stack) -- primary moment couple to the base
+    const lineName = x === -36 ? 'LMUL' : x === 36 ? 'RMUL' : x === -4 ? 'CLEFT' : 'CRIGHT';
+    const rowName = y < 8 ? 'LOW' : y < 12 ? 'MID' : 'UP';
+    addBaseTieBolt({ id: `F-BB-BASE-${lineName}-${rowName}`, x, y });
+  });
+});
+
+// Nightstand receiver bays, ghosts, bolts, square-nut pockets.
+[-1, 1].forEach(side => {
+  const cx = side * SPEC.nightstand.centerX;
+  const bayX0 = side < 0 ? -63 : 38;
+  const bayX1 = side < 0 ? -38 : 63;
+  housedRail(groups.lattice, `nightstand upper receiver rail ${side}, housed stile-to-mullion`, bayX0, bayX1, 27.1, 1.8, loadRailDepth, loadRailZ, mats.night);
+  housedRail(groups.lattice, `nightstand lower receiver rail ${side}, housed stile-to-mullion`, bayX0, bayX1, 18.4, 1.8, loadRailDepth, loadRailZ, mats.night);
+  line3(groups.lattice, `nightstand ash diagonal ${side}`, [[bayX0, 18.4, -7.4], [bayX1, 27.1, -7.4]], 0x8a5a24, 0.9);
+  const sideName = side < 0 ? 'L' : 'R';
+  const leftReceiver = side < 0 ? 'HB-ST-L' : 'HB-MUL-R';
+  const rightReceiver = side < 0 ? 'HB-MUL-L' : 'HB-ST-R';
+  [
+    { railId: `HB-NS-U-${sideName}`, y: 27.1 },
+    { railId: `HB-NS-L-${sideName}`, y: 18.4 }
+  ].forEach(({ railId, y }) => {
+    [
+      { x: bayX0, receiver: leftReceiver, tag: 'A' },
+      { x: bayX1, receiver: rightReceiver, tag: 'B' }
+    ].forEach(({ x, receiver, tag }) => {
+      [loadRailZ - 1.5, loadRailZ + 1.5].forEach((bz, j) => addZipboltSideDrive({   // 2 draw bolts per end (front + rear) -- cantilever rail + key
+        id: `F-ZB-${railId}-${tag}-${j + 1}`,
+        groupKey: 'nightstandFasteners',
+        labelSection: 'fastenerNightstand',
+        joint: `${railId} housed end to ${receiver}`,
+        pieceIds: [railId, receiver],
+        x,
+        y,
+        z: bz,
+        axis: 'x',
+        dir: tag === 'A' ? -1 : 1,
+        socket: 'rear'
+      }));
+      addTenonKey({
+        id: `F-TENON-${railId}-${tag}`,
+        joint: `${railId} housed end to ${receiver} alignment key`,
+        pieceIds: [railId, receiver],
+        x: x + (tag === 'A' ? 0.42 : -0.42),
+        y,
+        z: loadRailZ,
+        sx: 0.58,
+        sy: 0.22,
+        sz: 0.38
+      });
+    });
+  });
+  [
+    { x: bayX0 + 1.1, y: 18.8, tag: 'LOW' },
+    { x: bayX1 - 1.1, y: 26.7, tag: 'HIGH' }
+  ].forEach(({ x, y, tag }) => {
+    addZipboltSideDrive({
+      id: `F-ZB-HB-NS-D-${sideName}-${tag}`,
+      groupKey: 'nightstandFasteners',
+      labelSection: 'fastenerNightstand',
+      joint: `HB-NS-D-${sideName} diagonal housed end draw connector`,
+      pieceIds: [`HB-NS-D-${sideName}`, `HB-NS-${tag === 'LOW' ? 'L' : 'U'}-${sideName}`],
+      x,
+      y,
+      z: -7.4,
+      axis: 'x',
+      dir: tag === 'LOW' ? -1 : 1,
+      socket: 'rear'
+    });
+  });
+
+  const xs = [-9, -3, 3, 9].map(dx => cx + dx);
+  [26.1, 19.4].forEach((y, rowIndex) => {
+    xs.forEach((x, colIndex) => {
+      const rowName = rowIndex === 0 ? 'U' : 'L';
+      addNightstandConnectorBolt({ id: `F-CN-NS-${sideName}-${rowName}${colIndex + 1}`, sideName, x, y });
+      addSmallScrew({
+        id: `F-KS-NS-${sideName}-${rowName}${colIndex + 1}`,
+        groupKey: 'panelKeeperFasteners',
+        labelSection: 'fastenerPanel',
+        type: 'KS',
+        joint: `rear keeper screw for F-CN-NS-${sideName}-${rowName}${colIndex + 1}`,
+        pieceIds: [`HB-NSK-${sideName}-${rowIndex + 1}${colIndex + 1}`],
+        x,
+        y: y - 0.42,
+        z: -7.98,
+        axis: 'z',
+        length: 0.28
+      });
+    });
+  });
+  addTenonKey({
+    id: `F-TENON-NS-${sideName}-LOW`,
+    joint: `${sideName} nightstand low locator dowel`,
+    pieceIds: [`nightstand-${sideName}`, `HB-NS-L-${sideName}`],
+    x: cx - 11,
+    y: 17.7,
+    z: 1.2,
+    sx: 0.34,
+    sy: 0.34,
+    sz: 1.6
+  });
+  addTenonKey({
+    id: `F-TENON-NS-${sideName}-HIGH`,
+    joint: `${sideName} nightstand high locator dowel`,
+    pieceIds: [`nightstand-${sideName}`, `HB-NS-L-${sideName}`],
+    x: cx + 11,
+    y: 17.7,
+    z: 1.2,
+    sx: 0.34,
+    sy: 0.34,
+    sz: 1.6
+  });
+  box(groups.lattice, `nightstand locating ledge ${side}`, SPEC.nightstand.W, 0.45, 1.0, cx, 17.1, -0.85, mats.night, { edgeOpacity: 0.34 });
+  [-10, -3.5, 3.5, 10].forEach((dx, i) => {
+    addSmallScrew({
+      id: `F-KS-NS-LEDGE-${sideName}-${i + 1}`,
+      groupKey: 'panelKeeperFasteners',
+      labelSection: 'fastenerPanel',
+      type: 'KS',
+      joint: `HB-NS-LEDGE-${sideName} hidden rear retainer`,
+      pieceIds: [`HB-NS-LEDGE-${sideName}`, `HB-FP-${sideName}-LOW`],
+      x: cx + dx,
+      y: 17.1,
+      z: -1.08,
+      axis: 'z',
+      length: 0.55
+    });
+  });
+});
+
+// Speaker bodies: direct mount into 1.0 in wood face; no structural pocket frame in this concept.
+[-1, 1].forEach(side => {
+  const cx = side * SPEC.speaker.centerX;
+  const cy = (SPEC.speaker.bottom + SPEC.speaker.top) / 2;
+  const tweeterY = SPEC.speaker.bottom + 16.75;
+  const wooferY = SPEC.speaker.bottom + 7.3;
+  box(groups.speakers, `Aperion T83W sealed ghost back box ${side}`, SPEC.speaker.bodyW, SPEC.speaker.bodyH, SPEC.speaker.bodyD, cx, cy, -SPEC.panelTh - SPEC.speaker.bodyD / 2, mats.speaker, { edgeColor: 0x93a4b8, edgeOpacity: 0.52 });
+  box(groups.speakers, `Aperion T83W exposed black baffle no grille ${side}`, SPEC.speaker.cutW, SPEC.speaker.cutH, 0.14, cx, cy, 0.08, mats.speakerBaffle, { edgeColor: 0x64748b, edgeOpacity: 0.55 });
+  box(groups.speakers, `speaker gasket / rabbet sample-confirm ${side}`, SPEC.speaker.cutW + 0.8, SPEC.speaker.cutH + 0.8, 0.06, cx, cy, 0.14, mats.void, { edgeColor: 0x38bdf8, edgeOpacity: 0.45, cast: false });
+  cyl(groups.speakers, `Aperion T83W 8 in woofer rubber surround ${side}`, 4.12, 0.16, cx, wooferY, 0.22, mats.driverRubber, 'z', { segments: 72, cast: false });
+  cyl(groups.speakers, `Aperion T83W 8 in woofer cone ${side}`, 3.62, 0.18, cx, wooferY, 0.34, mats.speakerCone, 'z', { segments: 72, cast: false });
+  cyl(groups.speakers, `Aperion T83W dust cap ${side}`, 1.15, 0.2, cx, wooferY, 0.46, mats.darkSteel, 'z', { segments: 48, cast: false });
+  cyl(groups.speakers, `Aperion T83W tweeter waveguide ${side}`, 1.25, 0.16, cx, tweeterY, 0.24, mats.driverRubber, 'z', { segments: 48, cast: false });
+  cyl(groups.speakers, `Aperion T83W tweeter dome ${side}`, 0.56, 0.2, cx, tweeterY, 0.42, mats.steel, 'z', { segments: 40, cast: false });
+  box(groups.speakers, `Aperion T83W rear terminal cup ${side}`, 2.1, 1.15, 0.18, cx + side * 3.9, SPEC.speaker.bottom + 2.0, -6.15, mats.darkSteel, { edgeColor: 0x94a3b8, edgeOpacity: 0.48, cast: false });
+  // 12 AWG speaker cable -- fully grounded ORTHOGONAL route that never spears solid wood: amp in cubby -> centre
+  // foot-rail bore -> UP THE CENTRE base chase -> bottom-frame bore into the OPEN REAR CAVITY -> up behind the panels
+  // -> through the MULLION cable bore -> out to the side-bay speaker terminal.
+  line3(groups.wiring, `12 AWG speaker cable route to T83W ${side < 0 ? 'L' : 'R'}`, [
+    [side * 3, 3, 94],                                    // amp in the cubby (TV box)
+    [side * 3, 3, 86],                                    // Z: back toward the foot
+    [side * 2, 3, 86],                                    // X: in toward the bed centreline
+    [side * 2, 7, 86],                                    // Y: up to the base cable-chase level
+    [side * 2, 7, 84],                                    // Z: through the centre foot-rail bore into the base
+    [side * 2, 7, 2.5],                                   // Z: UP THE CENTRE alongside the spine to the head
+    [side * 2, 1, 2.5],                                   // Y: down to the bottom-frame crossing bore
+    [side * 2, 1, -5],                                    // Z: through the head rail + bottom cap into the rear cavity
+    [side * 2, SPEC.speaker.bottom + 2, -5],              // Y: up the centre raceway to terminal height, ABOVE all rails
+    [side * 34, SPEC.speaker.bottom + 2, -5],             // X: out to the mullion inner face (rail-free band)
+    [side * 38, SPEC.speaker.bottom + 2, -5],             // X: through the mullion cable bore
+    [cx, SPEC.speaker.bottom + 2, -5],                    // X: out to the speaker terminal in the side bay
+    [cx + side * 3.9, SPEC.speaker.bottom + 2, -5],       // X: to the terminal
+    [cx + side * 3.9, SPEC.speaker.bottom + 2, -6.15]     // Z: to the rear terminal cup
+  ], 0xa78bfa, 0.9);
+});
+
+
+  return { frontPanels };
+}
+
+return { SPEC, makeMaterials, makeEngine, deriveZ, buildBedBase, buildFootboardAndLift, buildDockHardware, buildNightstands, buildHeadboard };
+})();
+/* ==== END BF-GEOMETRY INLINE (edit System/bf-geometry.js, then re-run npm run bf:build) ==== */
+
+const app = document.getElementById('app');
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+app.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0e1218);
+
+const camera = new THREE.PerspectiveCamera(43, innerWidth / innerHeight, 0.5, 3000);
+camera.position.set(80, 34, 56);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.target.set(51, 21, 10);
+controls.minDistance = 6;
+controls.maxDistance = 420;
+
+scene.add(new THREE.HemisphereLight(0xcfe1f2, 0x2a2620, 1.05));
+const key = new THREE.DirectionalLight(0xfff4e2, 1.55);
+key.position.set(60, 110, 90); key.castShadow = true;
+key.shadow.mapSize.set(2048, 2048);
+scene.add(key);
+const fill = new THREE.DirectionalLight(0x9fc0e6, 0.55); fill.position.set(-90, 60, 60); scene.add(fill);
+const rim = new THREE.DirectionalLight(0xffffff, 0.30); rim.position.set(0, 30, -60); scene.add(rim);
+
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(700, 700), new THREE.MeshStandardMaterial({ color: 0x141a22, roughness: 1 }));
+ground.rotation.x = -Math.PI / 2; ground.position.y = -0.05; ground.receiveShadow = true; scene.add(ground);
+const grid = new THREE.GridHelper(300, 24, 0x1e2731, 0x161d27); grid.material.transparent = true; grid.material.opacity = 0.4; scene.add(grid);
+
+// ---- shared geometry (identical to Full-Bed) ----
+const mats = makeMaterials();
+const { box, cyl, line3 } = makeEngine();
+const wood = ['night', 'shell', 'shellGhost', 'skin', 'baseWood', 'footWood'];
+const woodBaseOpacity = {};
+wood.forEach(k => { if (mats[k]) woodBaseOpacity[k] = mats[k].opacity; });
+
+const groups = { detailedNightstands: new THREE.Group() };
+const noop = () => ({ element: { dataset: {} } });
+
+buildNightstands({ box, cyl, mats, groups, label: noop, pieceLabel: noop });
+scene.add(groups.detailedNightstands);
+
+// solid (opaque) by default; Ghost toggles see-through so the mount + drawer box read
+function setGhost(on) {
+  wood.forEach(k => { const m = mats[k]; if (!m) return; m.opacity = on ? woodBaseOpacity[k] : 1; m.transparent = on; m.depthWrite = !on; m.needsUpdate = true; });
+  const b = document.getElementById('bGhost'); if (b) b.classList.toggle('on', on);
+}
+setGhost(false);
+
+// ---- state + UI ----
+const state = { ghost: false, spin: false };
+function setBtn(id, on) { const b = document.getElementById(id); if (b) b.classList.toggle('on', on); }
+function go(id, fn) { const b = document.getElementById(id); if (b) b.onclick = fn; }
+go('bGhost', () => { state.ghost = !state.ghost; setGhost(state.ghost); });
+go('bSpin', () => { state.spin = !state.spin; setBtn('bSpin', state.spin); });
+
+const views = {
+  right: { p: [80, 34, 56],  t: [51, 21, 10] },
+  left:  { p: [-80, 34, 56], t: [-51, 21, 10] },
+  both:  { p: [66, 54, 96],  t: [0, 22, 10] },
+  top:   { p: [0, 120, 11],  t: [0, 0, 10] },
+};
+let camAnim = null;
+document.querySelectorAll('[data-cam]').forEach(b => { b.onclick = () => { const v = views[b.dataset.cam]; if (!v) return;
+  camAnim = { fp: camera.position.clone(), tp: new THREE.Vector3(...v.p), ft: controls.target.clone(), tt: new THREE.Vector3(...v.t), k: 0 }; }; });
+
+const clock = new THREE.Clock();
+function tick() {
+  const dt = Math.min(clock.getDelta(), 0.05);
+  controls.autoRotate = state.spin; controls.autoRotateSpeed = 0.8;
+  if (camAnim) {
+    camAnim.k = Math.min(1, camAnim.k + dt * 1.7);
+    const e = camAnim.k < .5 ? 2 * camAnim.k * camAnim.k : 1 - Math.pow(-2 * camAnim.k + 2, 2) / 2;
+    camera.position.lerpVectors(camAnim.fp, camAnim.tp, e); controls.target.lerpVectors(camAnim.ft, camAnim.tt, e);
+    if (camAnim.k >= 1) camAnim = null;
+  }
+  controls.update();
+  renderer.render(scene, camera);
+  requestAnimationFrame(tick);
+}
+addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight); });
+tick();
+
+window.__BFS04 = { ready: true, sharedGeometry: true,
+  meshes: groups.detailedNightstands.children.length,
+  SPECnightstand: SPEC.nightstand };
+</script>
+</body>
+</html>

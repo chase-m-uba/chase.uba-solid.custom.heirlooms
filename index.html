@@ -10,14 +10,12 @@
   body {
     margin: 0; min-height: 100vh; display: grid; place-items: center;
     background: radial-gradient(1200px 700px at 50% -10%, #16202c, #0f141b 60%);
-    color: #eef4fb; font-family: Inter, "Segoe UI", system-ui, Arial, sans-serif;
-    padding: 28px;
+    color: #eef4fb; font-family: Inter, "Segoe UI", system-ui, Arial, sans-serif; padding: 28px;
   }
   .card {
     width: min(720px, 100%); background: rgba(12,18,27,.72);
     border: 1px solid rgba(148,163,184,.28); border-radius: 16px;
-    padding: 30px 30px 26px; backdrop-filter: blur(10px);
-    box-shadow: 0 30px 70px rgba(0,0,0,.45);
+    padding: 30px 30px 26px; backdrop-filter: blur(10px); box-shadow: 0 30px 70px rgba(0,0,0,.45);
   }
   h1 { margin: 0 0 4px; font-size: 22px; letter-spacing: .01em; }
   .sub { margin: 0 0 22px; color: #9fb3c8; font-size: 13.5px; line-height: 1.5; }
@@ -28,13 +26,12 @@
   }
   a.viewer:hover { border-color: #22d3ee; background: rgba(15,118,110,.30); transform: translateY(-1px); }
   .badge {
-    flex: 0 0 auto; width: 46px; height: 46px; border-radius: 10px; display: grid; place-items: center;
-    font-weight: 800; font-size: 13px; color: #0f141b; background: linear-gradient(135deg,#f8d37b,#e8a13a);
+    flex: 0 0 auto; width: 52px; height: 46px; border-radius: 10px; display: grid; place-items: center;
+    font-weight: 800; font-size: 12px; color: #0f141b; background: linear-gradient(135deg,#f8d37b,#e8a13a);
   }
   .badge.blue { background: linear-gradient(135deg,#bfe0ff,#60a5fa); }
-  .badge.pdf { background: linear-gradient(135deg,#f7a8a8,#e25555); color: #1a0e0e; font-size: 12px; }
-  .section { margin: 22px 0 6px; font-size: 11px; font-weight: 700; letter-spacing: .12em;
-    text-transform: uppercase; color: #7c8ba0; }
+  .badge.pdf { background: linear-gradient(135deg,#f7a8a8,#e25555); color: #1a0e0e; }
+  .section { margin: 22px 0 6px; font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #7c8ba0; }
   a.viewer.pdf { padding: 13px 18px; }
   a.viewer.pdf:hover { border-color: #f87171; background: rgba(127,29,29,.30); }
   .vtitle { font-size: 15.5px; font-weight: 700; }
@@ -47,77 +44,113 @@
 <body>
   <main class="card">
     <h1>Solid Ash Heirloom Bed</h1>
-    <p class="sub">Interactive 3D models — orbit, explode, isolate subsystems, and toggle layers in your browser.
+    <p class="sub">Interactive 3D models — orbit, isolate subsystems, and toggle layers right in your browser.
       No install; works on desktop and mobile.</p>
 
-    <a class="viewer" href="BF-M01_master-assembly.html">
-      <span class="badge">M01</span>
+    <a class="viewer" href="Full-Bed_3D.html">
+      <span class="badge ">BED</span>
       <span>
-        <div class="vtitle">Full‑bed master assembly</div>
-        <div class="vdesc">The complete bed — headboard, drawer base, and TV‑lift footboard. Ghost / solid review, camera presets, subsystem and label toggles.</div>
+        <div class="vtitle">Full-bed master assembly</div>
+        <div class="vdesc">The complete bed — headboard, drawer base, and TV-lift footboard. Ghost / solid review, camera presets, subsystem and label toggles.</div>
       </span>
-      <span class="chev">→</span>
+      <span class="chev">&#8594;</span>
     </a>
 
-    <a class="viewer" href="BF-D08_mullion-topcap-ujoint-detail.html">
-      <span class="badge blue">D08</span>
+    <a class="viewer" href="Headboard_3D.html">
+      <span class="badge blue">HEAD</span>
       <span>
-        <div class="vtitle">Mullion / top‑cap W‑joint detail</div>
-        <div class="vdesc">Close‑up of the three‑land top‑cap joint — the two LED channels through the gaps and the three vertical insert draw‑bolts per mullion.</div>
+        <div class="vtitle">Headboard</div>
+        <div class="vdesc">Standalone headboard — six front panels, mullions ±36, top cap + LED channel, and the Aperion speakers; ghost reveals the lattice.</div>
       </span>
-      <span class="chev">→</span>
+      <span class="chev">&#8594;</span>
     </a>
 
-    <a class="viewer" href="BF-D09_footboard-dock-interface.html">
-      <span class="badge blue">D09</span>
+    <a class="viewer" href="Base_3D.html">
+      <span class="badge blue">BASE</span>
+      <span>
+        <div class="vtitle">Drawer base / platform</div>
+        <div class="vdesc">The 74×85 platform base — soft-close drawers (open/close slider), the mattress bay, and the bolt lines.</div>
+      </span>
+      <span class="chev">&#8594;</span>
+    </a>
+
+    <a class="viewer" href="Footboard-Cabinet_3D.html">
+      <span class="badge blue">FOOT</span>
+      <span>
+        <div class="vtitle">Footboard / TV-lift cabinet</div>
+        <div class="vdesc">The TV-cabinet footboard — Touchstone 23401 lift (raise/lower slider), the flat-deck cubby, and the Sanus mount.</div>
+      </span>
+      <span class="chev">&#8594;</span>
+    </a>
+
+    <a class="viewer" href="Nightstands_3D.html">
+      <span class="badge blue">NS</span>
+      <span>
+        <div class="vtitle">Floating nightstands</div>
+        <div class="vdesc">The mirror pair of wood-receiver nightstands; ghost reveals the float-mount interface and the drawer box.</div>
+      </span>
+      <span class="chev">&#8594;</span>
+    </a>
+
+    <a class="viewer" href="TopCap-Joint_3D.html">
+      <span class="badge blue">CAP</span>
+      <span>
+        <div class="vtitle">Mullion / top-cap W-joint detail</div>
+        <div class="vdesc">Close-up of the three-land top-cap joint — the two LED channels through the gaps and three vertical draw-bolts per mullion.</div>
+      </span>
+      <span class="chev">&#8594;</span>
+    </a>
+
+    <a class="viewer" href="Dock-Interface_3D.html">
+      <span class="badge blue">DOCK</span>
       <span>
         <div class="vtitle">Footboard ↔ base dock interface <span style="color:#34d399;font-size:11px">· animated</span></div>
-        <div class="vdesc">How the TV cabinet detaches from the bed — the two seam connectors (120&nbsp;V powerCON + speakON speakers), the locating dowels, and a dock/undock animation.</div>
+        <div class="vdesc">How the TV cabinet detaches — the seam connectors (powerCON + speakON), the locating dowels, and a dock/undock animation.</div>
       </span>
-      <span class="chev">→</span>
+      <span class="chev">&#8594;</span>
     </a>
 
     <div class="section">Drawing sheets (PDF)</div>
 
-    <a class="viewer pdf" href="BF-GA01_general-arrangement.pdf" target="_blank" rel="noopener">
-      <span class="badge pdf">GA01</span>
+    <a class="viewer pdf" href="Full-Bed_Blueprint.pdf" target="_blank" rel="noopener">
+      <span class="badge pdf">GA</span>
       <span>
         <div class="vtitle">General arrangement</div>
         <div class="vdesc">Overall bed layout — plan, elevations, and key dimensions.</div>
       </span>
-      <span class="chev">↗</span>
+      <span class="chev">&#8599;</span>
     </a>
 
-    <a class="viewer pdf" href="BF-S01_headboard-assembly.pdf" target="_blank" rel="noopener">
-      <span class="badge pdf">S01</span>
+    <a class="viewer pdf" href="Headboard_Blueprint.pdf" target="_blank" rel="noopener">
+      <span class="badge pdf">HEAD</span>
       <span>
         <div class="vtitle">Headboard assembly</div>
-        <div class="vdesc">Headboard build sheet — mullions, panels, top cap, and bolt‑up.</div>
+        <div class="vdesc">Headboard build sheet — mullions, panels, top cap, and bolt-up.</div>
       </span>
-      <span class="chev">↗</span>
+      <span class="chev">&#8599;</span>
     </a>
 
-    <a class="viewer pdf" href="BF-S03_footboard-assembly.pdf" target="_blank" rel="noopener">
-      <span class="badge pdf">S03</span>
+    <a class="viewer pdf" href="Footboard-Cabinet_Blueprint.pdf" target="_blank" rel="noopener">
+      <span class="badge pdf">FOOT</span>
       <span>
-        <div class="vtitle">Footboard / TV‑lift assembly</div>
-        <div class="vdesc">TV‑cabinet footboard build sheet — framed‑tray deck, lift, and cubby.</div>
+        <div class="vtitle">Footboard / TV-lift assembly</div>
+        <div class="vdesc">TV-cabinet footboard build sheet — framed-tray deck, lift, and cubby.</div>
       </span>
-      <span class="chev">↗</span>
+      <span class="chev">&#8599;</span>
     </a>
 
-    <a class="viewer pdf" href="BF-D01_topcap-led-channel.pdf" target="_blank" rel="noopener">
-      <span class="badge pdf">D01</span>
+    <a class="viewer pdf" href="TopCap-LED_Blueprint.pdf" target="_blank" rel="noopener">
+      <span class="badge pdf">LED</span>
       <span>
-        <div class="vtitle">Top‑cap LED channel detail</div>
-        <div class="vdesc">Section through the three‑land top cap — 35 mm LED channel cuts and landings.</div>
+        <div class="vtitle">Top-cap LED channel detail</div>
+        <div class="vdesc">Section through the three-land top cap — 35 mm LED channel cuts and landings.</div>
       </span>
-      <span class="chev">↗</span>
+      <span class="chev">&#8599;</span>
     </a>
 
     <p class="foot">
-      <b>Tip:</b> in the master model, press <b>H</b> (or the "Hide panels" button) to clear the overlays and see the bare model; click any corner chip to expand its controls.<br>
-      Live, always‑current viewer for the Solid Ash Heirloom Bed project · units in inches · V1 builder review.
+      <b>Tip:</b> in the full-bed model, press <b>H</b> (or "Hide panels") to clear the overlays and see the bare model; click any corner chip to expand its controls.<br>
+      Live, always-current viewer for the Solid Ash Heirloom Bed project &#183; units in inches.
     </p>
   </main>
 </body>
