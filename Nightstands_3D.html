@@ -96,7 +96,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 const { SPEC, makeMaterials, makeEngine, buildNightstands } = (() => {
 // bf-geometry.js — SINGLE SOURCE OF TRUTH for the shared bed geometry.
 // The TV-lift footboard, the Touchstone 23401 lift, and the 74x85 drawer base live HERE, once.
-// Full-Bed (full master) and Dock-Interface (dock-interface detail) both import these builders, so the
+// Full-Bed (full master) and Dock-Interface (the cabinet-to-base seam detail model) both import these builders, so the
 // cabinet + base can never drift between models — change this file and both update.
 //
 // Design: dependency injection. The builder BODIES (every dimension + position — the actual shape)
@@ -424,7 +424,7 @@ function buildFootboardAndLift(ctx) {
     box(car, `Sanus WSBSBTV1 soundbar cradle lip x=${ax}`, 0.6, 1.6, 0.3, ax, 8.7, sbFrontZ + 0.15, mats.darkSteel, { edgeColor: 0x94a3b8, edgeOpacity: 0.42, cast: false });
   });
   [-5, 5].forEach(bx => [carMidY - 4, carMidY + 4].forEach(by => cyl(car, `Sanus VESA share bolt x=${bx} y=${by.toFixed(0)}`, 0.17, 1.4, bx, by, vz + 0.1, mats.steel, 'z', { segments: 14, cast: false })));
-  box(car, 'ash-faced lightweight connected lid ghost', SPEC.lid.W, SPEC.lid.T, SPEC.lid.D, 0, SPEC.lid.flushTop - SPEC.lid.T / 2, footMidZ, mats.footWood, { edgeColor: 0x5f411a, edgeOpacity: 0.42 });
+  box(car, 'solid wood connected lid ghost', SPEC.lid.W, SPEC.lid.T, SPEC.lid.D, 0, SPEC.lid.flushTop - SPEC.lid.T / 2, footMidZ, mats.footWood, { edgeColor: 0x5f411a, edgeOpacity: 0.42 });
   label('Touchstone 23401 per the vendor drawing: 9.875 x 5.125 floor plate w/ 6 floor-mount holes (3/side) + 2 rear-wall tabs; 2-stage telescope; 28.375 TV bracket + slotted VESA straps', 0, 36.5, liftFrontZ - 2.2, 'steel', 'lift');
   label('6 floor-mount holes (3 each side) bolt the base plate to the 8 AFF deck; 2 rear tabs bolt to the back wall (manual p13)', 0, 6.4, liftCenterZ + 1.0, 'warn', 'lift');
   label('55 in TV + soundbar retract above the flat 8 AFF deck; no scabbard', 0, 12.2, soundbarFrontZ - 1.2, 'green', 'lift');
@@ -433,11 +433,11 @@ function buildFootboardAndLift(ctx) {
 }
 
 // ----------------------------------------------------------------------------
-//  BUILDER: detachable dock hardware at the foot-of-bed seam (Z = 85).
-//  Shared so the master (Full-Bed, docked) and the dock detail (Dock-Interface, animated)
+//  BUILDER: cabinet-to-base bolt-on hardware at the foot-of-bed seam (Z = 85).
+//  Shared so the master (Full-Bed, docked) and the seam-detail model
 //  show the SAME bolts-only seam: 4 bed bolts (two per side, two rows = moment couple) + 1 grommeted wire hole.
-//  ctx: { cabGroup, baseGroup }  — cabinet-side parts go on cabGroup (which Dock-Interface
-//  translates to dock/undock); base-side parts go on baseGroup (fixed).
+//  ctx: { cabGroup, baseGroup }  — cabinet-side parts go on cabGroup (which the detail model
+//  translates open/closed to show the seam); base-side parts go on baseGroup (fixed).
 //  Returns { boltMat } (a host may highlight the bolts on mate). No connectors, no dowels. [D-090]
 // ----------------------------------------------------------------------------
 function buildDockHardware(ctx) {
@@ -458,10 +458,10 @@ function buildDockHardware(ctx) {
   // cross-dowel / barrel nut seated in the base foot framing. [D-090]
   for (const sx of [-boltX, boltX]) {
     for (const y of rows) {
-      const shaft = zc(0.19, 0.19, 4.6, boltMat); shaft.name = 'dock bed bolt shaft'; shaft.position.set(sx, y, SEAM - 1.4); cabGroup.add(shaft);
-      const head = zc(0.42, 0.42, 0.55, steel, 6); head.name = 'dock bed bolt hex head'; head.position.set(sx, y, SEAM + 1.4); cabGroup.add(head);
+      const shaft = zc(0.19, 0.19, 4.6, boltMat); shaft.name = 'bed bolt shaft'; shaft.position.set(sx, y, SEAM - 1.4); cabGroup.add(shaft);
+      const head = zc(0.42, 0.42, 0.55, steel, 6); head.name = 'bed bolt hex head'; head.position.set(sx, y, SEAM + 1.4); cabGroup.add(head);
       const cup = zc(0.5, 0.5, 0.16, steel); cup.position.set(sx, y, SEAM + 1.0); cabGroup.add(cup);
-      const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.31, 0.31, 1.1, 22), brass); barrel.name = 'dock cross-dowel / barrel nut'; barrel.position.set(sx, y, SEAM - 3.0); baseGroup.add(barrel);
+      const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.31, 0.31, 1.1, 22), brass); barrel.name = 'cross-dowel / barrel nut'; barrel.position.set(sx, y, SEAM - 3.0); baseGroup.add(barrel);
       const b = zc(0.2, 0.2, 2.4, bore); b.position.set(sx, y, SEAM - 2.0); baseGroup.add(b);
     }
   }

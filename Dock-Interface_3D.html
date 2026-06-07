@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <!--
-  Dock-Interface - Footboard <-> Base Dock Interface (detail model, animated).
+  Dock-Interface - Cabinet-to-base bolt-on seam at the foot (detail model, animated).
   The TV cabinet + lower bed are built from bf-geometry.js — the SAME shared builders Full-Bed uses,
-  so this model can never drift from the master. On top: the detachable dock hardware
-  (4 bed bolts in two rows = a moment couple + a 3/4 in grommeted bare-wire pass-through) + dock/undock + flip-to-standalone animation.
+  so this model can never drift from the master. On top: the cabinet-to-base bolt-on hardware
+  (4 bed bolts in two rows = a moment couple + a 3/4 in grommeted bare-wire pass-through) + close/open-seam + rear-view animation.
   Units: inches. X = width (0 centred), Y = height AFF, Z = head(0) -> foot(+). Seam plane Z = 85.
 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Dock-Interface - Footboard Dock Interface (animated, shared geometry)</title>
+<title>Dock-Interface - Cabinet-to-base bolt-on seam (animated, shared geometry)</title>
 <style>
   * { box-sizing: border-box; }
   html, body { margin: 0; width: 100%; height: 100%; overflow: hidden;
@@ -61,24 +61,24 @@
 <div id="labels"></div>
 
 <div id="hud" class="panel">
-  <h1>BF&#8209;D09 &#183; Footboard Dock Interface</h1>
-  <p>The TV cabinet + lower bed are the <b>real master geometry</b>, built from the shared <code>bf&#8209;geometry.js</code> &#8212; identical to BF&#8209;M01. On top: the detachable dock hardware.</p>
-  <p>Drag to orbit &#183; scroll to zoom &#183; hit <b>Dock</b> to seat it, <b>Flip</b> for standalone mode.</p>
+  <h1>BF&#8209;D09 &#183; Cabinet&#8209;to&#8209;Base Bolt&#8209;On Seam</h1>
+  <p>The TV cabinet + lower bed are the <b>real master geometry</b>, built from the shared <code>bf&#8209;geometry.js</code> &#8212; identical to BF&#8209;M01. On top: the cabinet&#8209;to&#8209;base bolt&#8209;on hardware.</p>
+  <p>Drag to orbit &#183; scroll to zoom &#183; hit <b>Seat</b> to close the seam, <b>Flip</b> for the rear view.</p>
   <span class="tag">&#10003; shared single source &#183; cannot drift from master</span>
 </div>
 
 <div id="legend" class="panel">
-  <h2>Dock hardware</h2>
+  <h2>Bolt&#8209;on hardware</h2>
   <p><span class="sw" style="background:#c2c9d1"></span><b>4 bed bolts</b> &#8212; two per side, two rows (a moment couple)</p>
   <p><span class="sw" style="background:#b08d57"></span><b>cross&#8209;dowel / barrel nuts</b> &#8212; seated in the base foot framing</p>
   <p><span class="sw" style="background:#111418"></span><b>3/4&#8243; grommeted pass&#8209;through</b> &#8212; bundled 120V + speaker, fed by the under&#8209;base gap</p>
-  <p style="color:#8aa0b6;font-size:11px">No seam connectors, no dowels. <b>Ghost</b> shows the bolts + wire path; <b>Flip</b> = standalone mode.</p>
+  <p style="color:#8aa0b6;font-size:11px">No seam connectors, no dowels. <b>Ghost</b> shows the bolts + wire path; <b>Flip</b> = rear view.</p>
 </div>
 
 <div id="ctrl" class="panel">
   <h2>Animation</h2>
   <div class="row">
-    <button id="bDock" class="prime">&#9654; Dock</button>
+    <button id="bDock" class="prime">&#9654; Seat</button>
     <button id="bAuto">&#8734; Auto</button>
   </div>
   <div class="slab"><label>Seam gap</label><input id="gap" type="range" min="0" max="24" step="0.1" value="12"><span id="seamval">12.0&#8243;</span></div>
@@ -89,7 +89,7 @@
   </div>
   <div class="row">
     <button id="bSpin">Auto&#8209;spin</button>
-    <button id="bFlip">Flip 180&#176; (standalone)</button>
+    <button id="bFlip">Flip 180&#176; (rear view)</button>
   </div>
 </div>
 
@@ -115,7 +115,7 @@ import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer
 const { SPEC, makeMaterials, makeEngine, buildBedBase, buildFootboardAndLift, buildDockHardware } = (() => {
 // bf-geometry.js — SINGLE SOURCE OF TRUTH for the shared bed geometry.
 // The TV-lift footboard, the Touchstone 23401 lift, and the 74x85 drawer base live HERE, once.
-// Full-Bed (full master) and Dock-Interface (dock-interface detail) both import these builders, so the
+// Full-Bed (full master) and Dock-Interface (the cabinet-to-base seam detail model) both import these builders, so the
 // cabinet + base can never drift between models — change this file and both update.
 //
 // Design: dependency injection. The builder BODIES (every dimension + position — the actual shape)
@@ -443,7 +443,7 @@ function buildFootboardAndLift(ctx) {
     box(car, `Sanus WSBSBTV1 soundbar cradle lip x=${ax}`, 0.6, 1.6, 0.3, ax, 8.7, sbFrontZ + 0.15, mats.darkSteel, { edgeColor: 0x94a3b8, edgeOpacity: 0.42, cast: false });
   });
   [-5, 5].forEach(bx => [carMidY - 4, carMidY + 4].forEach(by => cyl(car, `Sanus VESA share bolt x=${bx} y=${by.toFixed(0)}`, 0.17, 1.4, bx, by, vz + 0.1, mats.steel, 'z', { segments: 14, cast: false })));
-  box(car, 'ash-faced lightweight connected lid ghost', SPEC.lid.W, SPEC.lid.T, SPEC.lid.D, 0, SPEC.lid.flushTop - SPEC.lid.T / 2, footMidZ, mats.footWood, { edgeColor: 0x5f411a, edgeOpacity: 0.42 });
+  box(car, 'solid wood connected lid ghost', SPEC.lid.W, SPEC.lid.T, SPEC.lid.D, 0, SPEC.lid.flushTop - SPEC.lid.T / 2, footMidZ, mats.footWood, { edgeColor: 0x5f411a, edgeOpacity: 0.42 });
   label('Touchstone 23401 per the vendor drawing: 9.875 x 5.125 floor plate w/ 6 floor-mount holes (3/side) + 2 rear-wall tabs; 2-stage telescope; 28.375 TV bracket + slotted VESA straps', 0, 36.5, liftFrontZ - 2.2, 'steel', 'lift');
   label('6 floor-mount holes (3 each side) bolt the base plate to the 8 AFF deck; 2 rear tabs bolt to the back wall (manual p13)', 0, 6.4, liftCenterZ + 1.0, 'warn', 'lift');
   label('55 in TV + soundbar retract above the flat 8 AFF deck; no scabbard', 0, 12.2, soundbarFrontZ - 1.2, 'green', 'lift');
@@ -452,11 +452,11 @@ function buildFootboardAndLift(ctx) {
 }
 
 // ----------------------------------------------------------------------------
-//  BUILDER: detachable dock hardware at the foot-of-bed seam (Z = 85).
-//  Shared so the master (Full-Bed, docked) and the dock detail (Dock-Interface, animated)
+//  BUILDER: cabinet-to-base bolt-on hardware at the foot-of-bed seam (Z = 85).
+//  Shared so the master (Full-Bed, docked) and the seam-detail model
 //  show the SAME bolts-only seam: 4 bed bolts (two per side, two rows = moment couple) + 1 grommeted wire hole.
-//  ctx: { cabGroup, baseGroup }  — cabinet-side parts go on cabGroup (which Dock-Interface
-//  translates to dock/undock); base-side parts go on baseGroup (fixed).
+//  ctx: { cabGroup, baseGroup }  — cabinet-side parts go on cabGroup (which the detail model
+//  translates open/closed to show the seam); base-side parts go on baseGroup (fixed).
 //  Returns { boltMat } (a host may highlight the bolts on mate). No connectors, no dowels. [D-090]
 // ----------------------------------------------------------------------------
 function buildDockHardware(ctx) {
@@ -477,10 +477,10 @@ function buildDockHardware(ctx) {
   // cross-dowel / barrel nut seated in the base foot framing. [D-090]
   for (const sx of [-boltX, boltX]) {
     for (const y of rows) {
-      const shaft = zc(0.19, 0.19, 4.6, boltMat); shaft.name = 'dock bed bolt shaft'; shaft.position.set(sx, y, SEAM - 1.4); cabGroup.add(shaft);
-      const head = zc(0.42, 0.42, 0.55, steel, 6); head.name = 'dock bed bolt hex head'; head.position.set(sx, y, SEAM + 1.4); cabGroup.add(head);
+      const shaft = zc(0.19, 0.19, 4.6, boltMat); shaft.name = 'bed bolt shaft'; shaft.position.set(sx, y, SEAM - 1.4); cabGroup.add(shaft);
+      const head = zc(0.42, 0.42, 0.55, steel, 6); head.name = 'bed bolt hex head'; head.position.set(sx, y, SEAM + 1.4); cabGroup.add(head);
       const cup = zc(0.5, 0.5, 0.16, steel); cup.position.set(sx, y, SEAM + 1.0); cabGroup.add(cup);
-      const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.31, 0.31, 1.1, 22), brass); barrel.name = 'dock cross-dowel / barrel nut'; barrel.position.set(sx, y, SEAM - 3.0); baseGroup.add(barrel);
+      const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.31, 0.31, 1.1, 22), brass); barrel.name = 'cross-dowel / barrel nut'; barrel.position.set(sx, y, SEAM - 3.0); baseGroup.add(barrel);
       const b = zc(0.2, 0.2, 2.4, bore); b.position.set(sx, y, SEAM - 2.0); baseGroup.add(b);
     }
   }
@@ -1430,7 +1430,7 @@ function setGhost(on) {
 }
 setGhost(false);
 
-// ---- dock labels (CSS2D) ----
+// ---- cabinet-to-base bolt-on seam labels (CSS2D) ----
 const SEAM = 85;
 const dockLabels = [];
 function addLabel(html, x, y, z, cls, parent) {
@@ -1451,10 +1451,10 @@ function go(id, fn) { const b = document.getElementById(id); if (b) b.onclick = 
 const dockBtn = document.getElementById('bDock');
 function syncDockBtn() {            // single button toggles + relabels to the NEXT action
   if (!dockBtn) return;
-  const docked = state.target < 0.3;          // intent is "docked" -> offer Undock
+  const docked = state.target < 0.3;          // seam is closed -> offer Open
   if (dockBtn._docked === docked) return;
   dockBtn._docked = docked;
-  dockBtn.innerHTML = docked ? '&#9664; Undock' : '&#9654; Dock';
+  dockBtn.innerHTML = docked ? '&#9664; Open' : '&#9654; Seat';
 }
 go('bDock', () => { state.target = state.target > 0.3 ? 0 : 22; state.auto = false; setBtn('bAuto', false); });
 go('bAuto', () => { state.auto = !state.auto; setBtn('bAuto', state.auto); });
