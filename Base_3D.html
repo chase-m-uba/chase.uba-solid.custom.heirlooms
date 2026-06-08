@@ -123,7 +123,7 @@ const SPEC = Object.freeze({
   sideW: 2,
   panelTh: 1.0,
   skinTh: 1.0,
-  frontPanelSeamAFF: 36,
+  courseSeamsAFF: [20, 40, 60],      // front skins are horizontal COURSES <=20 in tall (board-width / warp limit, builder 2026-06-06); seams at AFF 20/40/60 -> course heights 18/20/20/10; speaker in the 40-60 course (D-060/D-008, owner 2026-06-07)
   loadReceiverRailDepth: 7,
   mullionW: 4,
   seamX: 36,
@@ -772,10 +772,22 @@ const panelColumns = [
   { key: 'C', x0: -34, x1: 34, name: 'center' },
   { key: 'R', x0: 38, x1: 63, name: 'right' }
 ];
+// Front skins are horizontal COURSES, each <=20 in tall (grain horizontal). Seams at AFF 20/40/60; the speaker lives in the 40-60 course. Each course seats on / clamps to the cross-rail below + above it (or the caps at the very bottom/top). Skins kept whole per bay (no vertical breakup) - owner 2026-06-07, D-060/D-008. [TBD-CONFIRM Lee: continuous ~68 in center run warp-safe length; only break up vertically if too long.]
 const panelRows = [
-  { key: 'LOW', y0: 2, y1: SPEC.frontPanelSeamAFF, name: 'lower' },
-  { key: 'UP', y0: SPEC.frontPanelSeamAFF, y1: 70, name: 'upper' }
+  { key: 'C1', y0: 2,  y1: 20, name: 'course-1',           bottomRail: 'HB-BC-01', topRail: 'HB-SR20' },
+  { key: 'C2', y0: 20, y1: 40, name: 'course-2',           bottomRail: 'HB-SR20', topRail: 'HB-SR40' },
+  { key: 'C3', y0: 40, y1: 60, name: 'course-3 (speaker)', bottomRail: 'HB-SR40', topRail: 'HB-SR60' },
+  { key: 'C4', y0: 60, y1: 70, name: 'course-4',           bottomRail: 'HB-SR60', topRail: 'HB-TC-01' }
 ];
+// Distribute hidden clamp / anchor points along an edge: ~`gap` spacing, `margin` end insets, >=2 points (1 if the edge is too short for the margins). Height-aware so the <=20 in (and 10 in) courses don't get crossed clamp rows.
+const distrib = (a, b, margin, gap) => {
+  const lo = a + margin, hi = b - margin;
+  if (hi <= lo + 0.5) return [(a + b) / 2];
+  const n = Math.max(1, Math.round((hi - lo) / gap));
+  const out = [];
+  for (let i = 0; i <= n; i++) out.push(lo + (hi - lo) * i / n);
+  return out;
+};
 const frontPanels = [];
 panelRows.forEach(row => {
   panelColumns.forEach(col => {
@@ -784,7 +796,7 @@ panelRows.forEach(row => {
     const height = row.y1 - row.y0;
     const cx = (col.x0 + col.x1) / 2;
     const cy = (row.y0 + row.y1) / 2;
-    const isSpeakerPanel = row.key === 'UP' && col.key !== 'C';
+    const isSpeakerPanel = row.key === 'C3' && col.key !== 'C';
     frontPanels.push({ id, col: col.key, row: row.key, x0: col.x0, x1: col.x1, y0: row.y0, y1: row.y1, width, height, cx, cy, isSpeakerPanel });
     box(groups.skins, `${id} ${col.name} ${row.name} flush removable panel 1.0 in`, width, height, SPEC.panelTh, cx, cy, -SPEC.panelTh / 2, mats.skin, { edgeOpacity: 0.28 });
 
@@ -801,12 +813,8 @@ panelRows.forEach(row => {
     box(groups.skins, `${id} hidden left retainer batten`, 0.46, Math.max(4, height - 2), 0.36, col.x0 + 0.62, cy, -1.22, mats.panelBatten, { edgeColor: 0x7c2d10, edgeOpacity: 0.38, cast: false });
     box(groups.skins, `${id} hidden right retainer batten`, 0.46, Math.max(4, height - 2), 0.36, col.x1 - 0.62, cy, -1.22, mats.panelBatten, { edgeColor: 0x7c2d10, edgeOpacity: 0.38, cast: false });
 
-    const topBottomXs = width > 40
-      ? [col.x0 + 6, col.x0 + 16, col.x0 + 26, col.x1 - 26, col.x1 - 16, col.x1 - 6]
-      : [col.x0 + 5, col.x0 + 11, col.x1 - 11, col.x1 - 5];
-    const sideYs = width > 40
-      ? [row.y0 + 5, row.y0 + 10.5, row.y0 + 16, row.y1 - 16, row.y1 - 10.5, row.y1 - 5]
-      : [row.y0 + 5, row.y0 + 11.5, cy, row.y1 - 11.5, row.y1 - 5];
+    const topBottomXs = distrib(col.x0, col.x1, 5, 10);   // clamps along the top/bottom edges (width-driven: ~3 across a 25 in bay, ~7 across the 68 in center)
+    const sideYs = distrib(row.y0, row.y1, 4, 7);          // clamps along the side edges (course-height-driven, <=20 in)
     const fixedX = cx;
     const fixedY = row.y0 + 1.15;
     addPanelClamp({ id: `F-PF-${id}-DATUM`, panelId: id, x: fixedX, y: fixedY, fixed: true });
@@ -819,13 +827,13 @@ panelRows.forEach(row => {
       addPanelClamp({ id: `F-PF-${id}-R-${i + 1}`, panelId: id, x: col.x1 - 1.15, y });
     });
 
-    const seamRailId = `HB-SR36-${col.key}`;
-    const topTarget = row.key === 'UP' ? 'HB-TC-01' : seamRailId;
-    const bottomTarget = row.key === 'UP' ? seamRailId : 'HB-BC-01';
+    // Each course's retainer battens anchor to the cross-rail above/below it (HB-SR20/40/60) or the caps; sides to the stiles/mullions.
+    const topTarget = row.topRail.startsWith('HB-SR') ? `${row.topRail}-${col.key}` : row.topRail;
+    const bottomTarget = row.bottomRail.startsWith('HB-SR') ? `${row.bottomRail}-${col.key}` : row.bottomRail;
     const leftTarget = col.key === 'L' ? 'HB-ST-L' : col.key === 'C' ? 'HB-MUL-L' : 'HB-MUL-R';
     const rightTarget = col.key === 'L' ? 'HB-MUL-L' : col.key === 'C' ? 'HB-MUL-R' : 'HB-ST-R';
-    const rbTopBottomXs = width > 40 ? [col.x0 + 8, cx, col.x1 - 8] : [col.x0 + 6, col.x1 - 6];
-    const rbSideYs = width > 40 ? [row.y0 + 8, row.y1 - 8] : [row.y0 + 7, row.y1 - 7];
+    const rbTopBottomXs = distrib(col.x0, col.x1, 8, 26);
+    const rbSideYs = distrib(row.y0, row.y1, 5, 14);
     rbTopBottomXs.forEach((x, i) => {
       addRetainerBattenFrameAnchor({ id: `F-RB-${id}-TOP-${i + 1}`, panelId: id, x, y: row.y1 - 0.62, target: topTarget });
       addRetainerBattenFrameAnchor({ id: `F-RB-${id}-BOT-${i + 1}`, panelId: id, x, y: row.y0 + 0.62, target: bottomTarget });
@@ -836,9 +844,12 @@ panelRows.forEach(row => {
     });
   });
 });
-line3(groups.skins, 'visible horizontal front-panel seam at AFF 36 left bay', [[-63, SPEC.frontPanelSeamAFF, 0.08], [-38, SPEC.frontPanelSeamAFF, 0.08]], 0x111827, 0.9);
-line3(groups.skins, 'visible horizontal front-panel seam at AFF 36 center bay', [[-34, SPEC.frontPanelSeamAFF, 0.08], [34, SPEC.frontPanelSeamAFF, 0.08]], 0x111827, 0.9);
-line3(groups.skins, 'visible horizontal front-panel seam at AFF 36 right bay', [[38, SPEC.frontPanelSeamAFF, 0.08], [63, SPEC.frontPanelSeamAFF, 0.08]], 0x111827, 0.9);
+// Visible horizontal course seams across each bay at AFF 20/40/60 (continuous left->center->right).
+SPEC.courseSeamsAFF.forEach(seam => {
+  [[-63, -38, 'left'], [-34, 34, 'center'], [38, 63, 'right']].forEach(([bx0, bx1, bay]) => {
+    line3(groups.skins, `visible horizontal course seam at AFF ${seam} ${bay} bay`, [[bx0, seam, 0.08], [bx1, seam, 0.08]], 0x111827, 0.9);
+  });
+});
 
 // Full-depth visible mullions: ONE piece each, with the W-relief (THREE 1.5in lands) NOTCHED into the top (lands continuous with the body).
 [-SPEC.seamX, SPEC.seamX].forEach(x => {
@@ -1076,38 +1087,41 @@ rearRailSegments.forEach(([x0, x1], i) => {
   }
 });
 
-// Horizontal panel seam/retainer rails: full-depth segments behind the 36 in AFF face seam.
-rearRailSegments.forEach(([x0, x1], i) => {
-  const suffix = ['L', 'C', 'R'][i];
-  const railId = `HB-SR36-${suffix}`;
-  housedRail(groups.lattice, `panel seam retainer rail AFF 36 segment=${suffix}`, x0, x1, SPEC.frontPanelSeamAFF, 1.25, loadRailDepth, loadRailZ, mats.shellGhost);
-  [
-    { x: x0, receiver: x0 < -60 ? 'HB-ST-L' : x0 < 0 ? 'HB-MUL-L' : 'HB-MUL-R', tag: 'A' },
-    { x: x1, receiver: x1 > 60 ? 'HB-ST-R' : x1 < 0 ? 'HB-MUL-L' : 'HB-MUL-R', tag: 'B' }
-  ].forEach(({ x, receiver, tag }) => {
-    [loadRailZ - 1.5, loadRailZ + 1.5].forEach((bz, j) => addZipboltSideDrive({   // 2 draw bolts per end (front + rear) + key
-      id: `F-ZB-${railId}-${tag}-${j + 1}`,
-      groupKey: 'rearRailFasteners',
-      labelSection: 'fastenerRear',
-      joint: `${railId} housed end to ${receiver}`,
-      pieceIds: [railId, receiver],
-      x,
-      y: SPEC.frontPanelSeamAFF,
-      z: bz,
-      axis: 'x',
-      dir: tag === 'A' ? -1 : 1,
-      socket: 'rear'
-    }));
-    addTenonKey({
-      id: `F-TENON-${railId}-${tag}`,
-      joint: `${railId} housed end to ${receiver} alignment key`,
-      pieceIds: [railId, receiver],
-      x: x + (tag === 'A' ? 0.55 : -0.55),
-      y: SPEC.frontPanelSeamAFF,
-      z: loadRailZ,
-      sx: 0.7,
-      sy: 0.3,
-      sz: 0.42
+// Horizontal course cross-rails: full-depth housed segments behind each AFF 20/40/60 face seam.
+// These ARE the rear support bars (D-060 discrete open bracing, no back panel): each course seats on / clamps to the rail below + above. Three rails x three bay segments. No vertical members (grain is horizontal + courses <=20 in tall, so these rails restrain the cup-prone direction).
+SPEC.courseSeamsAFF.forEach(seamAFF => {
+  rearRailSegments.forEach(([x0, x1], i) => {
+    const suffix = ['L', 'C', 'R'][i];
+    const railId = `HB-SR${seamAFF}-${suffix}`;
+    housedRail(groups.lattice, `course cross-rail AFF ${seamAFF} segment=${suffix}`, x0, x1, seamAFF, 1.25, loadRailDepth, loadRailZ, mats.shellGhost);
+    [
+      { x: x0, receiver: x0 < -60 ? 'HB-ST-L' : x0 < 0 ? 'HB-MUL-L' : 'HB-MUL-R', tag: 'A' },
+      { x: x1, receiver: x1 > 60 ? 'HB-ST-R' : x1 < 0 ? 'HB-MUL-L' : 'HB-MUL-R', tag: 'B' }
+    ].forEach(({ x, receiver, tag }) => {
+      [loadRailZ - 1.5, loadRailZ + 1.5].forEach((bz, j) => addZipboltSideDrive({   // 2 draw bolts per end (front + rear) + key
+        id: `F-ZB-${railId}-${tag}-${j + 1}`,
+        groupKey: 'rearRailFasteners',
+        labelSection: 'fastenerRear',
+        joint: `${railId} housed end to ${receiver}`,
+        pieceIds: [railId, receiver],
+        x,
+        y: seamAFF,
+        z: bz,
+        axis: 'x',
+        dir: tag === 'A' ? -1 : 1,
+        socket: 'rear'
+      }));
+      addTenonKey({
+        id: `F-TENON-${railId}-${tag}`,
+        joint: `${railId} housed end to ${receiver} alignment key`,
+        pieceIds: [railId, receiver],
+        x: x + (tag === 'A' ? 0.55 : -0.55),
+        y: seamAFF,
+        z: loadRailZ,
+        sx: 0.7,
+        sy: 0.3,
+        sz: 0.42
+      });
     });
   });
 });
