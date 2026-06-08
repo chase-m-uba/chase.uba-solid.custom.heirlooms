@@ -178,7 +178,7 @@
   <div class="panel-head" data-collapse="hudPanel"><span>Full-Bed &#183; Master Assembly &#183; V1</span><span class="caret">&#9662;</span></div>
   <div class="panel-body">
   <p>Canonical full-bed master assembly: detailed open-back headboard, the <b>74 x 85</b> grounded 6-drawer base, and the <b>74 x 41 x 16</b> TV-lift footboard. V1 builder-review geometry; sample/builder-confirm items are labeled.</p>
-  <p>The headboard remains the detailed <b>130 x 72 x 8 in</b> open-back assembly. Front face is six <b>1.0 in removable flush panels</b>; structural loads land in the side stiles, two full-depth mullions, deeper receiver rails, and the lower receiver ladder.</p>
+  <p>The headboard remains the detailed <b>130 x 72 x 8 in</b> open-back assembly. Front face is twelve <b>7/8 in removable flush front skins</b> (four horizontal courses x three bays, seams at AFF 20/40/60); structural loads land in the side stiles, two full-depth mullions, deeper receiver rails, and the lower receiver ladder.</p>
   <p>The top mullions use the current <b>3-land W-relief</b>: three 1.5 in lands (front / center / rear) with two 1.75 in gaps for the 35 mm channels, 4.0 in service drop. The cap pulls down with <b>three vertical insert draw-bolts per mullion</b> (one per land).</p>
   </div>
 </section>
@@ -2279,7 +2279,7 @@ label('top cap: 2x Vario30-07 (35 mm cuts) centered in the gaps between THREE 1.
 label('3-land W-relief: 1.5 / gap 1.75 / 1.5 / gap 1.75 / 1.5, 4 in drop; 3 vertical insert bolts/mullion', -36, 66.5, -4, 'blue');
 label('primary verticals only: side stiles + two 4 in mullions', 0, 62, -10.2, 'green');
 label('HB-RR24 stays vertical: rear shear/racking brace', 0, 24.8, -9.3, 'blue');
-label('speaker 28.4 lb actual; direct mount into 1.0 in wood panel', -51, 50, -10, 'green');
+label('speaker 28.4 lb actual; direct mount into 7/8 in wood skin', -51, 50, -10, 'green');
 label('8 hidden nightstand bolts per side into captured square nuts', 51, 23, 3.2, 'steel');
 label('simplified lower receiver: 2 rails + 2 center blocks; no rail through mullions', 0, 11, -10.2, 'blue');
 label('rear remains open: no slab, no wall cleat', 0, 64, -10.1, 'warn');
@@ -2289,12 +2289,17 @@ pieceLabel('HB-TC-01', 'top cap', 0, 71.7, 1.2, '130 x 2 x 8');
 pieceLabel('HB-BC-01', 'bottom cap', 0, 1.2, 1.2, '130 x 2 x 8');
 pieceLabel('HB-ST-L', 'left side stile', -64, 36, 1.1, '2 x 68 x 8');
 pieceLabel('HB-ST-R', 'right side stile', 64, 36, 1.1, '2 x 68 x 8');
-pieceLabel('HB-FP-L-LOW', 'left lower front panel', -49, 19, 1.0, '28 x 34 x 1.0');
-pieceLabel('HB-FP-C-LOW', 'center lower front panel', 0, 19, 1.0, '62 x 34 x 1.0');
-pieceLabel('HB-FP-R-LOW', 'right lower front panel', 49, 19, 1.0, '28 x 34 x 1.0');
-pieceLabel('HB-FP-L-UP', 'left upper front panel', -49, 53, 1.0, '28 x 34 x 1.0');
-pieceLabel('HB-FP-C-UP', 'center upper front panel', 0, 53, 1.0, '62 x 34 x 1.0');
-pieceLabel('HB-FP-R-UP', 'right upper front panel', 49, 53, 1.0, '28 x 34 x 1.0');
+// Twelve removable front skins: four horizontal COURSES (C1-C4) x three bays (L/C/R), 7/8 in (0.875)
+// thick (was six 28x34x1.0 LOW/UP panels). Generated from the modeled frontPanels so the manifest can
+// never drift from the geometry again - IDs, bay widths (25 L/R, 68 C), course heights (C1 18 / C2 20 /
+// C3 20 speaker / C4 10), positions, and the speaker course all come straight from buildHeadboard
+// (D-060/D-008, owner 2026-06-07). Thickness = SPEC.panelTh.
+frontPanels.forEach(p => {
+  const colName = p.col === 'L' ? 'left' : p.col === 'C' ? 'center' : 'right';
+  const courseNo = p.row.replace(/^C/, '');
+  pieceLabel(p.id, `${colName} course-${courseNo} front skin${p.isSpeakerPanel ? ' (speaker)' : ''}`,
+    p.cx, p.cy, 1.0, `${p.width} x ${p.height} x ${SPEC.panelTh}`);
+});
 pieceLabel('HB-MUL-L', 'left U-relieved mullion', -36, 52, 1.1, '4 x 68 x 8');
 pieceLabel('HB-MUL-R', 'right U-relieved mullion', 36, 52, 1.1, '4 x 68 x 8');
 
