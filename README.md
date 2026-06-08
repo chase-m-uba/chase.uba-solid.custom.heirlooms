@@ -1,6 +1,6 @@
 # Solid Ash Heirloom Bed — Builder Viewer
 
-**Live viewer:** https://chase-m-uba.github.io/chase.uba-solid.custom.heirlooms/
+**Live viewer:** https://chase-m-uba.github.io/custom.heirloom.bedframe.viewer/
 
 This is the public builder package for the Solid Ash Heirloom Bed — the interactive 3D models and the
 current drawing sheets only. It is a generated mirror of the project's released deliverables, not the
@@ -10,7 +10,7 @@ working design files.
 
 **Preferred — open the live viewer (GitHub Pages):**
 
-https://chase-m-uba.github.io/chase.uba-solid.custom.heirlooms/
+https://chase-m-uba.github.io/custom.heirloom.bedframe.viewer/
 
 The landing page links every interactive model and every PDF sheet. The models run in any modern
 browser, on desktop or mobile — orbit, zoom, pan, and toggle layers. Nothing to install.
