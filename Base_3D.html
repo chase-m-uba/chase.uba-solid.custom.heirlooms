@@ -463,7 +463,7 @@ const SPEC = Object.freeze({
     wireChaseDia: 0.5
   },
   base: { W: 74, L: 85, top: 17, bayW: 67, bayL: 81, shoulder: 3.5, toeH: 2.0, toeInset: 1.5, caseBottom: 2.0 },
-  drawer: { perSide: 3, intH: 10.75, intW: 19, intD: 33, recess: 1.5, faceH: 12.0, faceGap: 0.25 },
+  drawer: { perSide: 3, intH: 10.75, intW: 19, intD: 33, recess: 1.5, faceThickness: 1.0, faceH: 12.0, faceGap: 0.25 },  // recess = BACK/closure-plane recess from the +-37 outer plane (D-012/D-013); 1.0 face -> visible front 0.5 in behind; a 1.5 in lip carrier hosts the Smart-In16 drawer-lip COB (0.768 in wood above the 0.732 in channel)
   footboard: { W: 74, H: 41, D: 16, sideTh: 2.0, faceTh: 1.0, deckTh: 1.0, rearTh: 0.75, dock: { boltCenterX: 33, boltRowsAFF: [5, 14.5], wireHoleDia: 0.75, wireHoleCenterAFF: 3 } },
   lift: { travel: 36, retractBody: 31, raised: 68.5, baseW: 28.375, basePlateW: 9.875, basePlateD: 5.125, bodyD: 7.0, deckTopY: 8.0 },
   tv: { W: 48.0, H: 27.8, D: 1.5, retractBottom: 11.95, raisedBottom: 47.0 },
@@ -611,7 +611,7 @@ function buildBedBase(ctx) {
   const drawerSpan = (B.L - 5 - 3) / 3;
   const drawerDepth = 32.6;
   [-1, 1].forEach(side => {
-    const faceX = side * (B.W / 2 + 0.08);
+    const faceX = side * (B.W / 2 - DWR.recess + DWR.faceThickness / 2); // recessed: back plane +-35.5, front +-36.5, centre +-36 (D-012); was ~flush
     const boxXc = side * (B.W / 2 - 0.9 - drawerDepth / 2);
     const wallXc = side * (B.W / 2 - 0.9 - (drawerDepth + 1) / 2);
     [0, 1, 2].forEach(w => box(group, `BF-BASE drawer divider wall ${side < 0 ? 'L' : 'R'} ${w}`, drawerDepth + 1, DWR.intH + 1.6, 1.0, wallXc, 8.7, 5 + w * drawerSpan, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false }));
@@ -625,7 +625,7 @@ function buildBedBase(ctx) {
       const isFoot = i === DWR.perSide - 1, gap = isFoot ? 1.0 : 0;
       [z - drawerSpan / 2 + 0.6, z + drawerSpan / 2 - 0.6 - gap].forEach((sz, s) => box(group, `BF-BASE full-extension slide rail (cabinet) ${sAbbr} ${i + 1}-${s}`, drawerDepth, 0.5, 0.32, boxXc, 11.6, sz, mats.steel, { edgeColor: 0x60a5fa, edgeOpacity: 0.45, cast: false }));
       const dg = new THREE.Group(); group.add(dg); drawerGroups.push({ g: dg, axis: 'x', dir: side, ext: drawerDepth - 2 });
-      box(dg, `BF-BASE drawer face ${sName} ${i + 1}`, 0.7, DWR.faceH, drawerSpan - 0.5, faceX, 8.6, z, mats.baseWood, { edgeColor: 0x604618, edgeOpacity: 0.52 });
+      box(dg, `BF-BASE drawer face ${sName} ${i + 1}`, DWR.faceThickness, DWR.faceH, drawerSpan - 0.5, faceX, 8.6, z, mats.baseWood, { edgeColor: 0x604618, edgeOpacity: 0.52 });
       const dW = drawerDepth, dH = DWR.intH, dL = drawerSpan - 2.0 - gap, tw = 0.5, dyc = 8.8, bz = z - gap / 2;
       box(dg, `BF-BASE drawer ${sName} ${i + 1} floor`, dW, tw, dL, boxXc, dyc - dH / 2 + tw / 2, bz, mats.baseWood, { edgeColor: 0x8a6a32, edgeOpacity: 0.42, cast: false });
       box(dg, `BF-BASE drawer ${sName} ${i + 1} inner wall`, tw, dH, dL, boxXc - side * (dW / 2 - tw / 2), dyc, bz, mats.baseWood, { edgeColor: 0x8a6a32, edgeOpacity: 0.42, cast: false });
@@ -633,12 +633,28 @@ function buildBedBase(ctx) {
       box(dg, `BF-BASE drawer ${sName} ${i + 1} side wall A`, dW, dH, tw, boxXc, dyc, bz - dL / 2 + tw / 2, mats.baseWood, { edgeColor: 0x8a6a32, edgeOpacity: 0.42, cast: false });
       box(dg, `BF-BASE drawer ${sName} ${i + 1} side wall B`, dW, dH, tw, boxXc, dyc, bz + dL / 2 - tw / 2, mats.baseWood, { edgeColor: 0x8a6a32, edgeOpacity: 0.42, cast: false });
       const bbev = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.12, drawerSpan - 1.0), mats.baseWood);
-      bbev.position.set(faceX + side * 0.1, 14.35, z); bbev.rotation.z = -side * Math.PI / 4; bbev.castShadow = false;
+      bbev.position.set(faceX + side * 0.4, 14.35, z); bbev.rotation.z = -side * Math.PI / 4; bbev.castShadow = false;
       bbev.name = `BF-BASE drawer ${sName} ${i + 1} beveled top-edge pull (handle-less sharknose)`;
       dg.add(bbev);
       [z - drawerSpan / 2 + 0.6, z + drawerSpan / 2 - 0.6 - gap].forEach((sz, s) => box(dg, `BF-BASE full-extension slide (drawer) ${sAbbr} ${i + 1}-${s}`, drawerDepth - 1, 0.34, 0.2, boxXc, 11.6, sz, mats.darkSteel, { edgeOpacity: 0.22, cast: false }));
     }
   });
+
+  // ---- Drawer-lip Smart-In16 down-wash (D-013 / D-034): a FIXED 1.5 in lip/overhang carrier rail per side;
+  //      the Smart-In16 channel (28 x 18.6 mm = 1.102 x 0.732 in) is routed into its UNDERSIDE (mouth DOWN)
+  //      and washes the 0.5 in-recessed drawer faces. It is fixed to the base border, NOT the moving drawer
+  //      faces (so the COB needs no flexing wire). 0.768 in of wood remains above the routed channel. ----
+  const lipXc = B.W / 2 - 0.75;                  // channel centre 0.75 in inboard of the +-37 outer plane
+  const lipZ0 = 2.8, lipZ1 = 82.2, lipLen = lipZ1 - lipZ0, lipZc = (lipZ0 + lipZ1) / 2;
+  const lipYbot = 14.8, lipCarrierH = 1.5, smW = 1.102, smH = 0.732;
+  [-1, 1].forEach(side => {
+    const xc = side * lipXc, sAb = side < 0 ? 'L' : 'R';
+    box(group, `BF-BASE drawer-lip LED carrier rail ${sAb} (1.5 in tall; 0.768 in wood above the routed channel)`, 1.5, lipCarrierH, lipLen, xc, lipYbot + lipCarrierH / 2, lipZc, mats.baseWood, { edgeColor: 0x604618, edgeOpacity: 0.5, cast: false });
+    box(groups.wiring, `BF-BASE drawer-lip Smart-In16 channel ${sAb} (28 x 18.6 mm; mouth DOWN; fixed to base)`, smW, smH, lipLen, xc, lipYbot + smH / 2, lipZc, mats.liftSteel, { edgeColor: 0x9aa5b1, edgeOpacity: 0.4, cast: false });
+    box(groups.wiring, `BF-BASE drawer-lip COB strip ${sAb} (10 mm, 3000K, emits DOWN over the 0.5 in-recessed faces)`, 0.4, 0.12, lipLen, xc, lipYbot + 0.07, lipZc, mats.ledWarm, { edgeColor: 0xffd9a0, edgeOpacity: 0.5, cast: false });
+    [lipZ0 + lipLen * 0.2, lipZc, lipZ1 - lipLen * 0.2].forEach(zz => line3(groups.wiring, `drawer-lip down-wash light ${sAb}`, [[xc, lipYbot - 0.1, zz], [side * 36.5, 7.5, zz]], 0xffd166, 0.5));
+  });
+  label('drawer-lip Smart-In16 wash: FIXED 1.5 in lip carrier; 1.102 in channel centred in the 1.5 in recess; light DOWN over the 0.5 in-recessed drawer faces (D-013/D-034)', 0, 16.6, 43, 'gold', 'base');
 
   [-36, -4, 4, 36].forEach(x => [5, 14.5].forEach(y => addBaseSideBoltHead(x, y)));
   label('all bed cabling runs the CENTRE chase (side bays are full of drawers)', 0, 14.8, B.L - 9, 'blue', 'base');
@@ -1672,6 +1688,15 @@ const drawerGroups = [];
 const noop = () => ({ element: { dataset: {} } });
 
 buildBedBase({ box, cyl, line3, mats, groups, label: noop, pieceLabel: noop, drawerGroups });
+
+// Drawer-lip recess + Smart-In16 validators (D-012/D-013/D-034): 1.5 back-plane recess, 1.0 face -> 0.5 visible; channel 1.102 x 0.732 in the 1.5 recess; 1.5 lip carrier -> 0.768 wood above.
+(function () {
+  const W = 1.102, H = 0.732, BPR = 1.5, FT = 1.0, LCH = 1.5, vis = +(BPR - FT).toFixed(3), woa = +(LCH - H).toFixed(3);
+  const d = { backPlaneRecess: BPR, faceThickness: FT, visibleFrontRecess: vis, smartIn16Width: W, smartIn16Height: H, lipCarrierHeight: LCH, woodAboveChannel: woa,
+    drawerBackPlaneRecessPass: BPR === 1.5, drawerVisibleFaceRecessPass: vis === 0.5, drawerLedChannelFitPass: W <= BPR, drawerLedLipCarrierPass: woa >= 0.5 };
+  d.pass = d.drawerBackPlaneRecessPass && d.drawerVisibleFaceRecessPass && d.drawerLedChannelFitPass && d.drawerLedLipCarrierPass;
+  window.__BF_DRAWER_LIP = d;
+})();
 
 const baseGroup = new THREE.Group();
 baseGroup.add(groups.bedBase, groups.slats, groups.wiring);
