@@ -1,23 +1,39 @@
-# Solid Ash Heirloom Bed — interactive viewer
+# Solid Ash Heirloom Bed — Builder Viewer
 
-Public, always‑current 3D viewer for the Solid Ash Heirloom Bed project. Hosts only the self‑contained
-interactive models so they can be shared with the builder via a live link, while the full project repo
-stays private.
+**Live viewer:** https://chase-m-uba.github.io/chase.uba-solid.custom.heirlooms/
 
-**Live:** https://chase-m-uba.github.io/chase.uba-solid.custom.heirlooms/
+This is the public builder package for the Solid Ash Heirloom Bed — the interactive 3D models and the
+current drawing sheets only. It is a generated mirror of the project's released deliverables, not the
+working design files.
 
-- `index.html` — landing page / hub
-- `BF-M01_master-assembly.html` — full‑bed master assembly (orbit / explode / isolate / layers)
-- `BF-D08_mullion-topcap-ujoint-detail.html` — mullion / top‑cap three‑land W‑joint detail
+## How to view
 
-Drawing sheets (PDF):
-- `BF-GA01_general-arrangement.pdf` — overall bed general arrangement
-- `BF-S01_headboard-assembly.pdf` — headboard assembly
-- `BF-S03_footboard-assembly.pdf` — footboard / TV‑lift assembly
-- `BF-D01_topcap-led-channel.pdf` — top‑cap LED channel detail
+**Preferred — open the live viewer (GitHub Pages):**
 
-The models pull three.js from the unpkg CDN, so these files are fully self‑contained — no build step.
+https://chase-m-uba.github.io/chase.uba-solid.custom.heirlooms/
 
-These files are **published copies** generated from the private `bed-frame` project repo (the source of
-truth). To update the live models, re‑copy the latest viewer HTML from the project and push to this repo.
-Units are inches; V1 builder‑review geometry.
+The landing page links every interactive model and every PDF sheet. The models run in any modern
+browser, on desktop or mobile — orbit, zoom, pan, and toggle layers. Nothing to install.
+
+> **Note:** opening an `*_3D.html` file from GitHub's *code* view (the file list on github.com) only
+> shows its source — it will **not** run the 3D model. Use the live viewer link above, or the local
+> option below.
+
+**Local fallback — download and open:**
+
+1. Use the green **Code** button on GitHub → **Download ZIP** (or clone the repo).
+2. Unzip, then double-click **`index.html`** — or any **`*_3D.html`** model — to open it in your
+   browser. The models are self-contained and also work offline.
+
+## What's here
+
+- **Interactive 3D models** (repo root) — full bed, headboard, drawer base, footboard / TV-lift
+  cabinet, nightstands, the top-cap joint detail, and the cabinet-to-base seam.
+- **Drawing sheets** (`blueprints/`) — the side / plan / front general arrangement, the per-unit
+  LOD-400 shop sets (headboard, drawer base, nightstands, TV cabinet), and the top-cap LED detail.
+
+**Mouse:** left-drag rotate · wheel zoom · right-drag pan · hold Space/Shift + left-drag to pan ·
+press **P** for Pan Mode.
+
+Units are in inches. This viewer is regenerated from the current deliverables, so it always reflects
+the latest released models and drawings.

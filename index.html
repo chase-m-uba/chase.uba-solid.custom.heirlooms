@@ -18,7 +18,12 @@
     padding: 30px 30px 26px; backdrop-filter: blur(10px); box-shadow: 0 30px 70px rgba(0,0,0,.45);
   }
   h1 { margin: 0 0 4px; font-size: 22px; letter-spacing: .01em; }
-  .sub { margin: 0 0 22px; color: #9fb3c8; font-size: 13.5px; line-height: 1.5; }
+  .sub { margin: 0 0 16px; color: #9fb3c8; font-size: 13.5px; line-height: 1.5; }
+  .note {
+    margin: 0 0 22px; padding: 11px 14px; border: 1px solid rgba(96,165,250,.38);
+    background: rgba(30,58,90,.34); border-radius: 10px; color: #d4e3f4; font-size: 12.5px; line-height: 1.5;
+  }
+  .note a { color: #7cc4ff; font-weight: 700; word-break: break-all; }
   a.viewer {
     display: flex; align-items: center; gap: 16px; text-decoration: none; color: inherit;
     border: 1px solid rgba(148,163,184,.3); border-radius: 11px; padding: 16px 18px;
@@ -37,17 +42,22 @@
   .vtitle { font-size: 15.5px; font-weight: 700; }
   .vdesc { font-size: 12.5px; color: #aebfd2; margin-top: 2px; line-height: 1.4; }
   .chev { margin-left: auto; color: #7c93ab; font-size: 20px; }
-  .foot { margin-top: 18px; font-size: 11.5px; color: #7c8ba0; line-height: 1.5; }
+  .foot { margin-top: 18px; font-size: 11.5px; color: #7c8ba0; line-height: 1.6; }
   .foot b { color: #c9d4e2; font-weight: 700; }
 </style>
 </head>
 <body>
   <main class="card">
     <h1>Solid Ash Heirloom Bed</h1>
-    <p class="sub">Interactive 3D models — orbit, isolate subsystems, and toggle layers right in your browser.
-      No install; works on desktop and mobile.</p>
+    <p class="sub">Interactive 3D models — orbit, zoom, pan, isolate subsystems, and toggle layers right
+      in your browser. No install; works on desktop and mobile.</p>
 
-    <a class="viewer" href="Full-Bed_3D.html">
+    <p class="note"><b>Live viewer:</b> <a href="https://chase-m-uba.github.io/chase.uba-solid.custom.heirlooms/">chase-m-uba.github.io/chase.uba-solid.custom.heirlooms/</a><br>
+      If you are browsing these files on GitHub's <b>code</b> view instead, the 3D models will not run
+      there — that view only shows the file source. Open the link above (GitHub Pages), or download the
+      repo and double-click <b>index.html</b>.</p>
+
+    <a class="viewer" href="./Full-Bed_3D.html">
       <span class="badge ">BED</span>
       <span>
         <div class="vtitle">Full-bed master assembly</div>
@@ -56,7 +66,7 @@
       <span class="chev">&#8594;</span>
     </a>
 
-    <a class="viewer" href="Headboard_3D.html">
+    <a class="viewer" href="./Headboard_3D.html">
       <span class="badge blue">HEAD</span>
       <span>
         <div class="vtitle">Headboard</div>
@@ -65,7 +75,7 @@
       <span class="chev">&#8594;</span>
     </a>
 
-    <a class="viewer" href="Base_3D.html">
+    <a class="viewer" href="./Base_3D.html">
       <span class="badge blue">BASE</span>
       <span>
         <div class="vtitle">Drawer base / platform</div>
@@ -74,7 +84,7 @@
       <span class="chev">&#8594;</span>
     </a>
 
-    <a class="viewer" href="Footboard-Cabinet_3D.html">
+    <a class="viewer" href="./Footboard-Cabinet_3D.html">
       <span class="badge blue">FOOT</span>
       <span>
         <div class="vtitle">Footboard / TV-lift cabinet</div>
@@ -83,7 +93,7 @@
       <span class="chev">&#8594;</span>
     </a>
 
-    <a class="viewer" href="Nightstands_3D.html">
+    <a class="viewer" href="./Nightstands_3D.html">
       <span class="badge blue">NS</span>
       <span>
         <div class="vtitle">Floating nightstands</div>
@@ -92,7 +102,7 @@
       <span class="chev">&#8594;</span>
     </a>
 
-    <a class="viewer" href="TopCap-Joint_3D.html">
+    <a class="viewer" href="./TopCap-Joint_3D.html">
       <span class="badge blue">CAP</span>
       <span>
         <div class="vtitle">Mullion / top-cap W-joint detail</div>
@@ -101,7 +111,7 @@
       <span class="chev">&#8594;</span>
     </a>
 
-    <a class="viewer" href="Dock-Interface_3D.html">
+    <a class="viewer" href="./Dock-Interface_3D.html">
       <span class="badge blue">SEAM</span>
       <span>
         <div class="vtitle">Footboard cabinet ↔ base bolt-on seam <span style="color:#34d399;font-size:11px">· animated</span></div>
@@ -112,7 +122,7 @@
 
     <div class="section">Drawing sheets (PDF)</div>
 
-    <a class="viewer pdf" href="Bed-Side_Blueprint.pdf" target="_blank" rel="noopener">
+    <a class="viewer pdf" href="./blueprints/Bed-Side_Blueprint.pdf" target="_blank" rel="noopener">
       <span class="badge pdf">SIDE</span>
       <span>
         <div class="vtitle">Bed — side elevation</div>
@@ -121,7 +131,7 @@
       <span class="chev">&#8599;</span>
     </a>
 
-    <a class="viewer pdf" href="Bed-Top_Blueprint.pdf" target="_blank" rel="noopener">
+    <a class="viewer pdf" href="./blueprints/Bed-Top_Blueprint.pdf" target="_blank" rel="noopener">
       <span class="badge pdf">PLAN</span>
       <span>
         <div class="vtitle">Bed — plan (top-down)</div>
@@ -130,7 +140,7 @@
       <span class="chev">&#8599;</span>
     </a>
 
-    <a class="viewer pdf" href="Bed-Front_Blueprint.pdf" target="_blank" rel="noopener">
+    <a class="viewer pdf" href="./blueprints/Bed-Front_Blueprint.pdf" target="_blank" rel="noopener">
       <span class="badge pdf">FRONT</span>
       <span>
         <div class="vtitle">Bed — front (foot end)</div>
@@ -139,7 +149,7 @@
       <span class="chev">&#8599;</span>
     </a>
 
-    <a class="viewer pdf" href="Headboard-Shop_Blueprint.pdf" target="_blank" rel="noopener">
+    <a class="viewer pdf" href="./blueprints/Headboard-Shop_Blueprint.pdf" target="_blank" rel="noopener">
       <span class="badge pdf">HEAD</span>
       <span>
         <div class="vtitle">Headboard — shop drawings (builder)</div>
@@ -148,7 +158,7 @@
       <span class="chev">&#8599;</span>
     </a>
 
-    <a class="viewer pdf" href="Base-Shop_Blueprint.pdf" target="_blank" rel="noopener">
+    <a class="viewer pdf" href="./blueprints/Base-Shop_Blueprint.pdf" target="_blank" rel="noopener">
       <span class="badge pdf">BASE</span>
       <span>
         <div class="vtitle">Drawer base — shop drawings (builder)</div>
@@ -157,7 +167,7 @@
       <span class="chev">&#8599;</span>
     </a>
 
-    <a class="viewer pdf" href="Nightstands-Shop_Blueprint.pdf" target="_blank" rel="noopener">
+    <a class="viewer pdf" href="./blueprints/Nightstands-Shop_Blueprint.pdf" target="_blank" rel="noopener">
       <span class="badge pdf">NS</span>
       <span>
         <div class="vtitle">Nightstands — shop drawings (builder)</div>
@@ -166,7 +176,7 @@
       <span class="chev">&#8599;</span>
     </a>
 
-    <a class="viewer pdf" href="TV-Cabinet-Shop_Blueprint.pdf" target="_blank" rel="noopener">
+    <a class="viewer pdf" href="./blueprints/TV-Cabinet-Shop_Blueprint.pdf" target="_blank" rel="noopener">
       <span class="badge pdf">TV-D</span>
       <span>
         <div class="vtitle">TV cabinet — shop drawings (builder)</div>
@@ -175,7 +185,7 @@
       <span class="chev">&#8599;</span>
     </a>
 
-    <a class="viewer pdf" href="TV-Cabinet_Blueprint.pdf" target="_blank" rel="noopener">
+    <a class="viewer pdf" href="./blueprints/TV-Cabinet_Blueprint.pdf" target="_blank" rel="noopener">
       <span class="badge pdf">TV</span>
       <span>
         <div class="vtitle">TV cabinet — with lift + TV (owner)</div>
@@ -184,7 +194,7 @@
       <span class="chev">&#8599;</span>
     </a>
 
-    <a class="viewer pdf" href="TopCap-LED_Blueprint.pdf" target="_blank" rel="noopener">
+    <a class="viewer pdf" href="./blueprints/TopCap-LED_Blueprint.pdf" target="_blank" rel="noopener">
       <span class="badge pdf">LED</span>
       <span>
         <div class="vtitle">Top-cap LED channel detail</div>
@@ -194,6 +204,7 @@
     </a>
 
     <p class="foot">
+      <b>Mouse:</b> left-drag rotate &#183; wheel zoom &#183; right-drag pan &#183; hold Space/Shift + left-drag to pan &#183; press <b>P</b> for Pan Mode.<br>
       <b>Tip:</b> in the full-bed model, press <b>H</b> (or "Hide panels") to clear the overlays and see the bare model; click any corner chip to expand its controls.<br>
       Live, always-current viewer for the Solid Ash Heirloom Bed project &#183; units in inches.
     </p>
