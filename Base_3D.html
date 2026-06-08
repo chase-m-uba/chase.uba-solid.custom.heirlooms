@@ -429,8 +429,8 @@ const SPEC = Object.freeze({
   topCapH: 2,
   bottomCapH: 2,
   sideW: 2,
-  panelTh: 1.0,
-  skinTh: 1.0,
+  panelTh: 0.875,
+  skinTh: 0.875,
   courseSeamsAFF: [20, 40, 60],      // front skins are horizontal COURSES <=20 in tall (board-width / warp limit, builder 2026-06-06); seams at AFF 20/40/60 -> course heights 18/20/20/10; speaker in the 40-60 course (D-060/D-008, owner 2026-06-07)
   loadReceiverRailDepth: 7,
   mullionW: 4,
@@ -1090,7 +1090,7 @@ box(groups.lattice, 'bottom cap one-piece 130x2x8', W, 2, D, 0, 1, zMid, mats.sh
 box(groups.lattice, 'left side stile 2x68x8', 2, 68, D, -64, 36, zMid, mats.shell);
 box(groups.lattice, 'right side stile 2x68x8', 2, 68, D, 64, 36, zMid, mats.shell);
 
-// Six removable front panels, 1.0 in thick, installed flush from the rear.
+// Twelve removable front skins, 7/8 in (0.875) thick, installed flush from the rear.
 const panelColumns = [
   { key: 'L', x0: -63, x1: -38, name: 'left' },
   { key: 'C', x0: -34, x1: 34, name: 'center' },
@@ -1122,7 +1122,7 @@ panelRows.forEach(row => {
     const cy = (row.y0 + row.y1) / 2;
     const isSpeakerPanel = row.key === 'C3' && col.key !== 'C';
     frontPanels.push({ id, col: col.key, row: row.key, x0: col.x0, x1: col.x1, y0: row.y0, y1: row.y1, width, height, cx, cy, isSpeakerPanel });
-    box(groups.skins, `${id} ${col.name} ${row.name} flush removable panel 1.0 in`, width, height, SPEC.panelTh, cx, cy, -SPEC.panelTh / 2, mats.skin, { edgeOpacity: 0.28 });
+    box(groups.skins, `${id} ${col.name} ${row.name} flush removable panel 0.875 in`, width, height, SPEC.panelTh, cx, cy, -SPEC.panelTh / 2, mats.skin, { edgeOpacity: 0.28 });
 
     // Shallow locating shoulders/rabbets; these locate the panel, while hidden clamps provide removable holding force.
     box(groups.skins, `${id} top locating shoulder`, width, 0.16, 0.18, cx, row.y1, -1.04, mats.void, { edgeColor: 0x38bdf8, edgeOpacity: 0.16, cast: false });
