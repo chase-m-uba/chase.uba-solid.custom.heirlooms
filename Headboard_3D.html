@@ -1346,56 +1346,11 @@ const rearRailSegments = [[-63, -38], [-34, 34], [38, 63]];
   });
 });
 
-// Flat upper fan/service rails replace the old vertical RR60 role above the speaker tops.
-const fanRailY = 62.5;
-const fanRailH = 1.0;
-rearRailSegments.forEach(([x0, x1], i) => {
-  const suffix = ['L', 'C', 'R'][i];
-  const railId = `HB-FAN62-${suffix}`;
-  housedRail(groups.lattice, `flat upper fan/service rail AFF 62.5 segment=${suffix}`, x0, x1, fanRailY, fanRailH, loadRailDepth, loadRailZ, mats.shellGhost);
-  [
-    { x: x0, receiver: x0 < -60 ? 'HB-ST-L' : x0 < 0 ? 'HB-MUL-L' : 'HB-MUL-R', tag: 'A' },
-    { x: x1, receiver: x1 > 60 ? 'HB-ST-R' : x1 < 0 ? 'HB-MUL-L' : 'HB-MUL-R', tag: 'B' }
-  ].forEach(({ x, receiver, tag }) => {
-    addZipboltSideDrive({
-      id: `F-ZB-${railId}-${tag}`,
-      groupKey: 'rearRailFasteners',
-      labelSection: 'fastenerRear',
-      joint: `${railId} housed end to ${receiver}`,
-      pieceIds: [railId, receiver],
-      x,
-      y: fanRailY,
-      z: loadRailZ,
-      axis: 'x',
-      dir: tag === 'A' ? -1 : 1,
-      socket: 'rear'
-    });
-    addTenonKey({
-      id: `F-TENON-${railId}-${tag}`,
-      joint: `${railId} housed end to ${receiver} alignment key`,
-      pieceIds: [railId, receiver],
-      x: x + (tag === 'A' ? 0.55 : -0.55),
-      y: fanRailY,
-      z: loadRailZ,
-      sx: 0.7,
-      sy: 0.3,
-      sz: 0.42
-    });
-  });
-  const slotCount = suffix === 'C' ? 4 : 2;
-  const slotStep = (x1 - x0) / (slotCount + 1);
-  for (let s = 1; s <= slotCount; s += 1) {
-    const slotX = x0 + slotStep * s;
-    box(groups.lattice, `${railId} airflow slot ${s}`, 2.4, 0.14, 1.2, slotX, fanRailY + 0.02, loadRailZ, mats.void, { edgeColor: 0x38bdf8, edgeOpacity: 0.68, cast: false });
-  }
-  const fanCount = suffix === 'C' ? 2 : 1;
-  const fanStep = (x1 - x0) / (fanCount + 1);
-  for (let f = 1; f <= fanCount; f += 1) {
-    const fanX = x0 + fanStep * f;
-    box(groups.led, `${railId} low-profile fan ghost ${f}`, 4.75, 0.35, 4.75, fanX, fanRailY + 0.75, loadRailZ, mats.ghost, { edgeColor: 0x7dd3fc, edgeOpacity: 0.72, cast: false });
-    line3(groups.led, `${railId} fan airflow up ${f}`, [[fanX, fanRailY + 0.95, loadRailZ], [fanX, 69.4, -4.0]], 0x38bdf8, 0.8);
-  }
-});
+// (V1 cleanup, D-060) The redundant upper fan/service rail layer — a flat rail at AFF 62.5 with its
+// own housed-end hardware, airflow slots, fan-ghost boxes and arrows — was REMOVED. It duplicated the
+// structural AFF 60 course cross-rail. The AFF 60 cross-rail (HB-SR60, built below) supports the upper
+// front-skin seam and provides the available service / fan mounting surface if needed; no separate fan
+// rail is modeled in V1.
 
 // Horizontal course cross-rails: full-depth housed segments behind each AFF 20/40/60 face seam.
 // These ARE the rear support bars (D-060 discrete open bracing, no back panel): each course seats on / clamps to the rail below + above. Three rails x three bay segments. No vertical members (grain is horizontal + courses <=20 in tall, so these rails restrain the cup-prone direction).
