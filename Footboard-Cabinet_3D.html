@@ -1,36 +1,38 @@
 <!DOCTYPE html>
 <!--
-  FILE: Footboard-Cabinet_3D      (canonical — no _vN)
-  TITLE: Footboard / TV-lift Cabinet — standalone interactive model
-  STATUS: CURRENT   DATE: 2026-06-06    (history in git)
-  DERIVES FROM: bf-geometry.js -> buildFootboardAndLift() (the SAME shared builder Full-Bed uses)
-  COORD/UNITS: standard (Folder Spec §4) — inches. X=width(0 centred), Y=AFF, Z=head(0)->foot(+).
-  CHANGE: New standalone TV-cabinet model. Imports the shared builder, so it CANNOT drift from the master.
-  ASSUMPTIONS: none — geometry is single-sourced in bf-geometry.js.
-
-  74 x 41 x 16 footboard housing the Touchstone 23401 lift + 55 in Sony OLED + Bravia soundbar.
-  Thin HOST: all geometry comes from bf-geometry.js. Edit a cabinet/lift dimension there once and
-  Full-Bed + this model both update.
+  TV cabinet + bed base dock - the detailed footboard TV cabinet, the bed base, and the bolt-on dock seam between them (interactive detail model).
+  The TV cabinet + lower bed are built from bf-geometry.js — the SAME shared builders Full-Bed uses,
+  so this model can never drift from the master. On top: the cabinet-to-base bolt-on hardware
+  (4 bed bolts in two rows = a moment couple + a 3/4 in grommeted bare-wire pass-through) + close/open-seam + rear-view animation.
+  Units: inches. X = width (0 centred), Y = height AFF, Z = head(0) -> foot(+). Seam plane Z = 85.
 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Footboard-Cabinet - TV-Lift Cabinet (shared geometry)</title>
+<title>TV cabinet + bed base dock</title>
 <style>
   * { box-sizing: border-box; }
   html, body { margin: 0; width: 100%; height: 100%; overflow: hidden;
     background: #0e1218; color: #eef4fb; font-family: Inter, "Segoe UI", Arial, sans-serif; }
   #app { position: fixed; inset: 0; }
   canvas { display: block; }
+  #labels { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
+  .lbl { font-size: 11px; line-height: 1.25; color: #eaf2fb; background: rgba(12,18,27,.82);
+    border: 1px solid rgba(148,163,184,.4); border-radius: 6px; padding: 3px 7px; white-space: nowrap;
+    transform: translate(-50%, -50%); box-shadow: 0 6px 18px rgba(0,0,0,.4); }
+  .lbl b { color: #f8d37b; }
+  .lbl.ac { border-color: #e0962f; } .lbl.ac b { color: #f0b35f; }
+  .lbl.spk { border-color: #3b6fb0; } .lbl.spk b { color: #79a8dd; }
+  .lbl.dow { border-color: #9aa7b6; }
   .panel { position: fixed; background: rgba(12,18,27,.84); border: 1px solid rgba(148,163,184,.34);
     border-radius: 10px; backdrop-filter: blur(10px); box-shadow: 0 18px 45px rgba(0,0,0,.35); }
   #hud { left: 14px; top: 14px; width: min(384px, calc(100vw - 28px)); padding: 13px 15px; }
   #hud h1 { margin: 0 0 5px; font-size: 16px; }
   #hud p { margin: 4px 0; font-size: 12px; color: #c9d4e2; line-height: 1.45; }
+  #hud .tag { display:inline-block; margin-top:7px; font-size: 10.5px; color: #34d399; border:1px solid rgba(52,211,153,.5);
+    border-radius: 5px; padding: 2px 7px; }
   #hud b { color: #f8d37b; }
-  #hud .tag { display:inline-block; margin-top:7px; font-size: 10.5px; color: #34d399;
-    border:1px solid rgba(52,211,153,.5); border-radius: 5px; padding: 2px 7px; }
   #ctrl { left: 14px; bottom: 14px; width: min(330px, calc(100vw - 28px)); padding: 12px 14px; }
   #ctrl h2 { margin: 0 0 9px; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: #9fb2c8; }
   .row { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
@@ -41,54 +43,61 @@
   button.on { border-color: #f8d37b; background: rgba(120,90,20,.36); color: #ffe6a8; }
   button.prime { border-color: #34d399; background: rgba(16,90,70,.46); }
   .slab { display:flex; align-items:center; gap:9px; margin: 6px 0 2px; }
-  .slab label { font-size: 11px; color: #9fb2c8; width: 74px; }
+  .slab label { font-size: 11px; color: #9fb2c8; width: 64px; }
   input[type=range] { flex: 1; accent-color: #22d3ee; }
-  #liftval { font-size: 11px; color: #f8d37b; width: 40px; text-align: right; font-variant-numeric: tabular-nums; }
-  #cam { right: 14px; bottom: 14px; width: min(214px, calc(100vw - 28px)); padding: 11px 13px; }
-  #cam h2 { margin: 0 0 8px; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: #9fb2c8; }
-  #cam .row button { min-width: 0; padding: 7px 6px; font-size: 11px; }
-  #legend { right: 14px; top: 14px; width: min(248px, calc(100vw - 28px)); padding: 12px 14px; }
+  #seamval { font-size: 11px; color: #f8d37b; width: 52px; text-align: right; font-variant-numeric: tabular-nums; }
+  #legend { right: 14px; top: 14px; width: min(264px, calc(100vw - 28px)); padding: 12px 14px; }
   #legend h2 { margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: #9fb2c8; }
   #legend p { margin: 6px 0; font-size: 11.5px; color: #cbd6e4; line-height: 1.3; }
   .sw { display:inline-block; width: 11px; height: 11px; margin-right: 7px; vertical-align: -1px; border-radius: 3px; }
+  #cam { right: 14px; bottom: 14px; width: min(214px, calc(100vw - 28px)); padding: 11px 13px; }
+  #cam h2 { margin: 0 0 8px; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: #9fb2c8; }
+  #cam .row button { min-width: 0; padding: 7px 6px; font-size: 11px; }
   @media (max-width: 760px){ #legend,#cam{ display:none; } }
 </style>
 </head>
 <body>
 <div id="app"></div>
+<div id="labels"></div>
 
 <div id="hud" class="panel">
-  <h1>BF&#8209;S03 &#183; TV&#8209;Lift Cabinet</h1>
-  <p>The <b>74 &#215; 41 &#215; 16 in</b> footboard: sealed cabinet, flat 8&#8209;AFF lift deck + 3&#8209;bay cubby below, Touchstone 23401 lift carrying a 55&#8209;in Sony OLED and Bravia soundbar.</p>
-  <p>Drag to orbit &#183; scroll to zoom &#183; pull <b>TV lift</b> or hit <b>Raise</b>.</p>
-  <span class="tag">&#10003; shared single source &#183; cannot drift from BF&#8209;M01</span>
+  <h1>TV cabinet + bed base dock</h1>
+  <p>The detailed <b>TV cabinet</b> and <b>bed base</b>, plus the bolt&#8209;on <b>dock seam</b> between them &#8212; all built from the shared <code>bf&#8209;geometry.js</code>, so this model can never drift from the master.</p>
+  <p>Drag to orbit &#183; scroll to zoom &#183; <b>Raise TV</b> to lift the screen, <b>Seat</b> to close the dock, <b>Flip</b> for the rear view.</p>
+  <span class="tag">&#10003; shared single source &#183; cannot drift from master</span>
 </div>
 
 <div id="legend" class="panel">
-  <h2>Cabinet</h2>
-  <p><span class="sw" style="background:#d2aa67"></span>Footboard case (ash)</p>
-  <p><span class="sw" style="background:#3f4754"></span>Touchstone 23401 lift</p>
-  <p><span class="sw" style="background:#020617"></span>55&#8209;in Sony OLED</p>
-  <p><span class="sw" style="background:#050505"></span>Bravia Theatre Bar 9</p>
+  <h2>Dock hardware</h2>
+  <p><span class="sw" style="background:#c2c9d1"></span><b>4 bed bolts</b> &#8212; two per side, two rows (a moment couple)</p>
+  <p><span class="sw" style="background:#b08d57"></span><b>cross&#8209;dowel / barrel nuts</b> &#8212; seated in the base foot framing</p>
+  <p><span class="sw" style="background:#111418"></span><b>3/4&#8243; grommeted pass&#8209;through</b> &#8212; bundled 120V + speaker, fed by the under&#8209;base gap</p>
+  <p style="color:#8aa0b6;font-size:11px">No seam connectors, no dowels. <b>Ghost</b> shows the bolts + wire path; <b>Flip</b> = rear view.</p>
 </div>
 
 <div id="ctrl" class="panel">
-  <h2>Lift</h2>
+  <h2>Motion</h2>
   <div class="row">
     <button id="bRaise" class="prime">&#9650; Raise TV</button>
-    <button id="bAuto">&#8734; Auto</button>
+    <button id="bDock" class="prime">&#9654; Seat dock</button>
   </div>
-  <div class="slab"><label>TV lift</label><input id="lift" type="range" min="0" max="1" step="0.01" value="0"><span id="liftval">0&#37;</span></div>
+  <div class="slab"><label>Seam gap</label><input id="gap" type="range" min="0" max="24" step="0.1" value="12"><span id="seamval">12.0&#8243;</span></div>
   <div class="row" style="margin-top:6px">
     <button id="bGhost">Ghost / X&#8209;ray</button>
+    <button id="bLabels">Labels</button>
+    <button id="bWires">Wires</button>
+  </div>
+  <div class="row">
+    <button id="bAuto">&#8734; Auto dock</button>
     <button id="bSpin">Auto&#8209;spin</button>
+    <button id="bFlip">Flip 180&#176;</button>
   </div>
 </div>
 
 <div id="cam" class="panel">
   <h2>Camera</h2>
-  <div class="row"><button data-cam="iso">Iso</button><button data-cam="front">Front</button></div>
-  <div class="row"><button data-cam="side">Side</button><button data-cam="cubby">Cubby</button></div>
+  <div class="row"><button data-cam="iso">Iso</button><button data-cam="side">Side</button><button data-cam="whole">Whole bed</button></div>
+  <div class="row"><button data-cam="ac">Bolts L</button><button data-cam="spk">Bolts R</button><button data-cam="top">Top</button></div>
 </div>
 
 <script type="importmap">
@@ -410,8 +419,9 @@ function installBFViewerControls(opts) {
 return { installBFViewerControls };
 })();
 /* ==== END BF-VIEWER-CONTROLS INLINE (edit System/bf-viewer-controls.js, then re-run npm run bf:build) ==== */
+import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 /* ==== BF-GEOMETRY INLINE — generated by `npm run bf:build`; DO NOT EDIT BETWEEN THESE MARKERS ==== */
-const { SPEC, makeMaterials, makeEngine, buildFootboardAndLift } = (() => {
+const { SPEC, makeMaterials, makeEngine, buildBedBase, buildFootboardAndLift, buildDockHardware } = (() => {
 // bf-geometry.js — SINGLE SOURCE OF TRUTH for the shared bed geometry.
 // The TV-lift footboard, the Touchstone 23401 lift, and the 74x85 drawer base live HERE, once.
 // Full-Bed (full master) and Dock-Interface (the cabinet-to-base seam detail model) both import these builders, so the
@@ -503,7 +513,8 @@ function makeMaterials() {
     liftSteel: new THREE.MeshStandardMaterial({ color: 0x3f4754, roughness: 0.34, metalness: 0.72 }),
     brass: new THREE.MeshStandardMaterial({ color: 0xd8a33b, roughness: 0.24, metalness: 0.86 }),
     tenon: new THREE.MeshStandardMaterial({ color: 0x7dd3fc, roughness: 0.58, transparent: true, opacity: 0.82 }),
-    switchPlate: new THREE.MeshStandardMaterial({ color: 0x0f766e, roughness: 0.48, metalness: 0.22 }),
+    switchPlate: new THREE.MeshStandardMaterial({ color: 0x3b424e, roughness: 0.5, metalness: 0.25 }),
+    buttonBlack: new THREE.MeshStandardMaterial({ color: 0x0a0a0a, roughness: 0.42, metalness: 0.5 }),
     panelScrew: new THREE.MeshStandardMaterial({ color: 0xb45309, roughness: 0.34, metalness: 0.72 }),
     panelBatten: new THREE.MeshStandardMaterial({ color: 0xc9914b, roughness: 0.68, transparent: true, opacity: 0.66 }),
     access: new THREE.MeshStandardMaterial({ color: 0xfb923c, transparent: true, opacity: 0.22, depthWrite: false }),
@@ -677,8 +688,10 @@ function buildBedBase(ctx) {
   line3(groups.wiring, 'LV/HDMI/control: internal cubby loom (cabinet-resident gear)', [
     [31.5, 5.5, 90], [31.5, 5.5, 93], [10, 5.5, 93], [10, 4, 93]
   ], 0x38bdf8, 0.86);
-  line3(groups.wiring, '24V + Casambi: base hub -> centre bore -> up the rear cavity to the top-cap LED', [
-    [-2, 7, 6], [-2, 7, 2.5], [-2, 1, 2.5], [-2, 1, -5], [-2, 66, -5], [-2, 70, -5], [-2, 70, -4]
+  // 24V + Casambi feed: runs ALONG the base spine to the rear cable bore and into the headboard cavity.
+  // (Kept LOW and terminated at the pass-through bore — it must read as cabling, never as a vertical antenna.)
+  line3(groups.wiring, '24V + Casambi: base hub -> centre bore -> rear cable bore (continues up the headboard cavity)', [
+    [-2, 7, 6], [-2, 7, 2.5], [-2, 1, 2.5], [-2, 1, -1.8]
   ], 0x38bdf8, 0.8);
   label('74 x 85 grounded base; central spine and continuous side exoskeleton', 0, 19.5, 43, 'blue', 'base');
   label('base/headboard bolts align to x=-36,-4,+4,+36 at AFF 5 and 14.5', 0, 17.5, 2.8, 'steel', 'base');
@@ -1065,7 +1078,7 @@ function addMullionSwitchPanel({ sideName, x }) {
   });
   sp.buttonsAFF.forEach((y, i) => {
     cyl(group, `${id} FILN FLM12 12mm button hole ${i + 1}`, sp.buttonDia / 2, 0.7, x, y, -0.2, mats.void, 'z', { segments: 32, cast: false });
-    cyl(group, `${id} illuminated momentary button ${i + 1}`, sp.buttonDia / 2 * 0.82, 0.16, x, y, 0.14, i % 2 === 0 ? mats.ledWarm : mats.ledRed, 'z', { segments: 32, cast: false });
+    cyl(group, `${id} black momentary button ${i + 1}`, sp.buttonDia / 2 * 0.82, 0.16, x, y, 0.14, mats.buttonBlack, 'z', { segments: 32, cast: false });
   });
   label(`${id}\n4x FILN FLM12\n0.5 in rear wire chase`, x + (sideName === 'L' ? -2.4 : 2.4), sp.centerY, 0.8, 'blue piece', 'controls');
   label(`${id} rear wire exit\nstraight 0.5 in bore`, x + (sideName === 'L' ? -2.4 : 2.4), sp.centerY, -9.15, 'blue piece', 'controls');
@@ -1481,8 +1494,8 @@ SPEC.courseSeamsAFF.forEach(seamAFF => {
   const cx = side * SPEC.nightstand.centerX;
   const bayX0 = side < 0 ? -63 : 38;
   const bayX1 = side < 0 ? -38 : 63;
-  housedRail(groups.lattice, `nightstand upper receiver rail ${side}, housed stile-to-mullion`, bayX0, bayX1, 27.1, 1.8, loadRailDepth, loadRailZ, mats.night);
-  housedRail(groups.lattice, `nightstand lower receiver rail ${side}, housed stile-to-mullion`, bayX0, bayX1, 18.4, 1.8, loadRailDepth, loadRailZ, mats.night);
+  housedRail(groups.lattice, `nightstand upper receiver rail ${side}, housed stile-to-mullion (headboard structure, not nightstand body)`, bayX0, bayX1, 27.1, 1.8, loadRailDepth, loadRailZ, mats.receiver);
+  housedRail(groups.lattice, `nightstand lower receiver rail ${side}, housed stile-to-mullion (headboard structure, not nightstand body)`, bayX0, bayX1, 18.4, 1.8, loadRailDepth, loadRailZ, mats.receiver);
   line3(groups.lattice, `nightstand ash diagonal ${side}`, [[bayX0, 18.4, -7.4], [bayX1, 27.1, -7.4]], 0x8a5a24, 0.9);
   const sideName = side < 0 ? 'L' : 'R';
   const leftReceiver = side < 0 ? 'HB-ST-L' : 'HB-MUL-R';
@@ -1655,27 +1668,34 @@ renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 app.appendChild(renderer.domElement);
 
+const labelRenderer = new CSS2DRenderer();
+labelRenderer.setSize(innerWidth, innerHeight);
+labelRenderer.domElement.style.position = 'fixed';
+labelRenderer.domElement.style.top = '0';
+labelRenderer.domElement.style.pointerEvents = 'none';
+document.getElementById('labels').appendChild(labelRenderer.domElement);
+
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x0e1218);
 
 const camera = new THREE.PerspectiveCamera(43, innerWidth / innerHeight, 0.5, 3000);
-camera.position.set(92, 50, 150);
+camera.position.set(94, 40, 120);
 
 const controls = new OrbitControls(camera, renderer.domElement);
 installBFViewerControls({ THREE, controls });
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;
-controls.target.set(0, 20, 93);
-controls.minDistance = 12;
+controls.target.set(0, 13, 88);
+controls.minDistance = 14;
 controls.maxDistance = 520;
 
 scene.add(new THREE.HemisphereLight(0xcfe1f2, 0x2a2620, 1.05));
 const key = new THREE.DirectionalLight(0xfff4e2, 1.55);
-key.position.set(70, 120, 150); key.castShadow = true;
+key.position.set(70, 120, 130); key.castShadow = true;
 key.shadow.mapSize.set(2048, 2048);
 scene.add(key);
-const fill = new THREE.DirectionalLight(0x9fc0e6, 0.55); fill.position.set(-90, 60, 120); scene.add(fill);
-const rim = new THREE.DirectionalLight(0xffffff, 0.30); rim.position.set(0, 30, 40); scene.add(rim);
+const fill = new THREE.DirectionalLight(0x9fc0e6, 0.55); fill.position.set(-90, 60, 40); scene.add(fill);
+const rim = new THREE.DirectionalLight(0xffffff, 0.30); rim.position.set(0, 30, 180); scene.add(rim);
 
 const ground = new THREE.Mesh(new THREE.PlaneGeometry(700, 700), new THREE.MeshStandardMaterial({ color: 0x141a22, roughness: 1 }));
 ground.rotation.x = -Math.PI / 2; ground.position.y = -0.05; ground.receiveShadow = true; scene.add(ground);
@@ -1684,59 +1704,93 @@ const grid = new THREE.GridHelper(300, 24, 0x1e2731, 0x161d27); grid.material.tr
 // ---- shared geometry (identical to Full-Bed) ----
 const mats = makeMaterials();
 const { box, cyl, line3 } = makeEngine();
-const wood = ['footWood', 'baseWood', 'baseStructure', 'shell', 'skin', 'shellGhost'];
+const wood = ['footWood', 'baseWood', 'baseStructure', 'shellGhost', 'skin', 'night', 'collector', 'receiver'];
 const woodBaseOpacity = {};
 wood.forEach(k => { if (mats[k]) woodBaseOpacity[k] = mats[k].opacity; });
 
-const groups = { footboard: new THREE.Group(), liftSystem: new THREE.Group() };
+const groups = { bedBase: new THREE.Group(), slats: new THREE.Group(), wiring: new THREE.Group(), footboard: new THREE.Group(), liftSystem: new THREE.Group() };
 const liftStage1 = new THREE.Group(); groups.liftSystem.add(liftStage1);
 const liftCarriage = new THREE.Group(); groups.liftSystem.add(liftCarriage);
+const drawerGroups = [];
 const noop = () => ({ element: { dataset: {} } });
 
+buildBedBase({ box, cyl, line3, mats, groups, label: noop, pieceLabel: noop, drawerGroups });
 buildFootboardAndLift({ box, cyl, mats, groups, label: noop, pieceLabel: noop, liftStage1, liftCarriage });
 
-const cabinetGroup = new THREE.Group();
-cabinetGroup.add(groups.footboard, groups.liftSystem);
-scene.add(cabinetGroup);
+const baseGroup = new THREE.Group(); baseGroup.add(groups.bedBase, groups.slats, groups.wiring);
+const cabinetGroup = new THREE.Group(); cabinetGroup.add(groups.footboard, groups.liftSystem);
+scene.add(baseGroup, cabinetGroup);
 
-// solid (opaque) by default; Ghost toggles see-through so the lift reads through the cabinet
+const dock = buildDockHardware({ cabGroup: cabinetGroup, baseGroup });
+const boltMat = dock.boltMat;
+groups.wiring.visible = false;   // cable wires off by default (toggle with "Wires")
+
+// solid (opaque) by default so the model is clearly visible; Ghost toggles see-through
 function setGhost(on) {
   wood.forEach(k => { const m = mats[k]; if (!m) return; m.opacity = on ? woodBaseOpacity[k] : 1; m.transparent = on; m.depthWrite = !on; m.needsUpdate = true; });
   const b = document.getElementById('bGhost'); if (b) b.classList.toggle('on', on);
 }
 setGhost(false);
 
-// ---- lift travel: carriage rises full travel, the middle telescoping stage half ----
+// ---- TV lift travel: carriage rises full travel, the middle telescoping stage half ----
 const TRAVEL = SPEC.tv.raisedBottom - SPEC.tv.retractBottom;   // ~35 in
 function setLift(t) {
   liftCarriage.position.y = TRAVEL * t;
   liftStage1.position.y = TRAVEL * 0.5 * t;
 }
+setLift(0);
+
+// ---- cabinet-to-base bolt-on seam labels (CSS2D) ----
+const SEAM = 85;
+const dockLabels = [];
+function addLabel(html, x, y, z, cls, parent) {
+  const el = document.createElement('div'); el.className = 'lbl ' + (cls || ''); el.innerHTML = html;
+  const o = new CSS2DObject(el); o.position.set(x, y, z); (parent || baseGroup).add(o); dockLabels.push(o); return o;
+}
+addLabel('<b>bed bolts &#215;4</b> &#183; two rows = couple', -33, 14.5, SEAM - 4.6, '');
+addLabel('<b>3/4&#8243; wire pass-through</b> + grommet', 0, 3, SEAM - 4, '');
+addLabel('<b>BED BASE</b>', 0, 19, 52, '');
+addLabel('<b>TV CABINET</b>', 0, 37, SEAM + 8, '', cabinetGroup);
+dockLabels.forEach(o => o.visible = false);   // labels off by default (toggle with "Labels")
 
 // ---- state + UI ----
-const state = { lift: 0, target: 0, auto: false, dir: 1, ghost: false, spin: false };
-const liftInput = document.getElementById('lift'), liftval = document.getElementById('liftval');
+const state = { gap: 12, target: 12, auto: false, dir: -1, spin: false, ghost: false, labels: false, wires: false, flip: 0, flipTarget: 0, lift: 0, liftTarget: 0 };
+const gapInput = document.getElementById('gap'), seamval = document.getElementById('seamval');
 function setBtn(id, on) { const b = document.getElementById(id); if (b) b.classList.toggle('on', on); }
 function go(id, fn) { const b = document.getElementById(id); if (b) b.onclick = fn; }
 const raiseBtn = document.getElementById('bRaise');
 function syncRaiseBtn() {
   if (!raiseBtn) return;
-  const up = state.target > 0.5;
+  const up = state.liftTarget > 0.5;
   if (raiseBtn._up === up) return;
   raiseBtn._up = up;
   raiseBtn.innerHTML = up ? '&#9660; Lower TV' : '&#9650; Raise TV';
 }
-go('bRaise', () => { state.target = state.target > 0.5 ? 0 : 1; state.auto = false; setBtn('bAuto', false); });
+go('bRaise', () => { state.liftTarget = state.liftTarget > 0.5 ? 0 : 1; });
+const dockBtn = document.getElementById('bDock');
+function syncDockBtn() {            // single button toggles + relabels to the NEXT action
+  if (!dockBtn) return;
+  const docked = state.target < 0.3;          // seam is closed -> offer Open
+  if (dockBtn._docked === docked) return;
+  dockBtn._docked = docked;
+  dockBtn.innerHTML = docked ? '&#9664; Open' : '&#9654; Seat';
+}
+go('bDock', () => { state.target = state.target > 0.3 ? 0 : 22; state.auto = false; setBtn('bAuto', false); });
 go('bAuto', () => { state.auto = !state.auto; setBtn('bAuto', state.auto); });
 go('bGhost', () => { state.ghost = !state.ghost; setGhost(state.ghost); });
+go('bLabels', () => { state.labels = !state.labels; dockLabels.forEach(o => o.visible = state.labels); setBtn('bLabels', state.labels); });
+go('bWires', () => { state.wires = !state.wires; groups.wiring.visible = state.wires; setBtn('bWires', state.wires); });
 go('bSpin', () => { state.spin = !state.spin; setBtn('bSpin', state.spin); });
-if (liftInput) liftInput.oninput = () => { state.lift = state.target = parseFloat(liftInput.value); state.auto = false; setBtn('bAuto', false); };
+go('bFlip', () => { state.flipTarget = state.flipTarget > 0.1 ? 0 : Math.PI; const on = state.flipTarget > 0.1; setBtn('bFlip', on); if (on) { state.target = 22; state.auto = false; setBtn('bAuto', false); } });
+if (gapInput) gapInput.oninput = () => { state.gap = state.target = parseFloat(gapInput.value); state.auto = false; setBtn('bAuto', false); };
 
 const views = {
-  iso:   { p: [92, 50, 150],  t: [0, 20, 93] },
-  front: { p: [0, 34, 168],   t: [0, 22, 90] },
-  side:  { p: [150, 26, 93],  t: [0, 20, 93] },
-  cubby: { p: [44, 9, 150],   t: [0, 6, 92] },
+  iso:   { p: [94, 40, 120], t: [0, 13, 88] },
+  side:  { p: [130, 28, 88], t: [0, 13, 88] },
+  whole: { p: [120, 86, 210], t: [0, 16, 48] },
+  top:   { p: [2, 135, 92], t: [0, 8, 86] },
+  ac:    { p: [-60, 13, 64], t: [-33, 7, 84] },
+  spk:   { p: [60, 13, 64], t: [33, 7, 84] },
 };
 let camAnim = null;
 document.querySelectorAll('[data-cam]').forEach(b => { b.onclick = () => { const v = views[b.dataset.cam]; if (!v) return;
@@ -1745,12 +1799,21 @@ document.querySelectorAll('[data-cam]').forEach(b => { b.onclick = () => { const
 const clock = new THREE.Clock();
 function tick() {
   const dt = Math.min(clock.getDelta(), 0.05);
-  if (state.auto && Math.abs(state.lift - state.target) < 0.02) { state.dir *= -1; state.target = state.dir < 0 ? 0 : 1; }
-  state.lift += (state.target - state.lift) * Math.min(1, dt * 2.4);
+  if (state.auto && Math.abs(state.gap - state.target) < 0.2) { state.dir *= -1; state.target = state.dir < 0 ? 0 : 22; }
+  state.gap += (state.target - state.gap) * Math.min(1, dt * 4.0);
+  state.flip += (state.flipTarget - state.flip) * Math.min(1, dt * 3.5);
+  state.lift += (state.liftTarget - state.lift) * Math.min(1, dt * 2.4);
   setLift(state.lift);
-  if (liftInput && document.activeElement !== liftInput) liftInput.value = state.lift.toFixed(2);
-  if (liftval) liftval.textContent = Math.round(state.lift * 100) + '%';
   syncRaiseBtn();
+  const CZ = 93;                                   // cabinet centre Z — flip pivots here so it turns in place
+  cabinetGroup.rotation.y = state.flip;
+  cabinetGroup.position.x = -CZ * Math.sin(state.flip);
+  cabinetGroup.position.z = CZ * (1 - Math.cos(state.flip)) + state.gap;
+  if (gapInput && document.activeElement !== gapInput) gapInput.value = state.gap.toFixed(1);
+  if (seamval) seamval.textContent = state.gap.toFixed(1) + '″';
+  syncDockBtn();
+  const mated = state.gap < 0.6 ? 1 : 0;
+  boltMat.emissiveIntensity = mated * 0.85;        // bolts glow when seated
   controls.autoRotate = state.spin; controls.autoRotateSpeed = 0.8;
   if (camAnim) {
     camAnim.k = Math.min(1, camAnim.k + dt * 1.7);
@@ -1760,15 +1823,16 @@ function tick() {
   }
   controls.update();
   renderer.render(scene, camera);
+  labelRenderer.render(scene, camera);
   requestAnimationFrame(tick);
 }
 addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
-  renderer.setSize(innerWidth, innerHeight); });
+  renderer.setSize(innerWidth, innerHeight); labelRenderer.setSize(innerWidth, innerHeight); });
 tick();
 
-window.__BFS03 = { ready: true, sharedGeometry: true,
-  footMeshes: groups.footboard.children.length, travel: TRAVEL,
-  SPECfootboard: SPEC.footboard, SPETlift: SPEC.lift };
+window.__BFD09 = { ready: true, sharedGeometry: true, gap: () => state.gap,
+  baseMeshes: groups.bedBase.children.length, footMeshes: groups.footboard.children.length,
+  SPECfootboard: SPEC.footboard, seam: SEAM };
 </script>
 </body>
 </html>

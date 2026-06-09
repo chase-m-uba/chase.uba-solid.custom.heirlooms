@@ -493,7 +493,8 @@ function makeMaterials() {
     liftSteel: new THREE.MeshStandardMaterial({ color: 0x3f4754, roughness: 0.34, metalness: 0.72 }),
     brass: new THREE.MeshStandardMaterial({ color: 0xd8a33b, roughness: 0.24, metalness: 0.86 }),
     tenon: new THREE.MeshStandardMaterial({ color: 0x7dd3fc, roughness: 0.58, transparent: true, opacity: 0.82 }),
-    switchPlate: new THREE.MeshStandardMaterial({ color: 0x0f766e, roughness: 0.48, metalness: 0.22 }),
+    switchPlate: new THREE.MeshStandardMaterial({ color: 0x3b424e, roughness: 0.5, metalness: 0.25 }),
+    buttonBlack: new THREE.MeshStandardMaterial({ color: 0x0a0a0a, roughness: 0.42, metalness: 0.5 }),
     panelScrew: new THREE.MeshStandardMaterial({ color: 0xb45309, roughness: 0.34, metalness: 0.72 }),
     panelBatten: new THREE.MeshStandardMaterial({ color: 0xc9914b, roughness: 0.68, transparent: true, opacity: 0.66 }),
     access: new THREE.MeshStandardMaterial({ color: 0xfb923c, transparent: true, opacity: 0.22, depthWrite: false }),
@@ -667,8 +668,10 @@ function buildBedBase(ctx) {
   line3(groups.wiring, 'LV/HDMI/control: internal cubby loom (cabinet-resident gear)', [
     [31.5, 5.5, 90], [31.5, 5.5, 93], [10, 5.5, 93], [10, 4, 93]
   ], 0x38bdf8, 0.86);
-  line3(groups.wiring, '24V + Casambi: base hub -> centre bore -> up the rear cavity to the top-cap LED', [
-    [-2, 7, 6], [-2, 7, 2.5], [-2, 1, 2.5], [-2, 1, -5], [-2, 66, -5], [-2, 70, -5], [-2, 70, -4]
+  // 24V + Casambi feed: runs ALONG the base spine to the rear cable bore and into the headboard cavity.
+  // (Kept LOW and terminated at the pass-through bore — it must read as cabling, never as a vertical antenna.)
+  line3(groups.wiring, '24V + Casambi: base hub -> centre bore -> rear cable bore (continues up the headboard cavity)', [
+    [-2, 7, 6], [-2, 7, 2.5], [-2, 1, 2.5], [-2, 1, -1.8]
   ], 0x38bdf8, 0.8);
   label('74 x 85 grounded base; central spine and continuous side exoskeleton', 0, 19.5, 43, 'blue', 'base');
   label('base/headboard bolts align to x=-36,-4,+4,+36 at AFF 5 and 14.5', 0, 17.5, 2.8, 'steel', 'base');
@@ -1055,7 +1058,7 @@ function addMullionSwitchPanel({ sideName, x }) {
   });
   sp.buttonsAFF.forEach((y, i) => {
     cyl(group, `${id} FILN FLM12 12mm button hole ${i + 1}`, sp.buttonDia / 2, 0.7, x, y, -0.2, mats.void, 'z', { segments: 32, cast: false });
-    cyl(group, `${id} illuminated momentary button ${i + 1}`, sp.buttonDia / 2 * 0.82, 0.16, x, y, 0.14, i % 2 === 0 ? mats.ledWarm : mats.ledRed, 'z', { segments: 32, cast: false });
+    cyl(group, `${id} black momentary button ${i + 1}`, sp.buttonDia / 2 * 0.82, 0.16, x, y, 0.14, mats.buttonBlack, 'z', { segments: 32, cast: false });
   });
   label(`${id}\n4x FILN FLM12\n0.5 in rear wire chase`, x + (sideName === 'L' ? -2.4 : 2.4), sp.centerY, 0.8, 'blue piece', 'controls');
   label(`${id} rear wire exit\nstraight 0.5 in bore`, x + (sideName === 'L' ? -2.4 : 2.4), sp.centerY, -9.15, 'blue piece', 'controls');
@@ -1471,8 +1474,8 @@ SPEC.courseSeamsAFF.forEach(seamAFF => {
   const cx = side * SPEC.nightstand.centerX;
   const bayX0 = side < 0 ? -63 : 38;
   const bayX1 = side < 0 ? -38 : 63;
-  housedRail(groups.lattice, `nightstand upper receiver rail ${side}, housed stile-to-mullion`, bayX0, bayX1, 27.1, 1.8, loadRailDepth, loadRailZ, mats.night);
-  housedRail(groups.lattice, `nightstand lower receiver rail ${side}, housed stile-to-mullion`, bayX0, bayX1, 18.4, 1.8, loadRailDepth, loadRailZ, mats.night);
+  housedRail(groups.lattice, `nightstand upper receiver rail ${side}, housed stile-to-mullion (headboard structure, not nightstand body)`, bayX0, bayX1, 27.1, 1.8, loadRailDepth, loadRailZ, mats.receiver);
+  housedRail(groups.lattice, `nightstand lower receiver rail ${side}, housed stile-to-mullion (headboard structure, not nightstand body)`, bayX0, bayX1, 18.4, 1.8, loadRailDepth, loadRailZ, mats.receiver);
   line3(groups.lattice, `nightstand ash diagonal ${side}`, [[bayX0, 18.4, -7.4], [bayX1, 27.1, -7.4]], 0x8a5a24, 0.9);
   const sideName = side < 0 ? 'L' : 'R';
   const leftReceiver = side < 0 ? 'HB-ST-L' : 'HB-MUL-R';

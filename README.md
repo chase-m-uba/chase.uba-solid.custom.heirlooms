@@ -1,10 +1,8 @@
-# Solid Ash Heirloom Bed — Builder Viewer
+# Solid Ash Heirloom Bed — Viewer
 
 **Live viewer:** https://chase-m-uba.github.io/custom.heirloom.bedframe.viewer/
 
-This is the public builder package for the Solid Ash Heirloom Bed — the interactive 3D models and the
-current drawing sheets only. It is a generated mirror of the project's released deliverables, not the
-working design files.
+This viewer contains the current review package: the interactive 3D models and the PDF drawing sheets.
 
 ## How to view
 
@@ -27,13 +25,13 @@ browser, on desktop or mobile — orbit, zoom, pan, and toggle layers. Nothing t
 
 ## What's here
 
-- **Interactive 3D models** (repo root) — full bed, headboard, drawer base, footboard / TV-lift
-  cabinet, nightstands, the top-cap joint detail, and the cabinet-to-base seam.
-- **Drawing sheets** (`blueprints/`) — the side / plan / front general arrangement, the per-unit
-  LOD-400 shop sets (headboard, drawer base, nightstands, TV cabinet), and the top-cap LED detail.
+- **Interactive 3D models** (repo root) — the full bed, the headboard, the TV cabinet + bed base dock,
+  the nightstands, and the top-cap joint detail.
+- **Drawing sheets** (`blueprints/`) — the side / top / foot views, the per-unit drawing sets
+  (headboard, base, nightstands, TV cabinet), and the top-cap LED detail.
 
 **Mouse:** left-drag rotate · wheel zoom · right-drag pan · hold Space/Shift + left-drag to pan ·
 press **P** for Pan Mode.
 
 Units are in inches. This viewer is regenerated from the current deliverables, so it always reflects
-the latest released models and drawings.
+the latest models and drawings.
