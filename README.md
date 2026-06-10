@@ -1,4 +1,4 @@
-# Solid Ash Heirloom Bed — Viewer
+# Heirloom Bed — Viewer
 
 **Live viewer:** https://chase-m-uba.github.io/custom.heirloom.bedframe.viewer/
 
@@ -19,13 +19,13 @@ browser, on desktop or mobile — orbit, zoom, pan, and toggle layers. Nothing t
 
 **Local fallback — download and open:**
 
-1. Use the green **Code** button on GitHub → **Download ZIP** (or clone the repo).
+1. Use the green **Code** button on GitHub, then **Download ZIP** (or clone the repo).
 2. Unzip, then double-click **`index.html`** — or any **`*_3D.html`** model — to open it in your
    browser. The models are self-contained and also work offline.
 
 ## What's here
 
-- **Interactive 3D models** (repo root) — the full bed, the headboard, the TV cabinet + bed base dock,
+- **Interactive 3D models** (repo root) — the full bed, the headboard, the TV cabinet + bed base,
   and the top-cap joint detail.
 - **Drawing sheets** (`blueprints/`) — the side / top / foot views, the per-unit drawing sets
   (headboard, base, TV cabinet), and the top-cap LED detail.
