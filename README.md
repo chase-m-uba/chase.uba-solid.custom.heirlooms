@@ -26,9 +26,9 @@ browser, on desktop or mobile — orbit, zoom, pan, and toggle layers. Nothing t
 ## What's here
 
 - **Interactive 3D models** (repo root) — the full bed, the headboard, the TV cabinet + bed base dock,
-  the nightstands, and the top-cap joint detail.
+  and the top-cap joint detail.
 - **Drawing sheets** (`blueprints/`) — the side / top / foot views, the per-unit drawing sets
-  (headboard, base, nightstands, TV cabinet), and the top-cap LED detail.
+  (headboard, base, TV cabinet), and the top-cap LED detail.
 
 **Mouse:** left-drag rotate · wheel zoom · right-drag pan · hold Space/Shift + left-drag to pan ·
 press **P** for Pan Mode.
