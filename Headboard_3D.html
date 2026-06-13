@@ -435,6 +435,7 @@ const SPEC = Object.freeze({
   skinTh: 0.875,
   courseSeamsAFF: [20, 40, 60],      // front skins are horizontal COURSES <=20 in tall (board-width / warp limit, builder 2026-06-06); seams at AFF 20/40/60 -> course heights 18/20/20/10; speaker in the 40-60 course (D-060/D-008, owner 2026-06-07)
   loadReceiverRailDepth: 7,
+  skinRetainer: { width: 1.5, thickness: 1.0, datumPerSkin: 1, movementAllowance: 0.125, skinBoltSpacing: 9, frameBoltSpacing: 11 },  // HB-RET 4-sided beefy retainer (D-092); RTF-IB to frame + SKR-IB skin-to-retainer; [TBD-CONFIRM Lee]
   mullionW: 4,
   seamX: 36,
   uDrop: 4,
@@ -987,53 +988,59 @@ function addSmallScrew({ id, groupKey, labelSection, type = 'KS', joint, pieceId
   fastenerLabel(id, type, x + 0.45, y + 0.25, z, labelSection);
 }
 
-function addPanelClamp({ id, panelId, x, y, fixed = false }) {
-  const groupKey = 'panelKeeperFasteners';
-  const labelSection = 'fastenerPanel';
-  const group = groups[groupKey];
-  const z = -1.46;
-  registerFastener({
-    id,
-    type: 'PF-CB',
-    groupKey,
-    labelSection,
-    joint: `${panelId} hidden rear clamp ${fixed ? 'fixed datum' : 'slotted seasonal point'}`,
-    pieceIds: [panelId, 'hidden retainer batten', 'threaded panel insert'],
-    position: { x, y, z },
-    notes: fixed
-      ? 'Fixed datum point: round retainer hole locates this panel.'
-      : 'Slotted retainer hole: clamps panel while allowing seasonal wood movement.'
-  });
-  box(group, `${id} retainer batten washer strip`, fixed ? 0.74 : 1.18, 0.32, 0.28, x, y, -1.28, mats.panelBatten, { edgeColor: 0x7c2d10, edgeOpacity: 0.42, cast: false });
-  box(group, `${id} ${fixed ? 'round datum hole clearance' : 'slotted retainer hole clearance'}`, fixed ? 0.34 : 0.92, 0.18, 0.34, x, y, -1.08, mats.access, { edgeColor: fixed ? 0xfacc15 : 0xfb923c, edgeOpacity: 0.75, cast: false });
-  cyl(group, `${id} rear machine screw shaft`, 0.06, 0.9, x, y, z, mats.darkSteel, 'z', { segments: 18 });
-  cyl(group, `${id} rear washer`, 0.18, 0.08, x, y, -1.88, mats.steel, 'z', { segments: 24 });
-  cyl(group, `${id} threaded insert in panel back`, 0.13, 0.28, x, y, -0.96, mats.brass, 'z', { segments: 24 });
-  addClampLine(group, id, [x, y, -1.9], [x, y, -1.02], fixed ? 0xfacc15 : 0xf59e0b);
-  fastenerLabel(id, 'PF-CB', x + 0.45, y + 0.35, -1.65, labelSection);
+function addSkinRetainerStrip({ id, orientation, a, b, at }) {
+  // Continuous beefy ash skin retainer (HB-RET): 1.5 in face width x 1.0 in thick, seated just behind the skin.
+  const Rr = SPEC.skinRetainer;
+  const zc = -SPEC.panelTh - Rr.thickness / 2;
+  const len = Math.abs(b - a), mid = (a + b) / 2;
+  if (orientation === 'V') box(groups.skins, `${id} skin retainer`, Rr.width, len, Rr.thickness, at, mid, zc, mats.panelBatten, { edgeColor: 0x7c2d10, edgeOpacity: 0.52, cast: false });
+  else                     box(groups.skins, `${id} skin retainer`, len, Rr.width, Rr.thickness, mid, at, zc, mats.panelBatten, { edgeColor: 0x7c2d10, edgeOpacity: 0.52, cast: false });
 }
 
-function addRetainerBattenFrameAnchor({ id, panelId, x, y, target }) {
+function addRetainerToFrameBolt({ id, x, y, axis = 'x', target }) {
   const groupKey = 'panelKeeperFasteners';
   const labelSection = 'fastenerPanel';
   const group = groups[groupKey];
-  const z = -1.78;
+  const zc = -SPEC.panelTh - SPEC.skinRetainer.thickness / 2;
   registerFastener({
     id,
-    type: 'RB-MF',
+    type: 'RTF-IB',
     groupKey,
     labelSection,
-    joint: `${panelId} retainer batten anchored to ${target}`,
-    pieceIds: [panelId, 'hidden retainer batten', target],
-    position: { x, y, z },
-    notes: 'Completes load path from panel insert to batten to structural frame.'
+    joint: `HB-RET skin retainer fixed to ${target}`,
+    pieceIds: ['HB-RET skin retainer', target, 'threaded insert in frame'],
+    position: { x, y, z: zc },
+    notes: 'Retainer-to-frame: threaded insert + machine bolt fixing the continuous ash retainer to the stile / mullion / cross-rail / cap.'
   });
-  box(group, `${id} retainer batten bearing pad`, 0.58, 0.28, 0.18, x, y, -1.48, mats.panelBatten, { edgeColor: 0x7c2d10, edgeOpacity: 0.5, cast: false });
-  cyl(group, `${id} batten-to-frame machine screw`, 0.055, 0.86, x, y, z, mats.darkSteel, 'z', { segments: 18 });
-  cyl(group, `${id} rear washer`, 0.16, 0.08, x, y, -2.22, mats.steel, 'z', { segments: 22 });
-  cyl(group, `${id} threaded frame insert`, 0.12, 0.28, x, y, -1.2, mats.brass, 'z', { segments: 22 });
-  addClampLine(group, id, [x, y, -2.18], [x, y, -1.2], 0x94a3b8);
-  fastenerLabel(id, 'RB-MF', x + 0.55, y - 0.42, -2.05, labelSection);
+  cyl(group, `${id} retainer-to-frame bolt`, 0.06, 1.0, x, y, zc, mats.darkSteel, axis, { segments: 18 });
+  cyl(group, `${id} threaded frame insert`, 0.12, 0.3, x, y, zc, mats.brass, axis, { segments: 22 });
+  fastenerLabel(id, 'RTF-IB', x + (axis === 'x' ? 0.2 : 0.4), y + (axis === 'y' ? 0.2 : 0.3), zc - 0.5, labelSection);
+}
+
+function addSkinToRetainerBolt({ id, panelId, x, y, fixed = false }) {
+  const groupKey = 'panelKeeperFasteners';
+  const labelSection = 'fastenerPanel';
+  const group = groups[groupKey];
+  const zRear = -SPEC.panelTh - SPEC.skinRetainer.thickness;   // back of the retainer
+  const zc = -SPEC.panelTh - SPEC.skinRetainer.thickness / 2;
+  registerFastener({
+    id,
+    type: 'SKR-IB',
+    groupKey,
+    labelSection,
+    joint: `${panelId} skin drawn to HB-RET retainer ${fixed ? 'fixed datum' : 'clearance/slip point'}`,
+    pieceIds: [panelId, 'HB-RET skin retainer', 'threaded insert in skin back'],
+    position: { x, y, z: zRear },
+    notes: fixed
+      ? 'Fixed datum: round hole locates this skin.'
+      : 'Clearance/slot point: holds the skin flat while allowing seasonal cross-grain (vertical) movement.'
+  });
+  box(group, `${id} ${fixed ? 'round datum hole' : 'vertical slip slot'}`, 0.34, fixed ? 0.34 : 0.92, 0.34, x, y, zc, mats.access, { edgeColor: fixed ? 0xfacc15 : 0xfb923c, edgeOpacity: 0.75, cast: false });
+  cyl(group, `${id} machine bolt`, 0.06, SPEC.skinRetainer.thickness + 0.5, x, y, zc, mats.darkSteel, 'z', { segments: 18 });
+  cyl(group, `${id} rear washer`, 0.18, 0.08, x, y, zRear - 0.06, mats.steel, 'z', { segments: 24 });
+  cyl(group, `${id} threaded insert in skin back`, 0.13, 0.4, x, y, -SPEC.panelTh + 0.18, mats.brass, 'z', { segments: 24 });
+  addClampLine(group, id, [x, y, zRear - 0.05], [x, y, -SPEC.panelTh + 0.25], fixed ? 0xfacc15 : 0xf59e0b);
+  fastenerLabel(id, 'SKR-IB', x + 0.45, y + 0.35, zc + 0.2, labelSection);
 }
 
 function addMullionSwitchPanel({ sideName, x }) {
@@ -1108,7 +1115,7 @@ const panelRows = [
   { key: 'C3', y0: 40, y1: 60, name: 'course-3 (speaker)', bottomRail: 'HB-SR40', topRail: 'HB-SR60' },
   { key: 'C4', y0: 60, y1: 70, name: 'course-4',           bottomRail: 'HB-SR60', topRail: 'HB-TC-01' }
 ];
-// Distribute hidden clamp / anchor points along an edge: ~`gap` spacing, `margin` end insets, >=2 points (1 if the edge is too short for the margins). Height-aware so the <=20 in (and 10 in) courses don't get crossed clamp rows.
+// Distribute bolt points along an edge: ~`gap` spacing, `margin` end insets, >=2 points (1 if the edge is too short for the margins). Height-aware so the <=20 in (and 10 in) courses don't get crossed bolt rows.
 const distrib = (a, b, margin, gap) => {
   const lo = a + margin, hi = b - margin;
   if (hi <= lo + 0.5) return [(a + b) / 2];
@@ -1129,47 +1136,25 @@ panelRows.forEach(row => {
     frontPanels.push({ id, col: col.key, row: row.key, x0: col.x0, x1: col.x1, y0: row.y0, y1: row.y1, width, height, cx, cy, isSpeakerPanel });
     box(groups.skins, `${id} ${col.name} ${row.name} flush removable panel 0.875 in`, width, height, SPEC.panelTh, cx, cy, -SPEC.panelTh / 2, mats.skin, { edgeOpacity: 0.28 });
 
-    // Shallow locating shoulders/rabbets; these locate the panel, while hidden clamps provide removable holding force.
+    // Shallow locating shoulders/rabbets locate the skin; the SKR-IB bolts to the HB-RET retainer provide the removable holding force.
     box(groups.skins, `${id} top locating shoulder`, width, 0.16, 0.18, cx, row.y1, -1.04, mats.void, { edgeColor: 0x38bdf8, edgeOpacity: 0.16, cast: false });
     box(groups.skins, `${id} bottom locating shoulder`, width, 0.16, 0.18, cx, row.y0, -1.04, mats.void, { edgeColor: 0x38bdf8, edgeOpacity: 0.16, cast: false });
     box(groups.skins, `${id} left locating shoulder`, 0.16, height, 0.18, col.x0, cy, -1.04, mats.void, { edgeColor: 0x38bdf8, edgeOpacity: 0.16, cast: false });
     box(groups.skins, `${id} right locating shoulder`, 0.16, height, 0.18, col.x1, cy, -1.04, mats.void, { edgeColor: 0x38bdf8, edgeOpacity: 0.16, cast: false });
     box(groups.skins, `${id} seated gravity ledge / shoulder`, Math.max(4, width - 1.2), 0.24, 0.42, cx, row.y0 + 0.18, -0.86, mats.panelBatten, { edgeColor: 0x7c2d10, edgeOpacity: 0.42, cast: false });
 
-    // Hidden retainer battens are visible only from the open rear/service side.
-    box(groups.skins, `${id} hidden top retainer batten`, Math.max(4, width - 2), 0.46, 0.36, cx, row.y1 - 0.62, -1.22, mats.panelBatten, { edgeColor: 0x7c2d10, edgeOpacity: 0.38, cast: false });
-    box(groups.skins, `${id} hidden bottom retainer batten`, Math.max(4, width - 2), 0.46, 0.36, cx, row.y0 + 0.62, -1.22, mats.panelBatten, { edgeColor: 0x7c2d10, edgeOpacity: 0.38, cast: false });
-    box(groups.skins, `${id} hidden left retainer batten`, 0.46, Math.max(4, height - 2), 0.36, col.x0 + 0.62, cy, -1.22, mats.panelBatten, { edgeColor: 0x7c2d10, edgeOpacity: 0.38, cast: false });
-    box(groups.skins, `${id} hidden right retainer batten`, 0.46, Math.max(4, height - 2), 0.36, col.x1 - 0.62, cy, -1.22, mats.panelBatten, { edgeColor: 0x7c2d10, edgeOpacity: 0.38, cast: false });
-
-    const topBottomXs = distrib(col.x0, col.x1, 5, 10);   // clamps along the top/bottom edges (width-driven: ~3 across a 25 in bay, ~7 across the 68 in center)
-    const sideYs = distrib(row.y0, row.y1, 4, 7);          // clamps along the side edges (course-height-driven, <=20 in)
-    const fixedX = cx;
-    const fixedY = row.y0 + 1.15;
-    addPanelClamp({ id: `F-PF-${id}-DATUM`, panelId: id, x: fixedX, y: fixedY, fixed: true });
+    // Skin -> retainer bolts (SKR-IB): ONE datum + clearance/slip points around the 4 edges, drawing the skin to
+    // the continuous HB-RET retainers built once per frame line below. Datum near the seated bottom edge.
+    const topBottomXs = distrib(col.x0, col.x1, 5, SPEC.skinRetainer.skinBoltSpacing);
+    const sideYs = distrib(row.y0, row.y1, 4, SPEC.skinRetainer.skinBoltSpacing);
+    addSkinToRetainerBolt({ id: `F-SKR-${id}-DATUM`, panelId: id, x: cx, y: row.y0 + 1.15, fixed: true });
     topBottomXs.forEach((x, i) => {
-      addPanelClamp({ id: `F-PF-${id}-TOP-${i + 1}`, panelId: id, x, y: row.y1 - 1.15 });
-      addPanelClamp({ id: `F-PF-${id}-BOT-${i + 1}`, panelId: id, x, y: row.y0 + 1.15 });
+      addSkinToRetainerBolt({ id: `F-SKR-${id}-TOP-${i + 1}`, panelId: id, x, y: row.y1 - 1.15 });
+      if (Math.abs(x - cx) > 1.5) addSkinToRetainerBolt({ id: `F-SKR-${id}-BOT-${i + 1}`, panelId: id, x, y: row.y0 + 1.15 });
     });
     sideYs.forEach((y, i) => {
-      addPanelClamp({ id: `F-PF-${id}-L-${i + 1}`, panelId: id, x: col.x0 + 1.15, y });
-      addPanelClamp({ id: `F-PF-${id}-R-${i + 1}`, panelId: id, x: col.x1 - 1.15, y });
-    });
-
-    // Each course's retainer battens anchor to the cross-rail above/below it (HB-SR20/40/60) or the caps; sides to the stiles/mullions.
-    const topTarget = row.topRail.startsWith('HB-SR') ? `${row.topRail}-${col.key}` : row.topRail;
-    const bottomTarget = row.bottomRail.startsWith('HB-SR') ? `${row.bottomRail}-${col.key}` : row.bottomRail;
-    const leftTarget = col.key === 'L' ? 'HB-ST-L' : col.key === 'C' ? 'HB-MUL-L' : 'HB-MUL-R';
-    const rightTarget = col.key === 'L' ? 'HB-MUL-L' : col.key === 'C' ? 'HB-MUL-R' : 'HB-ST-R';
-    const rbTopBottomXs = distrib(col.x0, col.x1, 8, 26);
-    const rbSideYs = distrib(row.y0, row.y1, 5, 14);
-    rbTopBottomXs.forEach((x, i) => {
-      addRetainerBattenFrameAnchor({ id: `F-RB-${id}-TOP-${i + 1}`, panelId: id, x, y: row.y1 - 0.62, target: topTarget });
-      addRetainerBattenFrameAnchor({ id: `F-RB-${id}-BOT-${i + 1}`, panelId: id, x, y: row.y0 + 0.62, target: bottomTarget });
-    });
-    rbSideYs.forEach((y, i) => {
-      addRetainerBattenFrameAnchor({ id: `F-RB-${id}-L-${i + 1}`, panelId: id, x: col.x0 + 0.62, y, target: leftTarget });
-      addRetainerBattenFrameAnchor({ id: `F-RB-${id}-R-${i + 1}`, panelId: id, x: col.x1 - 0.62, y, target: rightTarget });
+      addSkinToRetainerBolt({ id: `F-SKR-${id}-L-${i + 1}`, panelId: id, x: col.x0 + 1.15, y });
+      addSkinToRetainerBolt({ id: `F-SKR-${id}-R-${i + 1}`, panelId: id, x: col.x1 - 1.15, y });
     });
   });
 });
@@ -1179,6 +1164,25 @@ SPEC.courseSeamsAFF.forEach(seam => {
     line3(groups.skins, `visible horizontal course seam at AFF ${seam} ${bay} bay`, [[bx0, seam, 0.08], [bx1, seam, 0.08]], 0x111827, 0.9);
   });
 });
+
+// Continuous beefy ash skin retainers (HB-RET), built ONCE per frame line: verticals just behind each skin's
+// side edge (full field height), horizontals along the caps + cross-rails per bay. Each is fixed by RTF-IB;
+// the per-skin SKR-IB bolts above draw the skins to them. ONE part type, TWO fastener methods (D-092).
+const RET = SPEC.skinRetainer;
+const retBays = [['L', -63, -38], ['C', -34, 34], ['R', 38, 63]];
+retBays.forEach(([bay, bx0, bx1]) => {
+  const leftTarget = bay === 'L' ? 'HB-ST-L' : bay === 'C' ? 'HB-MUL-L' : 'HB-MUL-R';
+  const rightTarget = bay === 'L' ? 'HB-MUL-L' : bay === 'C' ? 'HB-MUL-R' : 'HB-ST-R';
+  [[bx0 + 1.5, leftTarget, 'L'], [bx1 - 1.5, rightTarget, 'R']].forEach(([rx, tgt, side]) => {
+    addSkinRetainerStrip({ id: `HB-RET-V-${bay}${side}`, orientation: 'V', a: 2, b: 70, at: rx });
+    distrib(2, 70, 3, RET.frameBoltSpacing).forEach((y, i) => addRetainerToFrameBolt({ id: `F-RTF-V-${bay}${side}-${i + 1}`, x: rx, y, axis: 'x', target: tgt }));
+  });
+});
+const retHLines = [[2, 'HB-BC-01'], [20, 'HB-SR20'], [40, 'HB-SR40'], [60, 'HB-SR60'], [70, 'HB-TC-01']];
+retHLines.forEach(([hy, htgt]) => retBays.forEach(([bay, bx0, bx1]) => {
+  addSkinRetainerStrip({ id: `HB-RET-H-${hy}-${bay}`, orientation: 'H', a: bx0 + 2, b: bx1 - 2, at: hy });
+  distrib(bx0 + 2, bx1 - 2, 6, RET.frameBoltSpacing).forEach((x, i) => addRetainerToFrameBolt({ id: `F-RTF-H-${hy}-${bay}-${i + 1}`, x, y: hy, axis: 'y', target: htgt }));
+}));
 
 // Full-depth visible mullions: ONE piece each, with the W-relief (THREE 1.5in lands) NOTCHED into the top (lands continuous with the body).
 [-SPEC.seamX, SPEC.seamX].forEach(x => {
