@@ -505,6 +505,7 @@ function makeMaterials() {
     buttonBlack: new THREE.MeshStandardMaterial({ color: 0x0a0a0a, roughness: 0.42, metalness: 0.5 }),
     panelScrew: new THREE.MeshStandardMaterial({ color: 0xb45309, roughness: 0.34, metalness: 0.72 }),
     panelBatten: new THREE.MeshStandardMaterial({ color: 0xc9914b, roughness: 0.68, transparent: true, opacity: 0.66 }),
+    retainerWood: new THREE.MeshStandardMaterial({ color: 0xc77d28, roughness: 0.6, metalness: 0.03 }),  // HB-RET beefy skin retainer — SOLID + distinct so it reads as a substantial member (not the translucent skin)
     access: new THREE.MeshStandardMaterial({ color: 0xfb923c, transparent: true, opacity: 0.22, depthWrite: false }),
     ledWarm: new THREE.MeshStandardMaterial({ color: 0xffd166, emissive: 0xff8a1c, emissiveIntensity: 0.56, roughness: 0.36 }),
     ledRed: new THREE.MeshStandardMaterial({ color: 0xff4c5c, emissive: 0x7f0d17, emissiveIntensity: 0.62, roughness: 0.36 }),
@@ -990,11 +991,13 @@ function addSmallScrew({ id, groupKey, labelSection, type = 'KS', joint, pieceId
 
 function addSkinRetainerStrip({ id, orientation, a, b, at }) {
   // Continuous beefy ash skin retainer (HB-RET): 1.5 in face width x 1.0 in thick, seated just behind the skin.
+  // SOLID + in the retainer group (groups.panelKeeperFasteners) so it reads as a substantial member and toggles
+  // with "Front-skin retainers" alongside its RTF-IB/SKR-IB bolts (not buried/translucent in the skins layer).
   const Rr = SPEC.skinRetainer;
   const zc = -SPEC.panelTh - Rr.thickness / 2;
   const len = Math.abs(b - a), mid = (a + b) / 2;
-  if (orientation === 'V') box(groups.skins, `${id} skin retainer`, Rr.width, len, Rr.thickness, at, mid, zc, mats.panelBatten, { edgeColor: 0x7c2d10, edgeOpacity: 0.52, cast: false });
-  else                     box(groups.skins, `${id} skin retainer`, len, Rr.width, Rr.thickness, mid, at, zc, mats.panelBatten, { edgeColor: 0x7c2d10, edgeOpacity: 0.52, cast: false });
+  if (orientation === 'V') box(groups.panelKeeperFasteners, `${id} skin retainer`, Rr.width, len, Rr.thickness, at, mid, zc, mats.retainerWood, { edgeColor: 0x5b3a12 });
+  else                     box(groups.panelKeeperFasteners, `${id} skin retainer`, len, Rr.width, Rr.thickness, mid, at, zc, mats.retainerWood, { edgeColor: 0x5b3a12 });
 }
 
 function addRetainerToFrameBolt({ id, x, y, axis = 'x', target }) {
