@@ -24,6 +24,7 @@
     background: rgba(30,58,90,.34); border-radius: 10px; color: #d4e3f4; font-size: 12.5px; line-height: 1.5;
   }
   .note a { color: #7cc4ff; font-weight: 700; word-break: break-all; }
+  .note.private { border-color: rgba(245,158,11,.4); background: rgba(120,75,10,.28); color: #fde9c8; }
   a.viewer {
     display: flex; align-items: center; gap: 16px; text-decoration: none; color: inherit;
     border: 1px solid rgba(148,163,184,.3); border-radius: 11px; padding: 16px 18px;
@@ -36,6 +37,8 @@
   }
   .badge.blue { background: linear-gradient(135deg,#bfe0ff,#60a5fa); }
   .badge.pdf { background: linear-gradient(135deg,#f7a8a8,#e25555); color: #1a0e0e; }
+  .badge.ref { background: linear-gradient(135deg,#a7f3d0,#34d399); }
+  .badge.own { background: linear-gradient(135deg,#fde9c8,#f5b048); }
   .section { margin: 22px 0 6px; font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #7c8ba0; }
   a.viewer.pdf { padding: 13px 18px; }
   a.viewer.pdf:hover { border-color: #f87171; background: rgba(127,29,29,.30); }
@@ -56,6 +59,19 @@
       If you are browsing these files on GitHub's <b>code</b> view instead, the 3D models will not run
       there — that view only shows the file source. Open the link above (GitHub Pages), or download the
       repo and double-click <b>index.html</b>.</p>
+
+    <div class="section">Reference</div>
+
+    <a class="viewer" href="./Measurements.html" target="_blank" rel="noopener">
+      <span class="badge ref">MEAS</span>
+      <span>
+        <div class="vtitle">Measurements</div>
+        <div class="vdesc">Quick-reference list of key dimensions, clearances, and AFF heights — generated from the project fact graph.</div>
+      </span>
+      <span class="chev">&#8599;</span>
+    </a>
+
+    <div class="section">Interactive 3D models</div>
 
     <a class="viewer" href="./Full-Bed_3D.html">
       <span class="badge ">BED</span>
