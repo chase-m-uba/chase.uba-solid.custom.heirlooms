@@ -468,7 +468,7 @@ const SPEC = Object.freeze({
     bottom: 43.995,                    // acoustic center held at 49.625 AFF (drivers now at ear height); cutH 11.26
     top: 55.255
   },
-  nightstand: { W: 26, D: 20, H: 11, bottom: 17, top: 28, centerX: 51, drwFaceH: 7.5, lipH: 1.4 },
+  nightstand: { W: 26, D: 20, H: 11, bottom: 17, top: 28, centerX: 51, drwFaceH: 7.5, lipH: 1.0 },  // lipH 1.4 -> 1.0 (AL-TRK-SM-M channel is only 0.276 in tall; D-013)
   switchPanel: {
     W: 1.5,
     H: 6.0,
@@ -479,7 +479,7 @@ const SPEC = Object.freeze({
     wireChaseDia: 0.5
   },
   base: { W: 74, L: 85, top: 17, bayW: 67, bayL: 81, shoulder: 3.5, toeH: 2.0, toeInset: 1.5, caseBottom: 2.0 },
-  drawer: { perSide: 3, intH: 10.75, intW: 19, intD: 33, recess: 1.5, faceThickness: 1.0, faceH: 12.0, faceGap: 0.25 },  // recess = BACK/closure-plane recess from the +-37 outer plane (D-012/D-013); 1.0 face -> visible front 0.5 in behind; a 1.5 in lip carrier hosts the Smart-In16 drawer-lip COB (0.768 in wood above the 0.732 in channel)
+  drawer: { perSide: 3, intH: 10.75, intW: 19, intD: 33, faceRecess: 0.638, frontWall: 0.5, revealGap: 0.375, channelRout: 0.276, channelH: 0.276, lipCarrierH: 1.0, faceThickness: 1.0, faceH: 12.0, faceGap: 0.25 },  // D-093/D-012/D-013: face FRONT recessed 0.638 in (centered under the AL-TRK-SM-M channel); 0.5 in front wall to the channel front edge; 7 mm routed groove; 1.0 in lip carrier (0.724 in wood above the 0.276 in channel); 3/8 in reveal; Dawna Option A bottom-edge pull
   footboard: { W: 74, H: 41, D: 16, sideTh: 2.0, faceTh: 1.0, deckTh: 1.0, rearTh: 0.75, dock: { boltCenterX: 33, boltRowsAFF: [5, 14.5], wireHoleDia: 0.75, wireHoleCenterAFF: 3 } },
   lift: { travel: 36, retractBody: 31, raised: 68.5, baseW: 28.375, basePlateW: 9.875, basePlateD: 5.125, bodyD: 7.0, deckTopY: 8.0 },
   tv: { W: 48.0, H: 27.8, D: 1.5, retractBottom: 11.95, raisedBottom: 47.0 },
@@ -522,6 +522,7 @@ function makeMaterials() {
     access: new THREE.MeshStandardMaterial({ color: 0xfb923c, transparent: true, opacity: 0.22, depthWrite: false }),
     ledWarm: new THREE.MeshStandardMaterial({ color: 0xffd166, emissive: 0xff8a1c, emissiveIntensity: 0.56, roughness: 0.36 }),
     ledRed: new THREE.MeshStandardMaterial({ color: 0xff4c5c, emissive: 0x7f0d17, emissiveIntensity: 0.62, roughness: 0.36 }),
+    ledChannel: new THREE.MeshStandardMaterial({ color: 0xb8c0c8, roughness: 0.3, metalness: 0.72 }),  // AL-TRK-SM-M aluminum micro-channel — OPAQUE (no transparent flag) so it reads as solid hardware in ghost mode like the fasteners; cannot white-out (the ghost-white bug only hits transparent materials missing from GHOST/SOLID maps).
     tvGlass: new THREE.MeshStandardMaterial({ color: 0x020617, roughness: 0.18, metalness: 0.12, transparent: true, opacity: 0.68 }),
     soundbar: new THREE.MeshStandardMaterial({ color: 0x050505, roughness: 0.52, metalness: 0.25, transparent: true, opacity: 0.82 }),
     cableAC: new THREE.MeshStandardMaterial({ color: 0xf97316, roughness: 0.42, metalness: 0.02 }),
@@ -629,7 +630,7 @@ function buildBedBase(ctx) {
   const drawerSpan = (B.L - 5 - 3) / 3;
   const drawerDepth = 32.6;
   [-1, 1].forEach(side => {
-    const faceX = side * (B.W / 2 - DWR.recess + DWR.faceThickness / 2); // recessed: back plane +-35.5, front +-36.5, centre +-36 (D-012); was ~flush
+    const faceX = side * (B.W / 2 - DWR.faceRecess - DWR.faceThickness / 2); // face FRONT recessed DWR.faceRecess (0.638) behind the +-37 outer plane, centered under the channel (D-093); centre +-35.862
     const boxXc = side * (B.W / 2 - 0.9 - drawerDepth / 2);
     const wallXc = side * (B.W / 2 - 0.9 - (drawerDepth + 1) / 2);
     [0, 1, 2].forEach(w => box(group, `BF-BASE drawer divider wall ${side < 0 ? 'L' : 'R'} ${w}`, drawerDepth + 1, DWR.intH + 1.6, 1.0, wallXc, 8.7, 5 + w * drawerSpan, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false }));
@@ -651,28 +652,28 @@ function buildBedBase(ctx) {
       box(dg, `BF-BASE drawer ${sName} ${i + 1} side wall A`, dW, dH, tw, boxXc, dyc, bz - dL / 2 + tw / 2, mats.baseWood, { edgeColor: 0x8a6a32, edgeOpacity: 0.42, cast: false });
       box(dg, `BF-BASE drawer ${sName} ${i + 1} side wall B`, dW, dH, tw, boxXc, dyc, bz + dL / 2 - tw / 2, mats.baseWood, { edgeColor: 0x8a6a32, edgeOpacity: 0.42, cast: false });
       const bbev = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.12, drawerSpan - 1.0), mats.baseWood);
-      bbev.position.set(faceX + side * 0.4, 14.35, z); bbev.rotation.z = -side * Math.PI / 4; bbev.castShadow = false;
-      bbev.name = `BF-BASE drawer ${sName} ${i + 1} beveled top-edge pull (handle-less sharknose)`;
+      bbev.position.set(faceX + side * 0.4, 2.95, z); bbev.rotation.z = side * Math.PI / 4; bbev.castShadow = false;
+      bbev.name = `BF-BASE drawer ${sName} ${i + 1} beveled bottom-edge pull (Dawna Option A; face overlays the bottom, gripped from below)`;
       dg.add(bbev);
       [z - drawerSpan / 2 + 0.6, z + drawerSpan / 2 - 0.6 - gap].forEach((sz, s) => box(dg, `BF-BASE full-extension slide (drawer) ${sAbbr} ${i + 1}-${s}`, drawerDepth - 1, 0.34, 0.2, boxXc, 11.6, sz, mats.darkSteel, { edgeOpacity: 0.22, cast: false }));
     }
   });
 
-  // ---- Drawer-lip Smart-In16 down-wash (D-013 / D-034): a FIXED 1.5 in lip/overhang carrier rail per side;
-  //      the Smart-In16 channel (28 x 18.6 mm = 1.102 x 0.732 in) is routed into its UNDERSIDE (mouth DOWN)
-  //      and washes the 0.5 in-recessed drawer faces. It is fixed to the base border, NOT the moving drawer
-  //      faces (so the COB needs no flexing wire). 0.768 in of wood remains above the routed channel. ----
-  const lipXc = B.W / 2 - 0.75;                  // channel centre 0.75 in inboard of the +-37 outer plane
+  // ---- Drawer-lip LED down-wash (D-013 / D-034 / D-093): a FIXED 1.0 in lip/overhang carrier rail per side;
+  //      a 7 mm routed channel in its UNDERSIDE (mouth DOWN) washes the recessed drawer faces. Fixed to the
+  //      base border, NOT the moving drawer faces (so the COB needs no flexing wire). 0.724 in of wood remains
+  //      above the routed channel; the channel FRONT edge sits 0.5 in in (front wall). ----
+  const lipXc = B.W / 2 - 0.638;                 // channel centreline 0.638 in inboard of the +-37 outer plane (front wall 0.5 + half the 7 mm groove)
   const lipZ0 = 2.8, lipZ1 = 82.2, lipLen = lipZ1 - lipZ0, lipZc = (lipZ0 + lipZ1) / 2;
-  const lipYbot = 14.8, lipCarrierH = 1.5, smW = 1.102, smH = 0.732;
+  const lipYbot = 14.8, lipCarrierH = 1.0, smW = 0.276, smH = 0.276;
   [-1, 1].forEach(side => {
     const xc = side * lipXc, sAb = side < 0 ? 'L' : 'R';
-    box(group, `BF-BASE drawer-lip LED carrier rail ${sAb} (1.5 in tall; 0.768 in wood above the routed channel)`, 1.5, lipCarrierH, lipLen, xc, lipYbot + lipCarrierH / 2, lipZc, mats.baseWood, { edgeColor: 0x604618, edgeOpacity: 0.5, cast: false });
-    box(groups.wiring, `BF-BASE drawer-lip Smart-In16 channel ${sAb} (28 x 18.6 mm; mouth DOWN; fixed to base)`, smW, smH, lipLen, xc, lipYbot + smH / 2, lipZc, mats.liftSteel, { edgeColor: 0x9aa5b1, edgeOpacity: 0.4, cast: false });
-    box(groups.wiring, `BF-BASE drawer-lip COB strip ${sAb} (10 mm, 3000K, emits DOWN over the 0.5 in-recessed faces)`, 0.4, 0.12, lipLen, xc, lipYbot + 0.07, lipZc, mats.ledWarm, { edgeColor: 0xffd9a0, edgeOpacity: 0.5, cast: false });
-    [lipZ0 + lipLen * 0.2, lipZc, lipZ1 - lipLen * 0.2].forEach(zz => line3(groups.wiring, `drawer-lip down-wash light ${sAb}`, [[xc, lipYbot - 0.1, zz], [side * 36.5, 7.5, zz]], 0xffd166, 0.5));
+    box(group, `BF-BASE drawer-lip LED carrier rail ${sAb} (1.0 in tall; 0.724 in wood above the 7 mm routed channel)`, 1.5, lipCarrierH, lipLen, xc, lipYbot + lipCarrierH / 2, lipZc, mats.baseWood, { edgeColor: 0x604618, edgeOpacity: 0.5, cast: false });
+    box(groups.wiring, `BF-BASE drawer-lip LED channel ${sAb} (7 mm routed groove; mouth DOWN; fixed to base)`, smW, smH, lipLen, xc, lipYbot + smH / 2, lipZc, mats.ledChannel, { edgeColor: 0x9aa5b1, edgeOpacity: 0.4, cast: false });
+    box(groups.wiring, `BF-BASE drawer-lip COB strip ${sAb} (3000K, emits DOWN over the recessed faces)`, 0.16, 0.1, lipLen, xc, lipYbot + 0.06, lipZc, mats.ledWarm, { edgeColor: 0xffd9a0, edgeOpacity: 0.5, cast: false });
+    [lipZ0 + lipLen * 0.2, lipZc, lipZ1 - lipLen * 0.2].forEach(zz => line3(groups.wiring, `drawer-lip down-wash light ${sAb}`, [[xc, lipYbot - 0.1, zz], [side * 36.36, 7.5, zz]], 0xffd166, 0.5));
   });
-  label('drawer-lip Smart-In16 wash: FIXED 1.5 in lip carrier; 1.102 in channel centred in the 1.5 in recess; light DOWN over the 0.5 in-recessed drawer faces (D-013/D-034)', 0, 16.6, 43, 'gold', 'base');
+  label('drawer-lip LED wash: FIXED 1.0 in lip carrier; 7 mm channel, front edge 0.5 in in; light DOWN over the faces recessed 0.638 in (centered under the channel); 3/8 in reveal (D-013/D-034/D-093)', 0, 16.6, 43, 'gold', 'base');
 
   [-36, -4, 4, 36].forEach(x => [5, 14.5].forEach(y => addBaseSideBoltHead(x, y)));
   label('all bed cabling runs the CENTRE chase (side bays are full of drawers)', 0, 14.8, B.L - 9, 'blue', 'base');
@@ -847,7 +848,7 @@ function buildNightstands(ctx) {
     box(groups.detailedNightstands, `NS-${sideName} inner side panel`, 0.75, N.H, N.D, cx - side * (N.W / 2 - 0.38), (N.top + N.bottom) / 2, zMid, mats.night);
     box(groups.detailedNightstands, `NS-${sideName} back panel bolt plane`, N.W - 1.5, N.H - 1.5, 0.55, cx, (N.top + N.bottom) / 2, z0 + 0.28, mats.night);
     box(groups.detailedNightstands, `NS-${sideName} drawer box full-extension ghost`, N.W - 4.0, 7.0, N.D - 3.2, cx, 21.7, zMid + 0.5, mats.ghost, { edgeColor: 0xd9f99d, edgeOpacity: 0.42, cast: false });
-    box(groups.detailedNightstands, `NS-${sideName} recessed drawer face`, N.W - 2.0, N.drwFaceH, 0.55, cx, 21.6, z0 + N.D - 1.05, mats.night, { edgeColor: 0x425830, edgeOpacity: 0.54 });
+    box(groups.detailedNightstands, `NS-${sideName} recessed drawer face`, N.W - 2.0, N.drwFaceH, 0.55, cx, 21.6, z0 + N.D - 0.9125, mats.night, { edgeColor: 0x425830, edgeOpacity: 0.54 });  // face FRONT recessed 0.638 in, centered under the channel (D-093)
     // handle-less sharknose pull: flat face + 45 deg beveled BOTTOM edge (nightstand drawer pulls from the bottom bevel)
     const nbev = new THREE.Mesh(new THREE.BoxGeometry(N.W - 4.0, 0.12, 0.6), mats.night);
     nbev.position.set(cx, 18.0, z0 + N.D - 0.85); nbev.rotation.x = Math.PI / 4; nbev.castShadow = false;
