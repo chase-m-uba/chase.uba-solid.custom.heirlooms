@@ -2,7 +2,7 @@
 <!--
   TopCap-Joint - Mullion / Top-Cap U-Joint Detail (V1 builder review).
   Close-up of ONE headboard mullion top meeting the 130x2x8 top cap: the one-piece W-relief (THREE 1.5in
-  lands), the two Vario30-07 LED channels (35mm cuts) + 1551AS heatsinks running CONTINUOUSLY through the
+  lands), the two LED LED channels (35mm cuts) + extruded heatsinks running CONTINUOUSLY through the
   two gaps, and the three vertical insert draw-bolts (one per land). Units: inches; X width, Y height AFF, Z front(0) -> rear(-8).
   Canonical companion to Blueprints/Full-Bed_3D.html and Rationale Register sec5.
 -->
@@ -56,9 +56,9 @@
 <aside class="legend">
   <h2>Legend</h2>
   <div class="row"><span class="sw" style="background:#c79a5b"></span><div><b>Ash</b> &mdash; one-piece mullion + top cap (channels routed in; no end blocks)</div></div>
-  <div class="row"><span class="sw" style="background:#ffd9a0"></span><div>Warm 3000K Vario30-07 channel (front)</div></div>
-  <div class="row"><span class="sw" style="background:#ff5a5a"></span><div>Red 660 nm Vario30-07 channel (rear)</div></div>
-  <div class="row"><span class="sw" style="background:#c9d2dc"></span><div>Aluminium channel + 1551AS heatsink</div></div>
+  <div class="row"><span class="sw" style="background:#ffd9a0"></span><div>Warm-white LED channel (front)</div></div>
+  <div class="row"><span class="sw" style="background:#ff5a5a"></span><div>Deep-red LED channel (rear)</div></div>
+  <div class="row"><span class="sw" style="background:#c9d2dc"></span><div>Aluminium channel + extruded heatsink</div></div>
   <div class="row"><span class="sw" style="background:#c9a55a"></span><div>Vertical insert draw-bolt + steel bearing washer (3 per mullion)</div></div>
   <div class="row"><span class="sw" style="background:#33424f"></span><div>Center land &mdash; bears the middle of the cap</div></div>
   <div class="row"><span class="sw" style="background:#0e2236;border-color:#22d3ee"></span><div>Routed void / clearance / side service bore</div></div>
@@ -487,7 +487,7 @@ function dim(name, a, b, color = 0x6f8bb5) {
 box(groups.wood, 'HB-TC-01 top cap one-piece (130x2x8; 46 in section shown)', SPEC.capSection, SPEC.capH, SPEC.D,
   0, (SPEC.capTopY + SPEC.capBotY) / 2, BACK / 2, mats.ashCap, { edgeColor: 0x6a4d22, edgeOpacity: 0.5 });
 // two routed LED through-slots in the cap underside (front warm, rear red) -- the cap is notched, LED emits UP
-[['front warm 3000K', -2.375], ['rear red 660nm', -5.625]].forEach(([k, cz]) =>
+[['front warm warm-white', -2.375], ['rear red deep-red', -5.625]].forEach(([k, cz]) =>
   box(groups.wood, `HB-TC-01 routed LED through-slot (${k}; 35 mm cut, full 2 in through)`, SPEC.capSection, SPEC.capH + 0.04, SPEC.Vch.cut, 0, SPEC.capTopY - 1, cz, mats.void,
     { edgeColor: 0x38bdf8, edgeOpacity: 0.5, cast: false }));
 
@@ -513,8 +513,8 @@ box(groups.wood, 'HB-TC-01 top cap one-piece (130x2x8; 46 in section shown)', SP
 box(groups.wood, 'open rear service cavity (heatsink air volume)', SPEC.capSection, 14, 0.1, 0, 64, BACK - 0.2, mats.void, { edgeColor: 0x22d3ee, edgeOpacity: 0.3, cast: false });
 
 // =========================================================================================
-// 3) CONTINUOUS LED + 1551AS HEATSINK RUN -- passes straight THROUGH the two mullion gaps
-//    Vario30-07 channels run in X across the cap; at the mullion they cross the open throat.
+// 3) CONTINUOUS LED + extruded heatsink HEATSINK RUN -- passes straight THROUGH the two mullion gaps
+//    LED channels run in X across the cap; at the mullion they cross the open throat.
 // =========================================================================================
 const chMouth = SPEC.Vch.mouth, chH = SPEC.Vch.H, chFlange = SPEC.Vch.W, chCut = SPEC.Vch.cut, runLen = SPEC.capSection - 2;
 // two channels CENTERED in the two 1.75 in gaps between the 3 lands (warm front gap, red rear gap)
@@ -523,16 +523,16 @@ const chans = [{ key: 'warm', z: -2.375, strip: mats.warm, cls: 'warm' },
 chans.forEach(c => {
   const chTop = 71.9, chBot = chTop - chH, chMid = (chTop + chBot) / 2;
   // body back (33.4 mm) -- the heatsink bond face; drops INTO the 35 mm cut
-  box(groups.led, `Vario30-07 ${c.key} channel back (33.4 mm body)`, runLen, 0.09, chMouth, 0, chBot + 0.05, c.z, mats.alum, { cast: false });
+  box(groups.led, `LED ${c.key} channel back (33.4 mm body)`, runLen, 0.09, chMouth, 0, chBot + 0.05, c.z, mats.alum, { cast: false });
   // two side walls within the 35 mm cut
-  [-1, 1].forEach(sd => box(groups.led, `Vario30-07 ${c.key} channel wall ${sd < 0 ? 'a' : 'b'}`, runLen, chH, 0.09, 0, chMid, c.z + sd * (chCut / 2 - 0.05), mats.alum, { cast: false }));
+  [-1, 1].forEach(sd => box(groups.led, `LED ${c.key} channel wall ${sd < 0 ? 'a' : 'b'}`, runLen, chH, 0.09, 0, chMid, c.z + sd * (chCut / 2 - 0.05), mats.alum, { cast: false }));
   // 44.4 mm flange RESTS ON the cap top (overhangs the 35 mm cut each side)
-  [-1, 1].forEach(sd => box(groups.led, `Vario30-07 ${c.key} wing/flange ${sd < 0 ? 'a' : 'b'} (44.4 mm flange rests ON cap top)`, runLen, 0.08, (chFlange - chMouth) / 2, 0, 71.99, c.z + sd * (chMouth / 2 + (chFlange - chMouth) / 4), mats.alum, { cast: false }));
+  [-1, 1].forEach(sd => box(groups.led, `LED ${c.key} wing/flange ${sd < 0 ? 'a' : 'b'} (44.4 mm flange rests ON cap top)`, runLen, 0.08, (chFlange - chMouth) / 2, 0, 71.99, c.z + sd * (chMouth / 2 + (chFlange - chMouth) / 4), mats.alum, { cast: false }));
   // two LED strips side-by-side in the seat (emit up)
   [-1, 1].forEach(sd => box(groups.led, `${c.key} LED strip ${sd < 0 ? 'a' : 'b'}`, runLen, 0.05, SPEC.Vch.seat / 2.3, 0, chTop - 0.2, c.z + sd * SPEC.Vch.seat / 4.2, c.strip, { edges: false, cast: false }));
-  // 1551AS heatsink bonded UNDER the back; fins drop through the cut into the open relief/cavity
-  box(groups.led, `1551AS ${c.key} heatsink base (bonded to channel back)`, runLen, 0.22, chMouth + 0.04, 0, chBot - 0.18, c.z, mats.heatsink, { cast: false });
-  [-0.55, -0.27, 0, 0.27, 0.55].forEach((dz, i) => box(groups.led, `1551AS ${c.key} fin ${i} (into open rear cavity)`, runLen, 1.4, 0.06, 0, chBot - 1.0, c.z + dz, mats.heatsink, { edges: false, cast: false }));
+  // extruded heatsink bonded UNDER the back; fins drop through the cut into the open relief/cavity
+  box(groups.led, `extruded heatsink ${c.key} heatsink base (bonded to channel back)`, runLen, 0.22, chMouth + 0.04, 0, chBot - 0.18, c.z, mats.heatsink, { cast: false });
+  [-0.55, -0.27, 0, 0.27, 0.55].forEach((dz, i) => box(groups.led, `extruded heatsink ${c.key} fin ${i} (into open rear cavity)`, runLen, 1.4, 0.06, 0, chBot - 1.0, c.z + dz, mats.heatsink, { edges: false, cast: false }));
 });
 // the two continuous-run clearances passing through the mullion GAPS (proof the LED never breaks at the mullion)
 [-2.375, -5.625].forEach((gz, i) => box(groups.led, `continuous LED + heatsink run THROUGH the mullion gap ${i + 1}`, runLen, 3.0, SPEC.uGap, 0, SPEC.throatTopY - 2, gz, mats.void, { edgeColor: 0x22d3ee, edgeOpacity: 0.4, cast: false }));
@@ -570,9 +570,9 @@ label('HB-TC-01 top cap 130 x 2 x 8', -SPEC.capSection / 2 + 6, 72.9, BACK / 2, 
 label('one-piece 4 x 8 mullion (extruded W-profile, 3 lands - no stacked seams)', 2.6, 60, -1, '');
 label('W-relief NOTCHED from one board: 1.5 land / 1.75 gap / 1.5 land / 1.75 gap / 1.5 land, 4.0 drop', xL + 1.6, 71.4, -4, 'dim');
 label('WHY: two LED runs pass through the two gaps -> top light never breaks; the new center land carries the middle of the cap', -2, 73.8, -4.0, 'warm');
-label('Vario30-07 front channel = WARM 3000K (35 mm cut, centered in the gap)', -SPEC.capSection / 2 + 7, 70.2, -2.375, 'warm');
-label('Vario30-07 rear channel = RED 660nm (35 mm cut, centered in the gap)', SPEC.capSection / 2 - 9, 70.2, -5.625, 'red');
-label('1551AS heatsink fins -> open rear cavity (passive air volume)', 3, 64.4, BACK + 0.4, 'metal');
+label('front LED channel = warm-white (35 mm cut, centered in the gap)', -SPEC.capSection / 2 + 7, 70.2, -2.375, 'warm');
+label('rear LED channel = deep-red (35 mm cut, centered in the gap)', SPEC.capSection / 2 - 9, 70.2, -5.625, 'red');
+label('extruded heatsink fins -> open rear cavity (passive air volume)', 3, 64.4, BACK + 0.4, 'metal');
 label('Vertical insert draw-bolt (1 per land, 3 per mullion): stud into a cap insert; clamp bears on a STEEL washer, not raw ash', -2, 68.7, -0.75, 'metal');
 label('drive / access from below in the open rear cavity -- hidden at the headboard height', SPEC.uFrontLand - 0.2, 67.4, -0.75, 'metal');
 label('center land 1.5 -> bears the middle of the cap + takes the center draw-bolt (3-land triple bearing)', 0, 70.6, -4.0, '');
@@ -632,9 +632,9 @@ addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; cam
     onePieceMullion: cnt(/one-piece mullion .*extruded W-profile/) === 1,
     wProfileThreeLands: has(/W-profile/) && has(/3 lands/),
     centerLand: has(/center land/i),                                   // the dim 'center land 1.5'
-    twoLedChannels: cnt(/Vario30-07 .*channel back/) === 2,
+    twoLedChannels: cnt(/LED .*channel back/) === 2,
     warmAndRed: (has(/warm channel/) && has(/red channel/)),
-    heatsinkFins: cnt(/1551AS .*fin/) >= 8,
+    heatsinkFins: cnt(/extruded heatsink .*fin/) >= 8,
     flangeOnCapTop: cnt(/flange rests ON cap top/i) >= 2,
     continuousRunThroughGaps: cnt(/continuous LED \+ heatsink run THROUGH the mullion gap/) === 2,
     threeCapDrawBolts: cnt(/F-VB cap draw-bolt stud/) === 3,
