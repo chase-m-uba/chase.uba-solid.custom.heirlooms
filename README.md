@@ -2,8 +2,8 @@
 
 **Live viewer:** https://chase-m-uba.github.io/custom.heirloom.bedframe.viewer/
 
-This viewer contains the current review package: the interactive 3D models, the PDF drawing sheets, and the
-measurements quick-reference.
+This viewer contains the current review package: the interactive 3D models, the isometric sheets, the PDF
+drawing sheets, and the measurements quick-reference.
 
 ## How to view
 
@@ -11,8 +11,9 @@ measurements quick-reference.
 
 https://chase-m-uba.github.io/custom.heirloom.bedframe.viewer/
 
-The landing page links every interactive model, every PDF sheet, and the measurements reference. The models
-run in any modern browser, on desktop or mobile — orbit, zoom, pan, and toggle layers. Nothing to install.
+The landing page links every interactive model, every isometric sheet, every PDF sheet, and the measurements
+reference. The models run in any modern browser, on desktop or mobile — orbit, zoom, pan, and toggle layers.
+Nothing to install.
 
 > **Note:** opening an `*_3D.html` file from GitHub's *code* view (the file list on github.com) only
 > shows its source — it will **not** run the 3D model. Use the live viewer link above, or the local
@@ -29,6 +30,9 @@ run in any modern browser, on desktop or mobile — orbit, zoom, pan, and toggle
 - **Measurements** (`Measurements.html`) — quick-reference list of key dimensions and clearances.
 - **Interactive 3D models** (repo root) — the full bed, the headboard, the TV cabinet + bed base,
   and the top-cap joint detail.
+- **Isometric sheets** (`blueprints/isometric/`) — seven explanatory isometric views: the full bed,
+  the exploded assembly, and detail sheets for the headboard rear, the bed base, the TV cabinet, the
+  top cap, and the nightstand receivers. Each opens as an in-browser viewer.
 - **Drawing sheets** (`blueprints/`) — the side / top / foot views, the per-unit drawing sets
   (headboard, base, TV cabinet), and the top-cap LED detail.
 
