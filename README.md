@@ -30,9 +30,10 @@ Nothing to install.
 - **Measurements** (`Measurements.html`) — quick-reference list of key dimensions and clearances.
 - **Interactive 3D models** (repo root) — the full bed, the headboard, the TV cabinet + bed base,
   and the top-cap joint detail.
-- **Isometric sheets** (`blueprints/isometric/`) — seven explanatory isometric views: the full bed,
-  the exploded assembly, and detail sheets for the headboard rear, the bed base, the TV cabinet, the
-  top cap, and the nightstand receivers. Each opens as an in-browser viewer.
+- **Isometric sheets** (`blueprints/isometric/`) — 7 overview views (the full bed,
+  the exploded assembly, and reference sheets for the headboard rear, the bed base, the TV cabinet, the
+  top cap, and the nightstand receivers) plus a growing detail atlas of 1 zoomed
+  close-up sheet. Each opens as an in-browser viewer.
 - **Drawing sheets** (`blueprints/`) — the side / top / foot views, the per-unit drawing sets
   (headboard, base, TV cabinet), and the top-cap LED detail.
 
