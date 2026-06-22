@@ -34,8 +34,8 @@ Nothing to install.
   document, in order, with an index. The recommended starting point.
 - **Isometric sheets** (`blueprints/isometric/`) — 7 overview views (the full bed,
   the exploded assembly, and reference sheets for the headboard rear, the bed base, the TV cabinet, the
-  top cap, and the nightstand receivers) plus a growing detail atlas of 1 zoomed
-  close-up sheet. Each also opens individually as an in-browser viewer.
+  top cap, and the nightstand receivers) plus a growing detail atlas of 2 zoomed
+  close-up sheets. Each also opens individually as an in-browser viewer.
 - **Drawing sheets** (`blueprints/`) — the side / top / foot views, the per-unit drawing sets
   (headboard, base, TV cabinet), and the top-cap LED detail.
 
