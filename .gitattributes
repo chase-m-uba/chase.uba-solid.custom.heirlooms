@@ -1,0 +1,19 @@
+# Line-ending + binary policy for the published viewer. The landing page + README are
+# generated LF-canonical by tools/sync-viewer.js in the main repo; force LF on checkout so
+# the mirror never drifts to CRLF. Binary deliverables (PDFs, PNGs) stay binary.
+* text=auto
+
+*.js text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.html text eol=lf
+*.svg text eol=lf
+*.css text eol=lf
+*.txt text eol=lf
+
+*.pdf binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
