@@ -32,10 +32,10 @@ Nothing to install.
   and the top-cap joint detail.
 - **Isometric atlas** (`blueprints/isometric/Heirloom-Bed_Isometric-Atlas.html`) — every isometric sheet in one
   document, in order, with an index. The recommended starting point.
-- **Isometric sheets** (`blueprints/isometric/`) — 7 overview views (the full bed,
-  the exploded assembly, and reference sheets for the headboard rear, the bed base, the TV cabinet, the
-  top cap, and the nightstand receivers) plus a growing detail atlas of 2 zoomed
-  close-up sheets. Each also opens individually as an in-browser viewer.
+- **Isometric sheets** (`blueprints/isometric/`) — 6 overview views (the full bed,
+  the exploded assembly, and reference sheets for the headboard rear, the bed base, the TV cabinet, and the
+  top cap) plus 2 drawer-lip close-up sheets — each a zoom into
+  the complete bed. Each also opens individually as an in-browser viewer.
 - **Drawing sheets** (`blueprints/`) — the side / top / foot views, the per-unit drawing sets
   (headboard, base, TV cabinet), and the top-cap LED detail.
 
