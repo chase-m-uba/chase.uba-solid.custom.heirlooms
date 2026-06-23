@@ -2,8 +2,8 @@
 
 **Live viewer:** https://chase-m-uba.github.io/custom.heirloom.bedframe.viewer/
 
-This viewer contains the current review package: the interactive 3D models, the isometric sheets, the PDF
-drawing sheets, and the measurements quick-reference.
+This viewer contains the current review package: the interactive 3D models, the rendered blueprint plates,
+and the measurements quick-reference.
 
 ## How to view
 
@@ -11,7 +11,7 @@ drawing sheets, and the measurements quick-reference.
 
 https://chase-m-uba.github.io/custom.heirloom.bedframe.viewer/
 
-The landing page links every interactive model, every isometric sheet, every PDF sheet, and the measurements
+The landing page links every interactive model, every rendered blueprint plate, and the measurements
 reference. The models run in any modern browser, on desktop or mobile — orbit, zoom, pan, and toggle layers.
 Nothing to install.
 
@@ -30,17 +30,11 @@ Nothing to install.
 - **Measurements** (`Measurements.html`) — quick-reference list of key dimensions and clearances.
 - **Interactive 3D models** (repo root) — the full bed, the headboard, the TV cabinet + bed base,
   and the top-cap joint detail.
-- **Isometric atlas** (`blueprints/isometric/Heirloom-Bed_Isometric-Atlas.html`) — every isometric sheet in one
-  document, in order, with an index. The recommended starting point.
-- **Isometric sheets** (`blueprints/isometric/`) — 6 overview views (the full bed,
-  the exploded assembly, and reference sheets for the headboard rear, the bed base, the TV cabinet, and the
-  top cap) plus 2 drawer-lip close-up sheets — each a zoom into
-  the complete bed. Each also opens individually as an in-browser viewer.
-- **Drawing sheets** (`blueprints/`) — the side / top / foot views, the per-unit drawing sets
-  (headboard, base, TV cabinet), and the top-cap LED detail.
+- **Rendered blueprint plates** (`blueprints/rendered/`) — 2 lifelike rendered plates, each a
+  photoreal render with a dimensioned vector overlay. Each opens in-browser; pan and zoom.
 
 **Mouse:** left-drag rotate · wheel zoom · right-drag pan · hold Space/Shift + left-drag to pan ·
 press **P** for Pan Mode.
 
 Units are in inches. This viewer is regenerated from the current deliverables, so it always reflects
-the latest models and drawings.
+the latest models and plates.
