@@ -1156,7 +1156,24 @@ panelRows.forEach(row => {
     const cy = (row.y0 + row.y1) / 2;
     const isSpeakerPanel = row.key === 'C3' && col.key !== 'C';
     frontPanels.push({ id, col: col.key, row: row.key, x0: col.x0, x1: col.x1, y0: row.y0, y1: row.y1, width, height, cx, cy, isSpeakerPanel });
-    box(groups.skins, `${id} ${col.name} ${row.name} flush removable panel 0.875 in`, width, height, SPEC.panelTh, cx, cy, -SPEC.panelTh / 2, mats.skin, { edgeOpacity: 0.28 });
+    const zSkin = -SPEC.panelTh / 2;
+    if (isSpeakerPanel) {
+      // The speaker skin is NOT a solid board: a window is cut for the in-wall speaker so the exposed black baffle
+      // reads against a dark recess instead of solid wood grain (the speaker cutout was never subtracted before, so a
+      // wood panel sat right at the front plane around/behind the drivers). The skin becomes a 4-piece wood frame
+      // (two jambs + head/sill rails) around the cutW x cutH opening, centred on the speaker. (D-080 cutout.)
+      const sCx = Math.sign(cx) * SPEC.speaker.centerX;
+      const cutX0 = sCx - SPEC.speaker.cutW / 2, cutX1 = sCx + SPEC.speaker.cutW / 2;
+      const cutY0 = SPEC.speaker.bottom, cutY1 = SPEC.speaker.top;
+      const jW0 = cutX0 - col.x0, jW1 = col.x1 - cutX1;      // inboard / outboard jamb widths
+      const rHB = cutY0 - row.y0, rHT = row.y1 - cutY1;       // sill / head rail heights
+      box(groups.skins, `${id} ${col.name} ${row.name} skin jamb A 0.875 in`, jW0, height, SPEC.panelTh, (col.x0 + cutX0) / 2, cy, zSkin, mats.skin, { edgeOpacity: 0.28 });
+      box(groups.skins, `${id} ${col.name} ${row.name} skin jamb B 0.875 in`, jW1, height, SPEC.panelTh, (cutX1 + col.x1) / 2, cy, zSkin, mats.skin, { edgeOpacity: 0.28 });
+      box(groups.skins, `${id} ${col.name} ${row.name} skin sill rail 0.875 in`, SPEC.speaker.cutW, rHB, SPEC.panelTh, sCx, (row.y0 + cutY0) / 2, zSkin, mats.skin, { edgeOpacity: 0.28 });
+      box(groups.skins, `${id} ${col.name} ${row.name} skin head rail 0.875 in`, SPEC.speaker.cutW, rHT, SPEC.panelTh, sCx, (cutY1 + row.y1) / 2, zSkin, mats.skin, { edgeOpacity: 0.28 });
+    } else {
+      box(groups.skins, `${id} ${col.name} ${row.name} flush removable panel 0.875 in`, width, height, SPEC.panelTh, cx, cy, zSkin, mats.skin, { edgeOpacity: 0.28 });
+    }
 
     // (front-skin retention hardware removed 2026-06-13 — bare skin pending rebuild)
   });
