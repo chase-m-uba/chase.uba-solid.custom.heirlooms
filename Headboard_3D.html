@@ -461,7 +461,7 @@ const SPEC = Object.freeze({
     bottom: 43.995,                    // acoustic center held at 49.625 AFF (drivers now at ear height); cutH 11.26
     top: 55.255
   },
-  nightstand: { W: 26, D: 20, H: 11, bottom: 17, top: 28, centerX: 51, drwFaceH: 7.5, lipH: 1.0 },  // lipH 1.4 -> 1.0 (aluminum micro-channel is only 0.276 in tall; D-013)
+  nightstand: { W: 26, D: 20, H: 11, bottom: 17, top: 28, centerX: 51, drwFaceH: 7.5, lipH: 1.0, skinFieldWidth: 25, backReveal: 0.125, mount: 'steel inserts in skin back' },  // lipH 1.4 -> 1.0 (aluminum micro-channel is only 0.276 in tall; D-013). Lee-call Phase 9: fits BETWEEN the two vertical face frames (outer stile + center mullion); back width = visible skin field width (25) - 1/8 (backReveal); mount = bolt through cabinet back into STEEL INSERTS in the skin back (D0-4; CN-SQ retired)
   switchPanel: {
     W: 1.5,
     H: 6.0,
@@ -871,7 +871,7 @@ function buildDockHardware(ctx) {
 //  Shared so the master (Full-Bed) and the standalone nightstand model (Nightstands) cannot drift.
 //  ctx: { box, cyl, mats, groups:{detailedNightstands}, label, pieceLabel }
 //  Builds BOTH nightstands (mirror pair, centerX = +-51). The headboard-side receiver rails,
-//  locator bays and captive-nut bolts are headboard structure (built in Full-Bed), not here.
+//  locator bays and steel-insert bolts (D0-4) are headboard structure (built in Full-Bed), not here.
 // ----------------------------------------------------------------------------
 function buildNightstands(ctx) {
   const { box, cyl, mats, groups, label, pieceLabel } = ctx;
@@ -885,7 +885,9 @@ function buildNightstands(ctx) {
     box(groups.detailedNightstands, `NS-${sideName} bottom panel`, N.W, 0.75, N.D, cx, N.bottom + 0.38, zMid, mats.night, { edgeColor: 0x425830, edgeOpacity: 0.44 });
     box(groups.detailedNightstands, `NS-${sideName} outer side panel`, 0.75, N.H, N.D, cx + side * (N.W / 2 - 0.38), (N.top + N.bottom) / 2, zMid, mats.night);
     box(groups.detailedNightstands, `NS-${sideName} inner side panel`, 0.75, N.H, N.D, cx - side * (N.W / 2 - 0.38), (N.top + N.bottom) / 2, zMid, mats.night);
-    box(groups.detailedNightstands, `NS-${sideName} back panel bolt plane`, N.W - 1.5, N.H - 1.5, 0.55, cx, (N.top + N.bottom) / 2, z0 + 0.28, mats.night);
+    // Lee-call Phase 9 (rpt 54/55): back width = visible skin field width - 1/8 (fits BETWEEN the outer stile + center mullion, not flush to the outer side); bolts through into steel inserts in the skin back (D0-4).
+    box(groups.detailedNightstands, `NS-${sideName} back panel bolt plane (width = skin field ${N.skinFieldWidth} - 1/8 = ${N.skinFieldWidth - N.backReveal}; bolts into steel inserts in the skin back, D0-4)`, N.skinFieldWidth - N.backReveal, N.H - 1.5, 0.55, cx, (N.top + N.bottom) / 2, z0 + 0.28, mats.night);
+    box(groups.detailedNightstands, `NS-${sideName} between-frame fit marker (fits BETWEEN the outer side stile + the center mullion; not flush to the outer side)`, N.skinFieldWidth - N.backReveal, 0.1, 0.1, cx, N.bottom + 0.3, z0 + 0.1, mats.void, { edgeColor: 0x22d3ee, edgeOpacity: 0.4, cast: false });
     box(groups.detailedNightstands, `NS-${sideName} drawer box full-extension ghost`, N.W - 4.0, 7.0, N.D - 3.2, cx, 21.7, zMid + 0.5, mats.ghost, { edgeColor: 0xd9f99d, edgeOpacity: 0.42, cast: false });
     box(groups.detailedNightstands, `NS-${sideName} recessed drawer face`, N.W - 2.0, N.drwFaceH, 0.55, cx, 21.6, z0 + N.D - 0.9125, mats.night, { edgeColor: 0x425830, edgeOpacity: 0.54 });  // face FRONT recessed 0.638 in, centered under the channel (D-093)
     // handle-less sharknose pull: flat face + 45 deg beveled BOTTOM edge (nightstand drawer pulls from the bottom bevel)
@@ -904,13 +906,13 @@ function buildNightstands(ctx) {
     box(groups.detailedNightstands, `NS-${sideName} drawer box right wall`, 0.4, 6.6, dbD, cx + dbW / 2 - 0.2, dbY, zMid + 0.5, mats.night, { edgeOpacity: 0.3, cast: false });
     box(groups.detailedNightstands, `NS-${sideName} drawer box back wall`, dbW, 6.6, 0.4, cx, dbY, zMid + 0.5 - dbD / 2 + 0.2, mats.night, { edgeOpacity: 0.3, cast: false });
     box(groups.detailedNightstands, `NS-${sideName} drawer box bottom`, dbW, 0.4, dbD, cx, dbY - 3.1, zMid + 0.5, mats.night, { edgeOpacity: 0.3, cast: false });
-    // rear locator ledge + 2 dowel pins: set the nightstand before the 8 captive-nut bolts clamp (no steel arm)
+    // rear locator ledge + 2 dowel pins: set the nightstand before the 8 steel-insert bolts clamp (no steel arm; D0-4)
     box(groups.detailedNightstands, `NS-${sideName} rear locator ledge`, N.W - 2.0, 0.6, 0.7, cx, N.bottom + 1.4, z0 + 0.55, mats.shell, { edgeColor: 0x5f411a, edgeOpacity: 0.4, cast: false });
     [-6, 6].forEach(dx => cyl(groups.detailedNightstands, `NS-${sideName} locator dowel x=${dx}`, 0.18, 1.0, cx + dx, N.bottom + 2.4, z0 + 0.35, mats.tenon, 'z', { segments: 18, cast: false }));
     [-9, -3, 3, 9].forEach(dx => [19.4, 26.1].forEach(y => {
       cyl(groups.detailedNightstands, `NS-${sideName} inside-access bolt port x=${dx} y=${y}`, 0.24, 0.4, cx + dx, y, z0 + 0.62, mats.void, 'z', { segments: 24, cast: false });
     }));
-    label(`NS-${sideName}: detailed floating nightstand\n8 bolts from drawer cavity into captive nuts`, cx, 29.6, zMid, 'green', 'nightstand');
+    label(`NS-${sideName}: detailed floating nightstand\n8 bolts from the drawer cavity into steel inserts in the skin back (D0-4)`, cx, 29.6, zMid, 'green', 'nightstand');
     pieceLabel(`NS-${sideName}-CASE`, `${sideName} full nightstand case`, cx, 22.5, zMid + 3, '26 x 20 x 11', 'nightstand');
   });
 }
@@ -1013,25 +1015,27 @@ function addBaseTieBolt({ id, x, y }) {
 }
 
 function addNightstandConnectorBolt({ id, sideName, x, y }) {
+  // Lee-call Phase 9 (D0-4, rpt 56): the nightstand mounts by BOLTING THROUGH the nightstand cabinet BACK into a
+  // STEEL THREADED INSERT set in the headboard SKIN BACK — retiring the captive-square-nut (CN-SQ) wood receiver.
   const groupKey = 'nightstandFasteners';
   const labelSection = 'fastenerNightstand';
   const group = groups[groupKey];
   registerFastener({
     id,
-    type: 'CN-SQ',
+    type: 'NS-INS',
     groupKey,
     labelSection,
-    joint: `${sideName} nightstand to headboard receiver rail`,
-    pieceIds: [`nightstand-${sideName}`, `HB-NS-${y > 23 ? 'U' : 'L'}-${sideName}`, 'captured square nut'],
+    joint: `${sideName} nightstand cabinet back bolted into a steel threaded insert in the headboard skin back (D0-4)`,
+    pieceIds: [`nightstand-${sideName}`, `HB-FP-${sideName}-skin-back`, 'steel threaded insert (skin back)'],
     position: { x, y, z: 1.5 },
-    notes: 'Bolt enters from inside drawer cavity; square nut is mortised and retained from rear.'
+    notes: 'Bolt threads from inside the nightstand drawer cavity THROUGH the nightstand cabinet back into a steel threaded insert set in the headboard skin back (D0-4; retires the CN-SQ captive square nut).'
   });
-  cyl(group, `${id} connector bolt shaft`, 0.13, 7.2, x, y, 1.5, mats.darkSteel, 'z');
+  cyl(group, `${id} connector bolt shaft (through the nightstand cabinet back into the skin-back insert)`, 0.13, 7.2, x, y, 1.5, mats.darkSteel, 'z');
   cyl(group, `${id} drawer-side washer`, 0.28, 0.12, x, y, 5.35, mats.steel, 'z', { segments: 28 });
-  box(group, `${id} captive square nut pocket`, 0.75, 0.55, 0.25, x, y, -6.9, mats.steel, { edgeOpacity: 0.38 });
-  box(group, `${id} rear wood keeper`, 1.0, 0.22, 0.14, x, y - 0.42, -7.88, mats.shell, { edgeOpacity: 0.22 });
+  cyl(group, `${id} steel threaded insert in skin back (receives the bolt; D0-4)`, 0.22, 0.7, x, y, -7.0, mats.steel, 'z', { segments: 22 });
+  box(group, `${id} skin-back insert boss (solid backing behind the field skin)`, 1.0, 0.6, 0.5, x, y, -7.6, mats.shell, { edgeOpacity: 0.22 });
   addClampLine(group, id, [x, y, 5.25], [x, y, -6.65], 0xf59e0b);
-  fastenerLabel(id, 'CN-SQ', x + 0.8, y + 0.45, 2.4, labelSection);
+  fastenerLabel(id, 'NS-INS', x + 0.8, y + 0.45, 2.4, labelSection);
 }
 
 function addSmallScrew({ id, groupKey, labelSection, type = 'KS', joint, pieceIds, x, y, z, axis = 'z', length = 0.8 }) {
