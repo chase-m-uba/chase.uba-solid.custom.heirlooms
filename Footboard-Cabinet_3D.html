@@ -705,7 +705,7 @@ function buildBedBase(ctx) {
   });
   label('drawer-lip LED wash: FIXED 1.0 in lip carrier; 7 mm channel, front edge 0.5 in in; light DOWN over the faces recessed 0.638 in (centered under the channel); 3/8 in reveal (D-013/D-034/D-093)', 0, 16.6, 43, 'gold', 'base');
 
-  [-36, -4, 4, 36].forEach(x => [5, 14.5].forEach(y => addBaseSideBoltHead(x, y)));
+  [-36, 36].forEach(x => [5, 14.5].forEach(y => addBaseSideBoltHead(x, y)));   // Lee-call Phase 6 (D0-3): head<->base tie at the ±36 MULLIONS ONLY (dropped the inner ±4 pair)
   label('all bed cabling runs the CENTRE chase (side bays are full of drawers)', 0, 14.8, B.L - 9, 'blue', 'base');
   box(groups.wiring, 'BF-BASE foot-gap cable drop behind the 1 in-short foot drawer', 5, 7, 1.8, 0, 9, 82, mats.void, { edgeColor: 0x38bdf8, edgeOpacity: 0.66, cast: false });
   [-2, 2].forEach(x => {
@@ -727,7 +727,7 @@ function buildBedBase(ctx) {
     [-2, 7, 6], [-2, 7, 2.5], [-2, 1, 2.5], [-2, 1, -1.8]
   ], 0x38bdf8, 0.8);
   label('74 x 85 grounded base (NO toe kick, flush bottom rail); side FACE FRAMES + mattress-support CENTER BEAM on floor legs + levelers; dense bolt-in slats', 0, 19.5, 43, 'blue', 'base');
-  label('base/headboard bolts align to x=-36,-4,+4,+36 at AFF 5 and 14.5', 0, 17.5, 2.8, 'steel', 'base');
+  label('base/headboard bolts align to x=-36,+36 at AFF 5 and 14.5 (D0-3: ±36 mullions ONLY; ±4 pair dropped)', 0, 17.5, 2.8, 'steel', 'base');
   pieceLabel('BF-BASE-L-FF', 'left side FACE FRAME (top+bottom rails, 4-in verticals framing the drawer openings)', -36.5, 15.7, 42.5, 'face frame x 85', 'base');
   pieceLabel('BF-BASE-R-FF', 'right side FACE FRAME (top+bottom rails, 4-in verticals framing the drawer openings)', 36.5, 15.7, 42.5, 'face frame x 85', 'base');
   pieceLabel('BF-BASE-BEAM', 'mattress-support center beam (on floor legs + levelers)', 0, 10, 42.5, '3 x 17 x 85', 'base');
@@ -833,17 +833,19 @@ function buildDockHardware(ctx) {
   const bore = new THREE.MeshStandardMaterial({ color: 0x0d1014, roughness: 1 });
   const rubber = new THREE.MeshStandardMaterial({ color: 0x111418, roughness: 0.95, metalness: 0 });
   const copper = new THREE.MeshStandardMaterial({ color: 0xc07a3a, roughness: 0.5, metalness: 0.7 });
+  const ash = new THREE.MeshStandardMaterial({ color: 0xc79a5b, roughness: 0.6, metalness: 0.03 });
   function zc(r1, r2, len, mat, seg = 26) { const m = new THREE.Mesh(new THREE.CylinderGeometry(r1, r2, len, seg), mat); m.rotation.x = Math.PI / 2; m.castShadow = true; return m; }
-  // 4 BED BOLTS — two per side (x = ±boltX) at two rows (low/high) => a tension/compression COUPLE that resists the
-  // raised-TV overturning moment (a single row would hinge). Bolt threads from inside the cabinet (-Z) into a
-  // cross-dowel / barrel nut seated in the base foot framing. [D-090]
+  // Lee-call Phase 6 (rpt 38): base<->cabinet attachment = 1x1 ASH BLOCKS screw+glue into THREADED INSERTS in each
+  // cabinet face frame; the bed bolt threads from the BED-FACING (hidden) side into the insert. The cabinet FRONT
+  // face carries NO visible/front attachment holes; the bed-facing side hides the bolts. Two per side x two rows =
+  // a tension/compression COUPLE that resists the raised-TV overturning moment (a single row would hinge).
   for (const sx of [-boltX, boltX]) {
     for (const y of rows) {
-      const shaft = zc(0.19, 0.19, 4.6, boltMat); shaft.name = 'bed bolt shaft'; shaft.position.set(sx, y, SEAM - 1.4); cabGroup.add(shaft);
-      const head = zc(0.42, 0.42, 0.55, steel, 6); head.name = 'bed bolt hex head'; head.position.set(sx, y, SEAM + 1.4); cabGroup.add(head);
-      const cup = zc(0.5, 0.5, 0.16, steel); cup.position.set(sx, y, SEAM + 1.0); cabGroup.add(cup);
-      const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.31, 0.31, 1.1, 22), brass); barrel.name = 'cross-dowel / barrel nut'; barrel.position.set(sx, y, SEAM - 3.0); baseGroup.add(barrel);
-      const b = zc(0.2, 0.2, 2.4, bore); b.position.set(sx, y, SEAM - 2.0); baseGroup.add(b);
+      const block = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 6.5), ash); block.name = '1x1 ash connector block (screw+glue to cabinet face frame; bed-facing hidden side; the room-facing front face stays clean, no exposed front fasteners)'; block.position.set(sx, y, SEAM + 3.0); block.castShadow = true; cabGroup.add(block);
+      const insert = zc(0.18, 0.18, 0.9, brass, 20); insert.name = 'threaded insert in cabinet ash block (receives the hidden bed-facing bolt)'; insert.position.set(sx, y, SEAM + 1.4); cabGroup.add(insert);
+      const shaft = zc(0.19, 0.19, 3.6, boltMat); shaft.name = 'hidden bed-facing bolt shaft (threads from the bed-facing side into the cabinet ash-block insert; room-facing front face stays clean)'; shaft.position.set(sx, y, SEAM - 0.2); baseGroup.add(shaft);
+      const head = zc(0.42, 0.42, 0.55, steel, 6); head.name = 'hidden bed-facing bolt hex head (on the bed-facing side, hidden from the room)'; head.position.set(sx, y, SEAM - 2.2); baseGroup.add(head);
+      const cup = zc(0.5, 0.5, 0.16, steel); cup.name = 'bed-facing bolt washer cup'; cup.position.set(sx, y, SEAM - 1.8); baseGroup.add(cup);
     }
   }
   // ONE 3/4 in GROMMETED bare-wire pass-through, low + centered on the bed-facing wall, fed by the under-base foot
@@ -984,16 +986,16 @@ function addBaseTieBolt({ id, x, y }) {
   const groupKey = 'baseTieFasteners';
   const labelSection = 'fastenerBase';
   const group = groups[groupKey];
-  const receiverId = x === -36 ? 'HB-MUL-L' : x === 36 ? 'HB-MUL-R' : x === -4 ? 'HB-CD-L' : 'HB-CD-R';
+  const receiverId = x < 0 ? 'HB-MUL-L' : 'HB-MUL-R';   // Lee-call Phase 6 (D0-3): head<->base tie at the ±36 mullions ONLY
   registerFastener({
     id,
     type: 'BB-CD',
     groupKey,
     labelSection,
-    joint: 'headboard lower receiver ladder to bed-base exoskeleton / center spine',
-    pieceIds: [receiverId, 'HB-LR-U-01', 'HB-LR-L-01', 'bed-base ghost rail'],
+    joint: 'headboard ±36 mullion to bed-base side FACE FRAME (force transfers through the base sides + center beam; D0-3)',
+    pieceIds: [receiverId, 'HB-LR-U-01', 'HB-LR-L-01', 'bed-base side face frame'],
     position: { x, y, z: -4.1 },
-    notes: 'Primary headboard-to-base removable structural bolt.'
+    notes: 'Primary headboard-to-base removable structural bolt at the ±36 mullions ONLY (Lee-call Phase 6, D0-3).'
   });
   addBedBoltCutoutVolumes({ id, group, x, y, z: -4.1, axis: 'z' });
   cyl(group, `${id} base tie bolt shaft`, 0.18, 7.2, x, y, -4.1, mats.darkSteel, 'z');
@@ -1631,10 +1633,13 @@ SPEC.courseSeamsAFF.forEach(seamAFF => {
   });
 });
 
-// Headboard-to-base bolt clusters.
-[-36, 36, -4, 4].forEach(x => {
+// Headboard-to-base bolt clusters — Lee-call Phase 6 (D0-3): at the ±36 MULLIONS ONLY (the inner ±4 CLEFT/CRIGHT
+// ties are DROPPED). The load transfers through the mullions -> ±36 ties -> base side FACE FRAMES + center beam;
+// there is no separate moment-arm beam. The ±4 center receiver blocks/drawdowns stay as HEADBOARD-internal
+// structure (they no longer tie to the base).
+[-36, 36].forEach(x => {
   [5, 9.75, 14.5].forEach(y => {                       // 3 bolts per line (vertical stack) -- primary moment couple to the base
-    const lineName = x === -36 ? 'LMUL' : x === 36 ? 'RMUL' : x === -4 ? 'CLEFT' : 'CRIGHT';
+    const lineName = x === -36 ? 'LMUL' : 'RMUL';
     const rowName = y < 8 ? 'LOW' : y < 12 ? 'MID' : 'UP';
     addBaseTieBolt({ id: `F-BB-BASE-${lineName}-${rowName}`, x, y });
   });
