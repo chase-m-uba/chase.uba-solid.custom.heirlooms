@@ -614,14 +614,22 @@ function buildBedBase(ctx) {
   //    top/security cover, and a DENSE bolt-in slat field. ──
   // (5.3) NO toe kick — the recessed toe plinth is DELETED (B.toeH/toeInset = 0); the base sits FLUSH on the floor
   //       (grounded, D-002); no free space under the drawers.
-  // (5.1) Long sides are an explicit FACE FRAME: a continuous TOP rail + a solid FLUSH BOTTOM rail (to the floor)
-  //       + 4-in vertical stiles framing the three drawer openings.
+  // (5.1 + mechanics pass 2026-07-04) Long sides are an explicit FACE FRAME whose SHOW plane sits BEHIND the
+  //       overlay drawer faces: the D-093 faces' FRONT plane is 0.638 in behind the ±37 outer plane, so the frame
+  //       plane = the faces' BACK plane (±35.362) — the overlay faces rest ON the frame instead of interpenetrating
+  //       it (the 2026-07-04 first pass put the stiles at the ±37 outer plane, THROUGH the recessed faces). Only the
+  //       solid FLUSH BOTTOM rail keeps the ±37 outer plane (grounded to the floor — the no-toe-kick read), as a deep
+  //       plinth web from the outer plane back to the frame plane; stiles + top rail land on it at the frame plane.
   const ffStileW = 4;
+  const ffStileZ = [3.0, 30.65, 56.35, 82.0];                // the 4 boundary-stile Z centers (head / between 1-2 / between 2-3 / foot)
+  const faceFrontX = B.W / 2 - DWR.faceRecess;               // 36.362 — D-093 recessed overlay-face FRONT plane
+  const framePlaneX = faceFrontX - DWR.faceThickness;        // 35.362 — face-frame SHOW plane = overlay-face BACK plane
+  const frameTh = 2.4, frameInnerX = framePlaneX - frameTh;  // 32.962 — face-frame inner (bay-side) plane
   [-1, 1].forEach(s => {
-    const xc = s * (B.W / 2 - 1.2), sN = s < 0 ? 'left' : 'right';
-    box(group, `BF-BASE ${sN} side face-frame TOP rail (continuous)`, 2.4, 2.6, B.L, xc, 15.7, baseMidZ, mats.baseStructure);
-    box(group, `BF-BASE ${sN} side face-frame BOTTOM rail (solid FLUSH to the floor; NO toe kick)`, 2.4, 2.4, B.L, xc, 1.2, baseMidZ, mats.baseStructure);
-    [[3.0, ffStileW], [30.65, ffStileW], [56.35, ffStileW], [82.0, ffStileW]].forEach(([sz, sl], k) => box(group, `BF-BASE ${sN} side face-frame vertical stile ${k} (${sl} in; frames a drawer opening)`, 2.4, 12.2, sl, xc, 8.3, sz, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false }));
+    const xc = s * (framePlaneX - frameTh / 2), sN = s < 0 ? 'left' : 'right';
+    box(group, `BF-BASE ${sN} side face-frame TOP rail (continuous; show plane BEHIND the overlay faces)`, frameTh, 2.6, B.L, xc, 15.7, baseMidZ, mats.baseStructure);
+    box(group, `BF-BASE ${sN} side face-frame BOTTOM rail (solid FLUSH to the floor; NO toe kick; outer face holds the ±${B.W / 2} plane, web back to the frame plane)`, B.W / 2 - frameInnerX, 2.4, B.L, s * (frameInnerX + (B.W / 2 - frameInnerX) / 2), 1.2, baseMidZ, mats.baseStructure);
+    ffStileZ.forEach((sz, k) => box(group, `BF-BASE ${sN} side face-frame vertical stile ${k} (${ffStileW} in; frames a drawer opening; show plane BEHIND the recessed overlay faces)`, frameTh, 12.0, ffStileW, xc, 8.4, sz, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false }));
   });
   box(group, 'BF-BASE head rail receiver face', B.W, B.top, 2.4, 0, B.top / 2, 1.2, mats.baseStructure);
   box(group, 'BF-BASE foot rail receiver face', B.W, B.top, 2.4, 0, B.top / 2, B.L - 1.2, mats.baseStructure);
@@ -653,7 +661,9 @@ function buildBedBase(ctx) {
   [-1, 1].forEach(s => {
     const bx = s * (B.W / 2 - B.shoulder / 2), sN = s < 0 ? 'left' : 'right';
     box(group, `BF-BASE ${sN} TOP BORDER RAIL (sit-on structure; visible ~3.5 in ash border)`, B.shoulder, 1.4, B.L - 2, bx, B.top - 0.7, baseMidZ, mats.baseWood, { edgeColor: 0x604618, edgeOpacity: 0.5 });
-    box(group, `BF-BASE ${sN} top border OVERLAPPING backing cleat (glued+screwed under the sit-on border for the load path)`, B.shoulder - 0.5, 1.2, B.L - 4, bx - s * 1.0, B.top - 1.9, baseMidZ, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.4, cast: false });
+    // mechanics pass 2026-07-04: the backing cleat stays BEHIND the overlay-face plane (its old outboard reach crossed
+    // the recessed faces 0.1 in below their tops); its inboard edge is the security-cover capture line.
+    box(group, `BF-BASE ${sN} top border OVERLAPPING backing cleat (glued+screwed under the sit-on border for the load path; kept behind the overlay-face plane; inboard edge captures the stationary security-cover outboard edge)`, B.shoulder - 0.5, 1.2, B.L - 4, s * (framePlaneX - (B.shoulder - 0.5) / 2), B.top - 1.9, baseMidZ, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.4, cast: false });
   });
   [['head', 2.8], ['foot', B.L - 2.8]].forEach(([e, ez]) => box(group, `BF-BASE ${e} TOP BORDER RAIL (sit-on structure) with overlapping backing`, B.W - 2, 1.4, B.shoulder, 0, B.top - 0.7, ez, mats.baseWood, { edgeColor: 0x604618, edgeOpacity: 0.5 }));
 
@@ -666,45 +676,76 @@ function buildBedBase(ctx) {
     [-1, 1].forEach(s => cyl(groups.slats, `BF-BASE slat ${i + 1} nutsert bolt ${s < 0 ? 'L' : 'R'} (bolts the slat end into a nutsert in the shoulder ledger)`, 0.16, 1.0, s * (B.bayW / 2 - 1), 15.9, z, mats.steel, 'y', { segments: 12, cast: false }));
   }
 
-  // ── Lee drawer-base translation (2026-07-04, plan 17): the Dawna/Donna PDF construction method ──
-  //   side-frame internal LEDGES receive the drawer-structure ends; each side has 4 boundary stiles (the face-frame
-  //   verticals above) with a hidden 2-in INSIDE STRIP behind each; side-to-side GLIDE BOARDS land on those strips and
-  //   carry the slides; a STATIONARY drawer-bay top/security cover sits above the drawers + below the slats; and 3
-  //   open-ladder drawer-pair MODULES (built after this loop) are captured on the ledges + connector-bolted (one side
-  //   per window). Replaces the old generic 'drawer divider wall' + moving-drawer TOP + fixed 'plywood DECK' abstraction.
-  const drawerSpan = (B.L - 5 - 3) / 3;
-  const drawerDepth = 32.6;
+  // ── Lee drawer-base translation (plan 17) — MECHANICS-FIRST REBUILD 2026-07-04 ──
+  //   The first 2026-07-04 pass translated the vocabulary but placed the module rails/end-blocks/windows/bolts at the
+  //   drawer-row CENTERS (rowZc), straight THROUGH the six moving drawer boxes, and sized the boxes LARGER than the
+  //   face-frame openings — drawers that cannot exist or open. This rebuild starts from the drawer clearance volumes:
+  //   1) the face-frame OPENINGS between the 4-in stiles are the clear volumes: [5..28.65] [32.65..54.35] [58.35..80];
+  //   2) each drawer BOX fits its opening with a 0.5-in slide zone per side (foot box 1 in short at the foot end for
+  //      the center cable drop, D-016-era carry-over) and travels in ±X through the opening — nothing static may
+  //      occupy the box volume or its swept path;
+  //   3) each drawer-pair MODULE (17 §8.5) is a real OPEN LADDER: its two side-to-side GLIDE BOARDS sit at the row
+  //      BOUNDARIES with their slide-mount faces FLUSH with the opening edges (tucked behind the 4-in stiles, flanking
+  //      the hidden 2-in strips), joined by under-drawer bottom ladder rungs; board ends rest ON the side-frame ledge;
+  //   4) the STATIONARY security cover spans the bay ABOVE the drawer walls (>=3/8 in clearance) and BELOW the slats,
+  //      resting on the glide-board/strip/back-wall tops with its outboard edge captured under the border backing cleat.
+  //   Gated mechanically by tools/bf-drawer-mechanics-check.js + the runtime __BF_DRAWER_MECHANICS (real AABB collision
+  //   + swept-travel checks) — name/count checks alone allowed the first pass to ship.
+  const drawerSpan = (B.L - 5 - 3) / 3;                       // 25.667 — the equal exterior FACE pitch (faces stay equal; boxes size to their openings)
   const DS = B.drawerStructure;                               // { modules:3, boundaryStiles:4, insideStripWidth:2, stileWidth:4, ledges:true }
-  const ffStileZ = [3.0, 30.65, 56.35, 82.0];                // the 4 boundary-stile Z positions (mirror the face-frame verticals)
-  const rowBoundZ = [5, 5 + drawerSpan, 5 + 2 * drawerSpan, 81];   // the 4 drawer-row glide-board boundaries
+  const rowName = ['head', 'middle', 'foot'];
+  const openings = [0, 1, 2].map(r => [ffStileZ[r] + DS.stileWidth / 2, ffStileZ[r + 1] - DS.stileWidth / 2]);   // clear openings between stile edges
+  const slideZone = 0.5;                                      // concept slide stack per side (cabinet member + drawer member) [final slide stack TBD-CONFIRM Lee]
+  const dW = 31.8;                                            // drawer box outside width (X): front plane at the frame plane, back plane clear of the bay back wall [interior dims TBD-CONFIRM Lee's spreadsheet]
+  const backWallX = 2.9, backWallTh = 0.5;                    // bay back wall flanking the centre slot/chase
+  const structBotY = 3.2;                                     // ladder/strip bottom plane = ledge top (module ends REST on the ledge)
+  const coverBotY = 14.6, coverTh = 0.6;                      // stationary cover underside: drawer walls top out at 14.175 -> 0.425 in clearance (>= 3/8); cover top 15.2 < slat underside 15.875
+  const coverOutX = framePlaneX - (B.shoulder - 0.5);         // 32.362 — cover outboard edge butts the border backing cleat's inboard edge (the capture line)
+  const boardX0 = backWallX + backWallTh / 2;                 // 3.15 — glide boards butt the bay back wall...
+  const boardXc = (boardX0 + frameInnerX) / 2, boardW = frameInnerX - boardX0;   // ...and end at the frame inner plane (on the ledge, against the strip sides)
   [-1, 1].forEach(side => {
     const sAbbr = side < 0 ? 'L' : 'R', sName = side < 0 ? 'left' : 'right';
     const faceX = side * (B.W / 2 - DWR.faceRecess - DWR.faceThickness / 2); // face FRONT recessed DWR.faceRecess (0.638) behind the +-37 outer plane, centered under the channel (D-093); centre +-35.862
-    const boxXc = side * (B.W / 2 - 0.9 - drawerDepth / 2);
-    const wallXc = side * (B.W / 2 - 0.9 - (drawerDepth + 1) / 2);
-    const stripXc = side * (B.W / 2 - 2.4 - 1.0);            // 2-in inside strip inboard of the side frame, behind the 4-in stile
-    // (17 §3.1/§8.3) side-frame INTERNAL LEDGE — the Dawna/Donna PDF ledge the drawer-structure ends are lifted onto.
-    box(group, `BF-BASE ${sName} side-frame internal ledge (Dawna/Donna PDF ledge; the drawer-structure ends are lifted onto this ledge, then connector-bolted) [stock TBD-CONFIRM Lee]`, 1.6, 1.0, B.L - 6, side * (B.W / 2 - 2.4 - 0.8), 3.0, baseMidZ, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false });
-    // (17 §2.2A/§8.4) hidden 2-in INSIDE STRIPS behind each 4-in boundary stile — the glide boards land on their sides.
-    ffStileZ.forEach((sz, k) => box(group, `BF-BASE ${sName} inside strip (${DS.insideStripWidth} in; hidden behind the 4-in boundary stile ${k}; the side-to-side glide boards land on its sides, behind the 4-in board) [TBD-CONFIRM Lee]`, 1.0, 11.0, DS.insideStripWidth, stripXc, 8.7, sz, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.4, cast: false }));
-    // (17 §3.2/§8.5) side-to-side GLIDE BOARDS at each drawer-row boundary — land on the 2-in inside strips; carry the slides.
-    rowBoundZ.forEach((bz, k) => box(group, `BF-BASE ${sName} drawer-row glide board ${k} (side-to-side; lands on the 2-in inside strip behind the 4-in stile; the cabinet drawer slide mounts to its vertical face)`, drawerDepth + 1, DWR.intH + 1.6, 1.0, wallXc, 8.7, bz, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false }));
+    const boxXc = side * (framePlaneX - dW / 2);              // box FRONT plane = the face BACK plane (the face mounts ON the box front wall)
+    // (17 §3.1/§8.3) side-frame INTERNAL LEDGE — the Dawna/Donna PDF support shelf: the drawer-pair MODULE glide-board
+    //   ends are lifted onto this ledge during assembly, then connector-bolted. Low (y ~2.2-3.2), UNDER the module
+    //   bottoms and clear below the moving drawer floors (3.425).
+    box(group, `BF-BASE ${sName} side-frame internal ledge (Dawna/Donna PDF ledge; the drawer-pair MODULE glide-board ends + 2-in strips rest on this ledge, then connector-bolted) [stock TBD-CONFIRM Lee]`, 1.6, 1.0, B.L - 6, side * (frameInnerX - 0.8), structBotY - 0.5, baseMidZ, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false });
+    // (17 §2.2A/§8.4) hidden 2-in INSIDE STRIPS directly behind each 4-in boundary stile (z-centered on the stile).
+    //   Each intermediate strip fills the gap between the two flanking MODULE glide boards — the boards land on the
+    //   strip SIDES, behind the 4-in board (Lee's explicit clue). Strip tops also support the security-cover edge.
+    ffStileZ.forEach((sz, k) => box(group, `BF-BASE ${sName} inside strip (${DS.insideStripWidth} in; hidden behind the 4-in boundary stile ${k}; the MODULE glide boards land on the 2-in inside strip sides, behind the 4-in board; top supports the security-cover edge) [TBD-CONFIRM Lee]`, 1.0, coverBotY - structBotY, DS.insideStripWidth, side * (frameInnerX - 0.5), (structBotY + coverBotY) / 2, sz, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.4, cast: false }));
+    // (17 §3.2/§8.5) THREE drawer-pair STRUCTURE MODULES per side-pair — each row's module is a real OPEN LADDER:
+    //   two side-to-side GLIDE BOARDS at the row's head/foot BOUNDARIES (slide-mount faces FLUSH with the face-frame
+    //   opening edges; bodies tucked behind the 4-in stiles, flanking the 2-in strips) + under-drawer bottom ladder
+    //   rungs. The ladder window between the boards IS the drawer bay — nothing static crosses it.
+    openings.forEach(([oLo, oHi], r) => {
+      [['head', oLo, oLo - 0.5], ['foot', oHi, oHi + 0.5]].forEach(([end, edge, bzc]) => box(group,
+        `BF-BASE drawer-pair structure MODULE ${r + 1}/3 (${rowName[r]} row) ${end}-side glide board ${sAbbr} (side-to-side transverse open-ladder rail; slide-mount face FLUSH with the ${rowName[r]}-row opening edge; lands on the 2-in inside strip sides behind the 4-in stile; end rests on the side-frame internal ledge; the center slot stays open between the L/R segments)`,
+        boardW, coverBotY - structBotY, 1.0, side * boardXc, (structBotY + coverBotY) / 2, bzc, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false }));
+      [9.5, 26].forEach((rx, k) => box(group,
+        `BF-BASE drawer-pair structure MODULE ${r + 1}/3 (${rowName[r]} row) bottom ladder rung ${sAbbr} ${k + 1} (under-drawer open-ladder cross member; joins the two glide boards; clears the moving drawer floor above)`,
+        1.5, 0.8, oHi - oLo, side * rx, structBotY - 0.4, (oLo + oHi) / 2, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.4, cast: false }));
+    });
     // (17 §4.4/§8.7) STATIONARY drawer-bay TOP / SECURITY COVER — fixed to the base, over the drawer bay + under the
-    //   slats/mattress; blocks top access into the LOCKED drawer cavity when the mattress/slats are lifted. NOT a moving
-    //   drawer lid. Attachment (loose-on-ledges vs screwed vs security-bolted/captured) [TBD-CONFIRM Lee]. (Refines the
-    //   former fixed 'drawer-bay hidden plywood DECK'.)
-    box(group, `BF-BASE ${sName} stationary drawer-bay TOP / security cover (fixed to the base; over the drawer bay, under the slats/mattress; blocks top access into the locked drawer cavity — NOT a moving drawer lid) [attachment TBD-CONFIRM Lee]`, drawerDepth, 0.6, 77, boxXc, 14.7, 43.5, mats.baseWood, { edgeColor: 0x5f411a, edgeOpacity: 0.4, cast: false });
-    box(group, `BF-BASE ${sName} security-cover support ledge / capture rail (bed-base ledge the stationary security cover rests on) [TBD-CONFIRM Lee]`, 0.9, 0.9, 77, side * (B.W / 2 - 2.7), 14.15, 43.5, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.4, cast: false });
-    box(group, `BF-BASE drawer-bay BACK wall (walls off the centre wiring chase; keeps the center slot open for the beam legs) ${sAbbr}`, 0.5, DWR.intH + 1.6, 77, side * 2.9, 8.7, 43.5, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false });
+    //   slats/mattress; blocks top access into the LOCKED drawer cavity when the mattress/slats are lifted. NOT a
+    //   moving drawer lid. Mechanics: underside 14.6 clears the 14.175 drawer wall tops by 0.425 in (>= 3/8), top 15.2
+    //   sits under the 15.875 slat underside; rests on the glide-board/strip/back-wall tops; outboard edge captured
+    //   under the top-border backing cleat. Attachment (loose vs screwed vs security-bolted) [TBD-CONFIRM Lee].
+    box(group, `BF-BASE ${sName} stationary drawer-bay TOP / security cover (fixed to the base; over the drawer bay, under the slats/mattress; rests on the module glide-board tops + 2-in strip tops + bay back wall, outboard edge captured under the top-border backing cleat; blocks top access into the locked drawer cavity — NOT a moving drawer lid) [attachment TBD-CONFIRM Lee]`, coverOutX - backWallX, coverTh, 77, side * ((coverOutX + backWallX) / 2), coverBotY + coverTh / 2, 43.5, mats.baseWood, { edgeColor: 0x5f411a, edgeOpacity: 0.4, cast: false });
+    box(group, `BF-BASE drawer-bay BACK wall (walls off the centre wiring chase; keeps the center slot open for the beam legs; top supports the stationary security cover inboard edge) ${sAbbr}`, backWallTh, coverBotY - 2.4, 77, side * backWallX, (2.4 + coverBotY) / 2, 43.5, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false });
     for (let i = 0; i < DWR.perSide; i += 1) {
-      const z = 5 + drawerSpan / 2 + i * drawerSpan;
-      const isFoot = i === DWR.perSide - 1, gap = isFoot ? 1.0 : 0;
-      [z - drawerSpan / 2 + 0.6, z + drawerSpan / 2 - 0.6 - gap].forEach((sz, s) => box(group, `BF-BASE full-extension slide rail (cabinet; mounted to the drawer-pair module glide board) ${sAbbr} ${i + 1}-${s}`, drawerDepth, 0.5, 0.32, boxXc, 11.6, sz, mats.steel, { edgeColor: 0x60a5fa, edgeOpacity: 0.45, cast: false }));
-      const dg = new THREE.Group(); group.add(dg); drawerGroups.push({ g: dg, axis: 'x', dir: side, ext: drawerDepth - 2 });
+      const z = 5 + drawerSpan / 2 + i * drawerSpan;          // equal exterior FACE pitch (Phase 7 read preserved)
+      const isFoot = i === DWR.perSide - 1, gap = isFoot ? 1.0 : 0;   // foot box 1 in short at the FOOT end (center cable-drop carry-over)
+      const [oLo, oHi] = openings[i];
+      const boxZ0 = oLo + slideZone, boxZ1 = oHi - slideZone - gap;   // the box fits INSIDE its opening with the slide zones — it can actually pass the frame
+      // cabinet slide members mount ON the glide-board slide faces (flush with the opening edges), inside the slide zones
+      [[oLo + 0.09, 0], [oHi - 0.09, 1]].forEach(([sz, s]) => box(group, `BF-BASE full-extension slide rail (cabinet; mounted to the drawer-pair module glide board) ${sAbbr} ${i + 1}-${s}`, 28, 0.5, 0.18, side * 18.2, 11.6, sz, mats.steel, { edgeColor: 0x60a5fa, edgeOpacity: 0.45, cast: false }));
+      const dg = new THREE.Group(); group.add(dg); drawerGroups.push({ g: dg, axis: 'x', dir: side, ext: dW - 2 });
       // Lee-call Phase 7 (rpt 42): the drawer face OVERLAPS the 4-in face-frame verticals with a THIN 3/16 (faceReveal)
-      // reveal to the adjacent faces -> an edge-to-edge face-frame read (was a 0.5 in reveal). Face top sits ~0.5 in of the top rail.
+      // reveal to the adjacent faces -> an edge-to-edge face-frame read; the reveals land ON the stiles (no see-through).
       box(dg, `BF-BASE drawer face ${sName} ${i + 1} (OVERLAPS the 4-in verticals; thin 3/16 reveal; edge-to-edge)`, DWR.faceThickness, DWR.faceH, drawerSpan - DWR.faceReveal, faceX, 8.6, z, mats.baseWood, { edgeColor: 0x604618, edgeOpacity: 0.52 });
-      const dW = drawerDepth, dH = DWR.intH, dL = drawerSpan - 2.0 - gap, tw = 0.5, dyc = 8.8, bz = z - gap / 2;
+      const dH = DWR.intH, dL = boxZ1 - boxZ0, tw = 0.5, dyc = 8.8, bz = (boxZ0 + boxZ1) / 2;
       box(dg, `BF-BASE drawer ${sName} ${i + 1} floor`, dW, tw, dL, boxXc, dyc - dH / 2 + tw / 2, bz, mats.baseWood, { edgeColor: 0x8a6a32, edgeOpacity: 0.42, cast: false });
       // Lee drawer-base translation (2026-07-04): the moving drawer box is OPEN-TOP (a normal drawer). The former
       //   moving-drawer 'TOP (5th surface, security lid)' is REMOVED — a cover that moves with the drawer cannot solve
@@ -718,28 +759,18 @@ function buildBedBase(ctx) {
       bbev.position.set(faceX + side * 0.4, 2.95, z); bbev.rotation.z = side * Math.PI / 4; bbev.castShadow = false;
       bbev.name = `BF-BASE drawer ${sName} ${i + 1} beveled bottom-edge pull (Dawna Option A; face overlays the bottom, gripped from below)`;
       dg.add(bbev);
-      [z - drawerSpan / 2 + 0.6, z + drawerSpan / 2 - 0.6 - gap].forEach((sz, s) => box(dg, `BF-BASE full-extension slide (drawer) ${sAbbr} ${i + 1}-${s}`, drawerDepth - 1, 0.34, 0.2, boxXc, 11.6, sz, mats.darkSteel, { edgeOpacity: 0.22, cast: false }));
+      // drawer-side slide members ride OUTSIDE the box walls inside the slide zones (nested against the cabinet members)
+      [[boxZ0 - 0.09, 0], [boxZ1 + 0.09, 1]].forEach(([sz, s]) => box(dg, `BF-BASE full-extension slide (drawer) ${sAbbr} ${i + 1}-${s}`, dW - 2, 0.34, 0.18, boxXc, 11.6, sz, mats.darkSteel, { edgeOpacity: 0.22, cast: false }));
     }
   });
 
-  // ── (17 §3.2/§4.2) THREE drawer-pair STRUCTURE MODULES — one per left/right drawer row (head/middle/foot). Each is an
-  //   OPEN LADDER frame captured on the side-frame ledges (Dawna/Donna PDF method), NOT a solid partition slab: split L+R
-  //   rails that keep the center slot open, end blocks landing on the ledges, an open ladder window, and a module-to-side-
-  //   frame CONNECTOR BOLT on ONLY ONE side of each window (PDF page-21 rule) — a SEPARATE bolt family from the
-  //   side-frame/corner bolts and the ±36 head-to-base tie bolts.
-  const rowZc = [17.833, 43.5, 69.167], rowName = ['head', 'middle', 'foot'];
-  rowZc.forEach((rz, r) => {
-    // canonical MODULE identity — exactly one per drawer row (3 total)
-    box(group, `BF-BASE drawer-pair structure MODULE ${r + 1}/3 (${rowName[r]} row; OPEN LADDER captured on the side-frame ledges; one left/right drawer pair; Dawna/Donna PDF method)`, 0.6, DWR.intH, 0.6, 0, 8.5, rz, mats.void, { edgeColor: 0x22d3ee, edgeOpacity: 0.35, cast: false });
-    [-1, 1].forEach(s => {
-      const sAb = s < 0 ? 'L' : 'R';
-      const segLen = (B.W / 2 - 2.4) - 3.2, segXc = s * (3.2 + segLen / 2);   // side-frame ledge -> center-slot edge (slot stays open)
-      [['top', 13.8], ['bottom', 3.6]].forEach(([e, ry]) => box(group, `BF-BASE drawer-row ${rowName[r]} module ${e} rail ${sAb} (open ladder frame member; center slot stays open)`, segLen, 1.0, 1.2, segXc, ry, rz, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false }));
-      box(group, `BF-BASE drawer-row ${rowName[r]} module end block ${sAb} (lands on the side-frame internal ledge)`, 1.6, DWR.intH, 1.2, s * (B.W / 2 - 2.4), 8.5, rz, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.4, cast: false });
-      box(group, `BF-BASE drawer-row ${rowName[r]} module open ladder window ${sAb} (weight/access opening; open frame, NOT a solid slab)`, segLen - 3, DWR.intH - 3, 0.4, segXc, 8.5, rz, mats.void, { edgeColor: 0x22d3ee, edgeOpacity: 0.28, cast: false });
-    });
+  // (17 §3.4/§8.8) module-to-side-frame CONNECTOR BOLTS — at the REAL joints: through the 4-in stile + 2-in strip into
+  //   the MODULE glide-board ends (behind the stiles, never inside a drawer bay). ONE side of the structure in each
+  //   window is connected (PDF page-21 rule; side alternates per module) — a SEPARATE bolt family from the
+  //   side-frame/corner bolts and the ±36 head-to-base tie bolts. Exact family/count/edge distance [TBD-CONFIRM Lee].
+  openings.forEach(([oLo, oHi], r) => {
     const cbSide = r % 2 === 0 ? -1 : 1;   // ONE side per window (alternated per module); still one side only
-    [3.6, 13.8].forEach(by => cyl(group, `BF-BASE module-to-side-frame CONNECTOR BOLT ${rowName[r]} row ${cbSide < 0 ? 'L' : 'R'} (ONLY one side of the structure in each window is connected — Dawna/Donna PDF rule; a SEPARATE bolt family from the side-frame-to-bed-end/corner bolts and the ±36 head-to-base tie bolts)`, 0.18, 2.4, cbSide * (B.W / 2 - 1.3), by, rz, mats.steel, 'x', { segments: 16, cast: false }));
+    [oLo - 0.5, oHi + 0.5].forEach(bzc => cyl(group, `BF-BASE module-to-side-frame CONNECTOR BOLT ${rowName[r]} row ${cbSide < 0 ? 'L' : 'R'} (through the 4-in stile + 2-in strip into the MODULE glide-board end; ONLY one side of the structure in each window is connected — Dawna/Donna PDF rule; a SEPARATE bolt family from the side-frame-to-bed-end/corner bolts and the ±36 head-to-base tie bolts)`, 0.18, 2.4, cbSide * (frameInnerX + 0.9), 8.9, bzc, mats.steel, 'x', { segments: 16, cast: false }));
   });
 
   // ---- Drawer-lip LED down-wash (D-013 / D-034 / D-093): a FIXED 1.0 in lip/overhang carrier rail per side;
