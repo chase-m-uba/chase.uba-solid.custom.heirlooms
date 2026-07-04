@@ -475,7 +475,7 @@ const SPEC = Object.freeze({
   // slat: DENSE field (~1.5 in gaps, was ~5 in) bolted via nutserts at both ends. centerBeam: mattress-support beam on floor legs + levelers (concept; parts [TBD-CONFIRM Lee]).
   base: { W: 74, L: 85, top: 17, bayW: 67, bayL: 81, shoulder: 3.5, toeH: 0, toeInset: 0, caseBottom: 2.0, slat: { width: 2.75, gap: 1.5, mount: 'bolt-in nutsert ends' }, centerBeam: { present: true, legs: 3, levelers: 3 } },
   drawer: { perSide: 3, intH: 10.75, intW: 19, intD: 33, faceRecess: 0.638, frontWall: 0.5, revealGap: 0.375, channelRout: 0.276, channelH: 0.276, lipCarrierH: 1.0, faceThickness: 1.0, faceH: 12.0, faceGap: 0.25, faceReveal: 0.1875, faceOverlap: true },  // D-093/D-012/D-013: face FRONT recessed 0.638 in (centered under the aluminum micro-channel); 0.5 in front wall to the channel front edge; 7 mm routed groove; 1.0 in lip carrier (0.724 in wood above the 0.276 in channel); 3/8 in reveal; Dawna Option A bottom-edge pull. Lee-call Phase 7: faces OVERLAP the 4-in face-frame verticals with a thin 3/16 (0.1875) reveal, edge-to-edge read (faceReveal / faceOverlap)
-  footboard: { W: 74, H: 41, D: 16, sideTh: 2.0, faceTh: 1.0, deckTh: 1.0, rearTh: 0.75, dock: { boltCenterX: 33, boltRowsAFF: [5, 14.5], wireHoleDia: 0.75, wireHoleCenterAFF: 3 } },
+  footboard: { W: 74, H: 41, D: 16, sideTh: 2.0, faceTh: 1.0, deckTh: 1.0, rearTh: 0.75, reveal: 0.125, relocatable: true, regularFootboardVariant: { W: 74, H: 14, D: 16 }, dock: { boltCenterX: 33, boltRowsAFF: [5, 14.5], wireHoleDia: 0.75, wireHoleCenterAFF: 3 } },  // Lee-call Phase 8: cabinet set back ~1/8 in (reveal) never proud of the bed side/top cap; relocatable standalone; regular-footboard (no-TV) variant is a stored-part SKU (~74x14x16)
   lift: { travel: 36, retractBody: 31, raised: 68.5, baseW: 28.375, basePlateW: 9.875, basePlateD: 5.125, bodyD: 7.0, deckTopY: 8.0 },
   tv: { W: 48.0, H: 27.8, D: 1.5, retractBottom: 11.95, raisedBottom: 47.0 },
   lid: { W: 69.5, D: 14.25, T: 1.0, flushTop: 41, raisedTop: 76 },   // full cabinet-top lift-off lid (D-095): 70 in opening less ~0.25 in reveal/side; + underside stiffening ribs (not modeled as separate geo)
@@ -757,6 +757,21 @@ function buildFootboardAndLift(ctx) {
   label('TV-lift footboard 74 x 41 x 16: apron closes the upper front; cubby opens below; fixed fillers close the top beside the lid slot', 0, 44, footMidZ, 'gold', 'footboard');
   label('empty flat cubby (3 bays / 2 ribs); 4 rear-edge ceiling U-notches; sealed side walls (power + speakers enter via the low 3/4 in grommet pass-through, D-090); no devices', 0, 9.5, ZB.footBack - 1.4, 'blue', 'footboard');
   pieceLabel('FB-CAB-01', 'TV-lift footboard cabinet ghost', 0, 41.8, footMidZ, '74 x 41 x 16', 'footboard');
+
+  // ── Lee-call Phase 8 (2026-07-04): footboard CONFIGURATIONS — relocatable TV cabinet + regular-footboard variant + 1/8 reveal ──
+  // (8.1) The TV cabinet is a RELOCATABLE STANDALONE module: unbolt the 4 bed bolts (buildDockHardware) to pull it
+  //       away from the bed and stand it against the wall. (8.4) It is set back ~1/8 in (SPEC.footboard.reveal) so
+  //       it is NEVER proud of the bed side/top cap. (8.2) A REGULAR FOOTBOARD (no TV lift) is the stored-part SKU
+  //       alternative that lets the bed exist without the TV cabinet — modeled here as a concept ghost variant.
+  const fbRev = F.reveal;
+  // 1/8 in reveal/setback markers on the cabinet side + top (never proud of the bed side/top cap)
+  [-1, 1].forEach(s => box(group, `FB cabinet 1/8 in reveal/setback ${s < 0 ? 'L' : 'R'} (cabinet set back ${fbRev} in inboard of the bed side; never proud)`, fbRev, F.H, F.D, s * (F.W / 2 - fbRev / 2), F.H / 2, footMidZ, mats.void, { edgeColor: 0x38bdf8, edgeOpacity: 0.55, cast: false }));
+  box(group, `FB cabinet relocatable standalone marker (unbolt the 4 bed bolts -> pull away -> stand against the wall; bolt-on cabinet-to-base seam)`, F.W - 4, 0.1, F.D - 2, 0, 0.4, footMidZ, mats.void, { edgeColor: 0x22d3ee, edgeOpacity: 0.4, cast: false });
+  // (8.2) REGULAR FOOTBOARD variant — a simple ~74x14x16 non-TV footboard, stored-part SKU (concept ghost, off to the foot).
+  const RV = F.regularFootboardVariant, rvZ = ZB.footFront + 10;   // shown just beyond the cabinet front as the alternate
+  box(groups.footboardVariant || group, `FB-REG regular footboard VARIANT (no-TV stored-part SKU; ~${RV.W}x${RV.H}x${RV.D}; lets the bed run without the TV cabinet) [concept ghost, TBD-CONFIRM Lee dims]`, RV.W, RV.H, RV.D, 0, RV.H / 2, rvZ, mats.ghost, { edgeColor: 0xe2e8f0, edgeOpacity: 0.4, cast: false });
+  [-1, 1].forEach(s => box(groups.footboardVariant || group, `FB-REG regular footboard variant side ${s < 0 ? 'L' : 'R'} (concept)`, F.sideTh, RV.H, RV.D, s * (RV.W / 2 - F.sideTh / 2), RV.H / 2, rvZ, mats.ghost, { edgeColor: 0xe2e8f0, edgeOpacity: 0.4, cast: false }));
+  label('Phase 8: TV cabinet = RELOCATABLE standalone (unbolt 4 bed bolts, stand against wall), set back 1/8 in reveal (never proud); REGULAR FOOTBOARD (no-TV) = stored-part variant SKU so the bed can run without the cabinet', 0, 46, footMidZ, 'gold', 'footboard');
 
   const lift = groups.liftSystem, bpTop = L.deckTopY + 0.4;
   const bodyW = 5.5, bodyH = 22, bodyD = 3.6;
