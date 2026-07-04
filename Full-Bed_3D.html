@@ -898,6 +898,8 @@ function buildBedBase(ctx) {
 
   [-36, 36].forEach(x => [5, 14.5].forEach(y => addBaseSideBoltHead(x, y)));   // Lee-call Phase 6 (D0-3): head<->base tie at the ±36 MULLIONS ONLY (dropped the inner ±4 pair)
   label('all bed cabling runs the CENTRE chase (side bays are full of drawers)', 0, 14.8, B.L - 9, 'blue', 'base');
+  // Lee-call Phase 10 (rpt 49): the base cable crossing routes UNDER the base along the center beam/spine chase, NOT over the drawers.
+  box(groups.wiring, 'BF-BASE UNDER-BASE cable crossing (routes UNDER the base along the center beam chase, NOT over the drawers; D0)', 4.5, 1.2, B.L - 6, 0, 3.0, baseMidZ, mats.void, { edgeColor: 0x22d3ee, edgeOpacity: 0.5, cast: false });
   box(groups.wiring, 'BF-BASE foot-gap cable drop behind the 1 in-short foot drawer', 5, 7, 1.8, 0, 9, 82, mats.void, { edgeColor: 0x38bdf8, edgeOpacity: 0.66, cast: false });
   [-2, 2].forEach(x => {
     box(groups.wiring, `BF-BASE centre base-to-headboard cable bore (head rail + bottom cap -> rear cavity) x=${x}`, 1.4, 2.2, 8.4, x, 1, -1.8, mats.void, { edgeColor: 0x38bdf8, edgeOpacity: 0.66, cast: false });
@@ -1289,7 +1291,7 @@ function addMullionSwitchPanel({ sideName, x }) {
     buttonDia: sp.buttonDia,
     wireChaseDia: sp.wireChaseDia
   });
-  box(group, `${id} recessed switch-panel pocket cut into mullion face`, sp.W, sp.H, sp.D, x, sp.centerY, -sp.D / 2, mats.access, { edgeColor: 0xfb923c, edgeOpacity: 0.8, cast: false });
+  box(group, `${id} recessed switch-panel pocket cut into mullion face (fits BETWEEN the two hollow-mullion webs in the ${SPEC.mullionW - 2 * SPEC.mullionWebTh} in chase; Lee-call Phase 10, rpt 52)`, sp.W, sp.H, sp.D, x, sp.centerY, -sp.D / 2, mats.access, { edgeColor: 0xfb923c, edgeOpacity: 0.8, cast: false });
   box(group, `${id} removable inset button plate`, sp.W - 0.16, sp.H - 0.18, 0.08, x, sp.centerY, 0.07, mats.switchPlate, { edgeColor: 0x99f6e4, edgeOpacity: 0.62, cast: false });
   cyl(group, `${id} low-voltage rear wire chase`, sp.wireChaseDia / 2, 7.45, x, sp.centerY, -4.25, mats.void, 'z', { segments: 28, cast: false });
   cyl(group, `${id} rear-face wire exit dark bore`, sp.wireChaseDia / 2, 0.16, x, sp.centerY, -8.04, mats.darkSteel, 'z', { segments: 32, cast: false });
@@ -1698,6 +1700,11 @@ HB_MODULES.forEach(m => {
 });
 // The LED-channel mount gap at the top (behind the cap, AFF ~66..70) is the PRIMARY hot-air exhaust up and out.
 box(groups.lattice, 'HB-BACK LED-channel mount gap (TOP exhaust; the ply stops below the crown so hot air exits UP past the LED channel + heatsink; D0-2/D-052)', W - 6, 4, rearPlyTh + 0.2, 0, 68, rearZ, mats.void, { edgeColor: 0x38bdf8, edgeOpacity: 0.5, cast: false });
+// Lee-call Phase 10 (rpt 50/51): the inside-cabinet 120 V path (LED-driver power) EXITS a rear-ply hole to the wall receptacle;
+// an ALTERNATE taller-baseboard recess route is a concept option. (USB-C stays routed through the rear/service zone, D-042/D-063.)
+cyl(groups.wiring, 'HB-BACK 120V rear-ply cable EXIT hole to the wall receptacle (inside-cabinet 120V for the LED drivers exits the rear ply to the wall; D0)', 0.9, rearPlyTh + 0.2, -8, 12, rearZ, mats.void, 'z', { segments: 18, cast: false });
+box(groups.wiring, 'HB-BACK taller-baseboard recess 120V route (ALTERNATE concept: run the 120V down behind a taller baseboard to the receptacle) [concept, TBD-CONFIRM]', 3, 10, 0.4, -8, 6, rearZ - 0.3, mats.void, { edgeColor: 0x38bdf8, edgeOpacity: 0.35, cast: false });
+line3(groups.wiring, 'HB-BACK 120V exit -> wall receptacle', [[-8, 12, rearZ], [-8, 6, rearZ - 0.5], [-8, 2, rearZ - 1.5]], 0xf97316, 0.7);
 // Baseboard notch: the bottom-REAR of each side stile is notched to WRAP the room baseboard so the back sits TIGHT
 // to the wall (freestanding; NO cleat). Concept notch voids at the bottom-rear outer corners.
 [-1, 1].forEach(s => box(groups.lattice, `HB baseboard notch ${s < 0 ? 'L' : 'R'} (bottom-rear notch wraps the room baseboard so the back sits tight; freestanding, no cleat / no wall fixing)`, 3.5, 4.5, 2.5, s * 62.5, 2.25, -6.75, mats.void, { edgeColor: 0x22d3ee, edgeOpacity: 0.55, cast: false }));
@@ -3344,6 +3351,23 @@ addEventListener('resize', () => {
   window.__BF_LIFT_POSITION_GATE = { pass: S2.liftDetailPass !== false && S2.soundbarMountPass !== false, note: 'lift + TV + soundbar + soundbar-mount all on the lift carriage (one shared front-to-back datum)' };
   window.__BF_LENGTH_GATE = { pass: B.L === 85 && F.D === 16, base: B.L, footboard: F.D, headFrontToFootFront: B.L + F.D, fullOutsideLength: SPEC.D + B.L + F.D };
   window.__BF_CUBBY_CABLE_PORTS = { pass: cnt(/cubby rear-edge ceiling U-notch/) === 4, ceilingPorts: cnt(/cubby rear-edge ceiling U-notch/), noRearWallCubbyHoles: FB.noRearCubbyWallHoles !== false, note: '4 rear-edge ceiling U-notches + 2 side pass-throughs; no rear-wall holes' };
+  // ---- Lee-call Phase 10 (rpt 49-52): electrical / lighting routing — under-base crossing, rear-ply 120V exit, switch in the mullion chase, speaker/USB-C routes. ----
+  window.__BF_ELECTRICAL = {
+    underBaseCableRoute: has(/UNDER-BASE cable crossing/) && has(/centre base-to-headboard cable bore/) && has(/centre cable run foot-gap to head/),
+    noOverDrawerCrossing: !_names.some(n => /over[- ]drawer cable|cable over[- ]drawer|routes over the drawer/i.test(n)),
+    rearPly120VExit: has(/120V rear-ply cable EXIT hole to the wall/),
+    baseboardAltRoute: has(/taller-baseboard recess 120V route/),
+    switchPocketInMullionChase: has(/switch-panel pocket cut into mullion face \(fits BETWEEN the two hollow-mullion webs/) && (SPEC.mullionW - 2 * SPEC.mullionWebTh) > SPEC.switchPanel.W,
+    mullionChaseClearInches: +(SPEC.mullionW - 2 * SPEC.mullionWebTh).toFixed(3),
+    switchPocketWidthInches: SPEC.switchPanel.W,
+    speakerRoutePlausible: has(/12 AWG speaker cable route/) && has(/mullion cable bore \(speaker crossing\)/),
+    usbCNotOnNightstandTop: !_names.some(n => /(nightstand|NS-[LR]).*usb-?c/i.test(n)),   // USB-C on the headboard face (D-042), not nightstand tops
+    note: 'Lee-call Phase 10: base cable crossing routes UNDER the base along the center-beam chase (NOT over the drawers); the inside-cabinet 120V exits a rear-ply hole to the wall receptacle (+ a taller-baseboard recess alternate); the bedside switch pocket fits between the two hollow-mullion webs (2.25 in chase > 1.5 in pocket); the 12 AWG speaker route runs the center/base/mullion chase; USB-C stays on the headboard face.'
+  };
+  window.__BF_ELECTRICAL.pass = window.__BF_ELECTRICAL.underBaseCableRoute && window.__BF_ELECTRICAL.noOverDrawerCrossing
+    && window.__BF_ELECTRICAL.rearPly120VExit && window.__BF_ELECTRICAL.baseboardAltRoute
+    && window.__BF_ELECTRICAL.switchPocketInMullionChase && window.__BF_ELECTRICAL.speakerRoutePlausible
+    && window.__BF_ELECTRICAL.usbCNotOnNightstandTop;
   window.__BF_LIFT_GEOMETRY = { pass: S2.liftDetailPass === true, basePlateW: L.basePlateW, basePlateD: L.basePlateD, bodyDepth: L.bodyD, tvRailSpan: L.baseW, floorMounts: S2.liftFloorBoltCount, rearMounts: S2.liftRearMountCount };
   // ---- Lee-call Phase 8 (rpt 57-62): footboard CONFIGURATIONS — relocatable TV cabinet + regular-footboard variant + 1/8 reveal. ----
   window.__BF_FOOTBOARD_VARIANTS = {
@@ -3380,7 +3404,7 @@ addEventListener('resize', () => {
   };
 
   // ---- aggregate ----
-  const _canon = ['__BF_CASE_KEEPOUT', '__BF_BASE_PLATFORM', '__BF_BASE_TIE', '__BF_DRAWERS', '__BF_REAR', '__BF_EDGE_STILES', '__BF_HEADBOARD_PHYSICAL_FRAME', '__BF_HEADBOARD_MODULES', '__BF_TOPCAP', '__BF_STAGE3', '__BF_SKIN_FIELD', '__BF_BUILT_UP_FRAME', '__BF_CONTINUOUS_SIDE_CHORDS', '__BF_FLAT_LIFT_DECK', '__BF_FOOTBOARD_DEPTH_GATE', '__BF_LIFT_POSITION_GATE', '__BF_LENGTH_GATE', '__BF_CUBBY_CABLE_PORTS', '__BF_LIFT_GEOMETRY', '__BF_FOOTBOARD_VARIANTS', '__BF_NIGHTSTANDS'];
+  const _canon = ['__BF_CASE_KEEPOUT', '__BF_BASE_PLATFORM', '__BF_BASE_TIE', '__BF_DRAWERS', '__BF_REAR', '__BF_EDGE_STILES', '__BF_HEADBOARD_PHYSICAL_FRAME', '__BF_HEADBOARD_MODULES', '__BF_TOPCAP', '__BF_STAGE3', '__BF_SKIN_FIELD', '__BF_BUILT_UP_FRAME', '__BF_CONTINUOUS_SIDE_CHORDS', '__BF_FLAT_LIFT_DECK', '__BF_FOOTBOARD_DEPTH_GATE', '__BF_LIFT_POSITION_GATE', '__BF_LENGTH_GATE', '__BF_CUBBY_CABLE_PORTS', '__BF_LIFT_GEOMETRY', '__BF_FOOTBOARD_VARIANTS', '__BF_NIGHTSTANDS', '__BF_ELECTRICAL'];
   const _canonFails = _canon.filter(k => !(window[k] && window[k].pass === true));
   const _v1Fails = Object.keys(window.__BF_V1).filter(k => window.__BF_V1[k] !== true);
   // Drawer-lip recess + aluminum micro-channel validators (D-012/D-013/D-034/D-093): front-wall-anchored datum
