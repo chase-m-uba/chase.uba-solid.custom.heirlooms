@@ -1118,11 +1118,79 @@ const zMid = -D / 2;
 const loadRailDepth = SPEC.loadReceiverRailDepth;
 const loadRailZ = -SPEC.panelTh - loadRailDepth / 2;
 
-// Shell.
+// ── Lee-call Phase 1 (2026-07-03): headboard delivered as THREE bolt-together finished boxes ──────────
+// Split at the ±36 mullion centerlines (HB_SEAMS = mullion.centerX). The CENTER box (HB-MOD-C) owns BOTH
+// ±36 mullions; the side boxes (HB-MOD-L / HB-MOD-R) butt to the mullion OUTER faces (±38) so the front
+// reads as ONE clean 4-in mullion line per seam — no doubled verticals (rpt 1/4). 130 in overall is a
+// RESULT of the three module widths (nominal 29 / 72 / 29), not a monolithic input (rpt 5/73). Precise
+// module dimensions wait on Lee's parts spreadsheet (plan 16 §1.4) — this is concept architecture only.
+// Built-up L-section members / face-frame / HB-RET removal are Phase 2; the 3-piece top cap is Phase 3.
+const halfW = W / 2;                                         // 65 — outer edge of the side boxes
+const HB_SEAMS = [-SPEC.seamX, SPEC.seamX];                  // ±36 nominal module seams = mullion centerlines
+const HB_MULLION_FACE = SPEC.seamX + SPEC.mullionW / 2;      // 38 — mullion outer face = physical butt plane
+const HB_MODULES = [
+  { key: 'L', id: 'HB-MOD-L', name: 'left',   nomX0: -halfW,      nomX1: -SPEC.seamX, buttX0: -halfW,           buttX1: -HB_MULLION_FACE, ownsMullions: false },
+  { key: 'C', id: 'HB-MOD-C', name: 'center', nomX0: -SPEC.seamX, nomX1: SPEC.seamX,  buttX0: -HB_MULLION_FACE, buttX1: HB_MULLION_FACE,  ownsMullions: true  },
+  { key: 'R', id: 'HB-MOD-R', name: 'right',  nomX0: SPEC.seamX,  nomX1: halfW,       buttX0: HB_MULLION_FACE,  buttX1: halfW,            ownsMullions: false }
+];
+
+// box-to-box module connector (rpt 3): a 1×1×6.5 in ash block glued to the side box + a connector bolt
+// through the block into a steel threaded insert in the CENTER box's mullion. 3 per seam (top rail / mid
+// shelf / bottom rail); ~6 total. Concept-level — insert family / edge distances pending Lee's spreadsheet
+// (do NOT bolt every shelf; Lee: 3 per seam is enough). Instanced-style helper modeled on addVerticalBedBolt.
+function addHeadboardModuleConnector({ id, seamSide, y, tag }) {
+  const s = seamSide;                              // -1 = left seam (butt x=-38), +1 = right seam (butt x=+38)
+  const faceX = s * HB_MULLION_FACE;               // ±38 mullion outer face / physical butt plane
+  const blockX = s * (HB_MULLION_FACE + 0.5);      // 1-in ash block sits outboard of the face, on the side box
+  const boltX = s * (HB_MULLION_FACE - 0.9);       // bolt shaft crosses the block into the center mullion
+  const headX = s * (HB_MULLION_FACE + 0.95);      // bolt head / washer on the outboard (side-box) face
+  const insX = s * (HB_MULLION_FACE - 1.4);        // steel threaded insert seated in the center-box mullion
+  box(groups.lattice, `${id} 1x1x6.5 ash connector block`, 1, 1, 6.5, blockX, y, zMid, mats.shell, { edgeColor: 0x6b4a1c });
+  cyl(groups.capFasteners, `${id} connector bolt shaft`, 0.1, 3.0, boltX, y, zMid, mats.darkSteel, 'x', { segments: 20 });
+  cyl(groups.capFasteners, `${id} connector bolt head / washer`, 0.24, 0.14, headX, y, zMid, mats.steel, 'x', { segments: 24 });
+  cyl(groups.capFasteners, `${id} steel threaded insert (in HB-MOD-C mullion)`, 0.17, 0.8, insX, y, zMid, mats.steel, 'x', { segments: 22 });
+  registerFastener({
+    id, type: 'MOD-CB', groupKey: 'capFasteners', labelSection: 'fastenerCap',
+    joint: `${id} — ${s < 0 ? 'HB-MOD-L' : 'HB-MOD-R'} box bolted to HB-MOD-C mullion at the ${tag.toLowerCase()} (box-to-box module connector)`,
+    pieceIds: [s < 0 ? 'HB-MOD-L' : 'HB-MOD-R', 'HB-MOD-C', s < 0 ? 'HB-MUL-L' : 'HB-MUL-R', `${id} ash block`],
+    position: { x: faceX, y, z: zMid },
+    notes: '1x1x6.5 in ash connector block + connector bolt into a steel threaded insert in the center-box mullion; 3 per seam; factory-built boxes, owner bolts together on site (Lee call 2026-07-03).'
+  });
+  fastenerLabel(id, 'MOD-CB', headX, y + 0.6, zMid, 'fastenerCap');
+}
+
+// Shell — three finished bolt-together boxes (HB-MOD-L / HB-MOD-C / HB-MOD-R).
+// TOP cap: retained as ONE 130-in piece for Phase 1 (the delivered-loose LED crown spans all three boxes).
+// Its division into three butted per-box lengths (one per module) is Phase 3 (plan 16, D0-1) — deferred
+// here so Phase 1 stays isolated.
 box(groups.lattice, 'top cap one-piece 130x2x8', W, 2, D, 0, 71, zMid, mats.shell);
-box(groups.lattice, 'bottom cap one-piece 130x2x8', W, 2, D, 0, 1, zMid, mats.shell);
-box(groups.lattice, 'left side stile 2x68x8', 2, 68, D, -64, 36, zMid, mats.shell);
-box(groups.lattice, 'right side stile 2x68x8', 2, 68, D, 64, 36, zMid, mats.shell);
+// BOTTOM cap → three per-module bottom rails so each box reads as a finished framed unit with its own
+// bottom structure (plan 16 §1.4). The CENTER box's rail runs the full mullion-to-mullion span and carries
+// BOTH mullions; the side rails butt to it at the mullion outer faces (±38).
+HB_MODULES.forEach(m => {
+  const w = m.buttX1 - m.buttX0;
+  box(groups.lattice, `${m.id} bottom cap rail ${w}x2x8 (${m.name} box bottom structure${m.ownsMullions ? '; carries both ±36 mullions' : '; butts HB-MOD-C at the mullion face'})`, w, 2, D, (m.buttX0 + m.buttX1) / 2, 1, zMid, mats.shell);
+});
+box(groups.lattice, 'HB-MOD-L left side stile 2x68x8 (left box outer frame)', 2, 68, D, -64, 36, zMid, mats.shell);
+box(groups.lattice, 'HB-MOD-R right side stile 2x68x8 (right box outer frame)', 2, 68, D, 64, 36, zMid, mats.shell);
+
+// Module boundary seam markers at the nominal split lines x = ±36 (mullion centerlines). Thin translucent
+// planes flag where the three delivered boxes divide; the physical butt is 2 in outboard at the mullion
+// outer face (±38), where the side skins tuck under the center mullion face → one clean 4-in line.
+HB_SEAMS.forEach((sx, i) => {
+  const pair = i === 0 ? 'HB-MOD-L | HB-MOD-C' : 'HB-MOD-C | HB-MOD-R';
+  box(groups.lattice, `HB-MOD boundary seam plane at nominal split x=${sx} (${pair}; HB-MOD-C owns the ±36 mullion)`, 0.06, 68, D, sx, 36, zMid, mats.void, { edgeColor: 0x22d3ee, edgeOpacity: 0.5, cast: false });
+});
+// Module identity labels (Full-Bed CSS2D; no-op in the standalone model) — three finished bolt-together boxes.
+HB_MODULES.forEach(m => {
+  label(`${m.id}\n${m.name} box\n${m.ownsMullions ? 'owns both ±36 mullions' : 'butts HB-MOD-C at ±36 mullion'}`, (m.nomX0 + m.nomX1) / 2, 66, 0.8, 'piece', 'shell');
+});
+// 3 connectors per seam (top rail / mid shelf / bottom rail) × 2 seams = 6 module connector assemblies.
+[{ side: -1, key: 'L' }, { side: 1, key: 'R' }].forEach(seam => {
+  [{ tag: 'TOP', y: 64 }, { tag: 'MID', y: 42 }, { tag: 'BOT', y: 8 }].forEach(pt => {
+    addHeadboardModuleConnector({ id: `HB-MOD-JOINT-${seam.key}-${pt.tag}`, seamSide: seam.side, y: pt.y, tag: pt.tag });
+  });
+});
 
 // Twelve removable front skins, 7/8 in (0.875) thick, installed flush from the rear.
 const panelColumns = [
@@ -1214,7 +1282,7 @@ frontPanels.forEach(addSkinRetention);
   mMesh.rotation.y = -Math.PI / 2;
   mMesh.position.set(x + SPEC.mullionW / 2, 0, 0);
   mMesh.castShadow = true; mMesh.receiveShadow = true;
-  mMesh.name = `mullion one-piece (single extruded W-profile board, 3 lands) x=${x}`;
+  mMesh.name = `mullion one-piece (single extruded W-profile board, 3 lands; HB-MOD-C owns) x=${x}`;
   groups.lattice.add(mMesh);
   mMesh.add(new THREE.LineSegments(new THREE.EdgesGeometry(mGeo, 20), new THREE.LineBasicMaterial({ color: 0x17212b, transparent: true, opacity: 0.34 })));
   addMullionSwitchPanel({ sideName, x });
@@ -1650,7 +1718,23 @@ SPEC.courseSeamsAFF.forEach(seamAFF => {
 });
 
 
-  return { frontPanels };
+  return {
+    frontPanels,
+    // Lee-call Phase 1 module metadata (consumed by the Full-Bed / Headboard host validators).
+    headboardModules: {
+      count: HB_MODULES.length,                                              // 3
+      seams: HB_SEAMS,                                                       // [-36, 36]
+      mullionFaceX: HB_MULLION_FACE,                                         // 38
+      centerOwnsMullions: HB_MODULES.find(m => m.key === 'C').ownsMullions === true,
+      sideModulesButtAtMullionFace:
+        HB_MODULES.find(m => m.key === 'L').buttX1 === -HB_MULLION_FACE &&
+        HB_MODULES.find(m => m.key === 'R').buttX0 === HB_MULLION_FACE,
+      connectorsPerSeam: 3,
+      connectorAssemblies: (HB_MODULES.length - 1) * 3,                      // 6
+      overallWidthResult: HB_MODULES.reduce((a, m) => a + (m.buttX1 - m.buttX0), 0),  // 130 (result, not input)
+      modules: HB_MODULES.map(m => ({ id: m.id, key: m.key, name: m.name, nomX0: m.nomX0, nomX1: m.nomX1, buttX0: m.buttX0, buttX1: m.buttX1, ownsMullions: m.ownsMullions }))
+    }
+  };
 }
 
 return { SPEC, makeMaterials, makeEngine, deriveZ, buildBedBase, buildFootboardAndLift, buildDockHardware, buildNightstands, buildHeadboard };
