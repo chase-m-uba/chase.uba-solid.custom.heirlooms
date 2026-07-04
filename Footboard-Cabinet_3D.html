@@ -483,7 +483,9 @@ const SPEC = Object.freeze({
     buttonDia: 12 / 25.4,
     wireChaseDia: 0.5
   },
-  base: { W: 74, L: 85, top: 17, bayW: 67, bayL: 81, shoulder: 3.5, toeH: 2.0, toeInset: 1.5, caseBottom: 2.0 },
+  // Lee-call Phase 5: NO toe kick — toeH/toeInset 2.0/1.5 -> 0 (grounded flush bottom rail; no recessed toe space under the drawers).
+  // slat: DENSE field (~1.5 in gaps, was ~5 in) bolted via nutserts at both ends. centerBeam: mattress-support beam on floor legs + levelers (concept; parts [TBD-CONFIRM Lee]).
+  base: { W: 74, L: 85, top: 17, bayW: 67, bayL: 81, shoulder: 3.5, toeH: 0, toeInset: 0, caseBottom: 2.0, slat: { width: 2.75, gap: 1.5, mount: 'bolt-in nutsert ends' }, centerBeam: { present: true, legs: 3, levelers: 3 } },
   drawer: { perSide: 3, intH: 10.75, intW: 19, intD: 33, faceRecess: 0.638, frontWall: 0.5, revealGap: 0.375, channelRout: 0.276, channelH: 0.276, lipCarrierH: 1.0, faceThickness: 1.0, faceH: 12.0, faceGap: 0.25 },  // D-093/D-012/D-013: face FRONT recessed 0.638 in (centered under the aluminum micro-channel); 0.5 in front wall to the channel front edge; 7 mm routed groove; 1.0 in lip carrier (0.724 in wood above the 0.276 in channel); 3/8 in reveal; Dawna Option A bottom-edge pull
   footboard: { W: 74, H: 41, D: 16, sideTh: 2.0, faceTh: 1.0, deckTh: 1.0, rearTh: 0.75, dock: { boltCenterX: 33, boltRowsAFF: [5, 14.5], wireHoleDia: 0.75, wireHoleCenterAFF: 3 } },
   lift: { travel: 36, retractBody: 31, raised: 68.5, baseW: 28.375, basePlateW: 9.875, basePlateD: 5.125, bodyD: 7.0, deckTopY: 8.0 },
@@ -612,24 +614,47 @@ function buildBedBase(ctx) {
   const B = SPEC.base;
   const DWR = SPEC.drawer;
   const group = groups.bedBase;
-  box(group, 'BF-BASE toe plinth ghost', B.W - 2 * B.toeInset, B.toeH, B.L - 2 * B.toeInset, 0, B.toeH / 2, baseMidZ, mats.baseWood, { edgeColor: 0x5f411a, edgeOpacity: 0.46 });
+  // ── Lee-call Phase 5 (2026-07-04): base = explicit FACE-FRAME long sides, NO toe kick (grounded flush bottom
+  //    rail), a mattress-support CENTER BEAM on floor legs + adjustable levelers, and a DENSE bolt-in slat field. ──
+  // (5.3) NO toe kick — the recessed toe plinth is DELETED (B.toeH/toeInset = 0); the base sits FLUSH on the floor
+  //       (grounded, D-002); no free space under the drawers.
+  // (5.1) Long sides are an explicit FACE FRAME: a continuous TOP rail + a solid FLUSH BOTTOM rail (to the floor)
+  //       + 4-in vertical stiles framing the three drawer openings.
+  const ffStileW = 4;
   [-1, 1].forEach(s => {
-    const xc = s * (B.W / 2 - 1.2);
-    box(group, `BF-BASE ${s < 0 ? 'left' : 'right'} continuous side exoskeleton chord top rail`, 2.4, 2.6, B.L, xc, 15.7, baseMidZ, mats.baseStructure);
-    box(group, `BF-BASE ${s < 0 ? 'left' : 'right'} continuous side exoskeleton chord bottom rail`, 2.4, 1.4, B.L, xc, 2.7, baseMidZ, mats.baseStructure);
-    [[3.8, 2.8], [30.65, 0.6], [56.35, 0.6], [81.8, 1.6]].forEach(([sz, sl], k) => box(group, `BF-BASE ${s < 0 ? 'left' : 'right'} side frame stile ${k}`, 2.4, 11, sl, xc, 8.9, sz, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false }));
+    const xc = s * (B.W / 2 - 1.2), sN = s < 0 ? 'left' : 'right';
+    box(group, `BF-BASE ${sN} side face-frame TOP rail (continuous)`, 2.4, 2.6, B.L, xc, 15.7, baseMidZ, mats.baseStructure);
+    box(group, `BF-BASE ${sN} side face-frame BOTTOM rail (solid FLUSH to the floor; NO toe kick)`, 2.4, 2.4, B.L, xc, 1.2, baseMidZ, mats.baseStructure);
+    [[3.0, ffStileW], [30.65, ffStileW], [56.35, ffStileW], [82.0, ffStileW]].forEach(([sz, sl], k) => box(group, `BF-BASE ${sN} side face-frame vertical stile ${k} (${sl} in; frames a drawer opening)`, 2.4, 12.2, sl, xc, 8.3, sz, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false }));
   });
   box(group, 'BF-BASE head rail receiver face', B.W, B.top, 2.4, 0, B.top / 2, 1.2, mats.baseStructure);
   box(group, 'BF-BASE foot rail receiver face', B.W, B.top, 2.4, 0, B.top / 2, B.L - 1.2, mats.baseStructure);
-  box(group, 'BF-BASE center spine continuous', 3.0, B.top - B.toeH, B.L, 0, (B.top + B.toeH) / 2, baseMidZ, mats.baseStructure);
+  // (5.2) mattress-support CENTER BEAM (head-to-foot; carries the slat midspan) on FLOOR LEGS with adjustable LEVELERS.
+  box(group, 'BF-BASE mattress-support CENTER BEAM (head-to-foot; carries the slat midspan)', 3.0, B.top, B.L, 0, B.top / 2, baseMidZ, mats.baseStructure);
+  [14, 42.5, 71].forEach((lz, i) => {
+    box(group, `BF-BASE center-beam floor LEG ${i + 1} (drops the center beam load to the floor)`, 2.6, B.top - 1.2, 3.0, 0, (B.top - 1.2) / 2, lz, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false });
+    cyl(group, `BF-BASE center-beam floor LEVELER ${i + 1} (adjustable threaded foot; sets bed height + level) [TBD-CONFIRM part]`, 0.7, 1.2, 0, 0.6, lz, mats.steel, 'y', { segments: 20, cast: false });
+  });
+  [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sz], i) => cyl(group, `BF-BASE corner floor LEVELER ${i + 1} (adjustable threaded foot; grounded base)`, 0.6, 1.2, sx * (B.W / 2 - 3), 0.6, sz < 0 ? 4 : B.L - 4, mats.steel, 'y', { segments: 18, cast: false }));
   box(group, 'BF-BASE left mattress shoulder rail', 2.0, 0.8, B.bayL, -B.bayW / 2 - 0.9, B.top + 0.15, 2 + B.bayL / 2, mats.baseWood);
   box(group, 'BF-BASE right mattress shoulder rail', 2.0, 0.8, B.bayL, B.bayW / 2 + 0.9, B.top + 0.15, 2 + B.bayL / 2, mats.baseWood);
   box(group, 'BF-BASE head mattress shoulder rail', B.bayW, 0.8, 1.6, 0, B.top + 0.15, 2.8, mats.baseWood);
   box(group, 'BF-BASE foot mattress shoulder rail', B.bayW, 0.8, 1.6, 0, B.top + 0.15, 82.2, mats.baseWood);
+  // (5.7) TOP BORDER RAIL — the sit-on structure (the visible ~3.5 in ash border you can sit on) with OVERLAPPING backing.
+  [-1, 1].forEach(s => {
+    const bx = s * (B.W / 2 - B.shoulder / 2), sN = s < 0 ? 'left' : 'right';
+    box(group, `BF-BASE ${sN} TOP BORDER RAIL (sit-on structure; visible ~3.5 in ash border)`, B.shoulder, 1.4, B.L - 2, bx, B.top - 0.7, baseMidZ, mats.baseWood, { edgeColor: 0x604618, edgeOpacity: 0.5 });
+    box(group, `BF-BASE ${sN} top border OVERLAPPING backing cleat (glued+screwed under the sit-on border for the load path)`, B.shoulder - 0.5, 1.2, B.L - 4, bx - s * 1.0, B.top - 1.9, baseMidZ, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.4, cast: false });
+  });
+  [['head', 2.8], ['foot', B.L - 2.8]].forEach(([e, ez]) => box(group, `BF-BASE ${e} TOP BORDER RAIL (sit-on structure) with overlapping backing`, B.W - 2, 1.4, B.shoulder, 0, B.top - 0.7, ez, mats.baseWood, { edgeColor: 0x604618, edgeOpacity: 0.5 }));
 
-  for (let i = 0; i < 13; i += 1) {
-    const z = 5.5 + i * 6.15;
-    box(groups.slats, `BF-BASE removable slat ${i + 1}`, B.bayW, 0.45, 1.25, 0, 16.25, z, mats.ghost, { edgeColor: 0xe2e8f0, edgeOpacity: 0.34, cast: false });
+  // (5.4/5.5) DENSE bolt-in slat field: ~1.5 in gaps (was ~5 in), each slat BOLTED via nutserts at both ends.
+  const slatW = SPEC.base.slat.width, slatGap = SPEC.base.slat.gap, slatPitch = slatW + slatGap;
+  const slatZ0 = 4.5, slatZ1 = B.L - 3, slatN = Math.floor((slatZ1 - slatZ0) / slatPitch) + 1;
+  for (let i = 0; i < slatN; i += 1) {
+    const z = slatZ0 + i * slatPitch;
+    box(groups.slats, `BF-BASE removable slat ${i + 1} (bolt-in; nutsert ends; ~${slatGap} in gap)`, B.bayW, 0.75, slatW, 0, 16.25, z, mats.ghost, { edgeColor: 0xe2e8f0, edgeOpacity: 0.34, cast: false });
+    [-1, 1].forEach(s => cyl(groups.slats, `BF-BASE slat ${i + 1} nutsert bolt ${s < 0 ? 'L' : 'R'} (bolts the slat end into a nutsert in the shoulder ledger)`, 0.16, 1.0, s * (B.bayW / 2 - 1), 15.9, z, mats.steel, 'y', { segments: 12, cast: false }));
   }
 
   const drawerSpan = (B.L - 5 - 3) / 3;
@@ -641,7 +666,7 @@ function buildBedBase(ctx) {
     [0, 1, 2].forEach(w => box(group, `BF-BASE drawer divider wall ${side < 0 ? 'L' : 'R'} ${w}`, drawerDepth + 1, DWR.intH + 1.6, 1.0, wallXc, 8.7, 5 + w * drawerSpan, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false }));
     box(group, `BF-BASE foot drawer-rail support wall (L) slide leg ${side < 0 ? 'L' : 'R'}`, drawerDepth + 1, DWR.intH + 1.6, 1.0, wallXc, 8.7, 81, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false });
     box(group, `BF-BASE foot drawer-rail support wall (L) gap-cover return ${side < 0 ? 'L' : 'R'}`, drawerDepth + 1, 1.0, 2.6, wallXc, 14.4, 82.3, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false });
-    box(group, `BF-BASE drawer-bay TOP dust cover ${side < 0 ? 'L' : 'R'}`, drawerDepth, 0.6, 77, boxXc, 14.7, 43.5, mats.baseWood, { edgeColor: 0x5f411a, edgeOpacity: 0.4, cast: false });
+    box(group, `BF-BASE drawer-bay hidden plywood DECK ${side < 0 ? 'L' : 'R'} (over the drawer bay, under the slats/mattress; closes the top of the bay)`, drawerDepth, 0.6, 77, boxXc, 14.7, 43.5, mats.baseWood, { edgeColor: 0x5f411a, edgeOpacity: 0.4, cast: false });
     box(group, `BF-BASE drawer-bay BACK wall (walls off the centre wiring chase) ${side < 0 ? 'L' : 'R'}`, 0.5, DWR.intH + 1.6, 77, side * 2.9, 8.7, 43.5, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false });
     for (let i = 0; i < DWR.perSide; i += 1) {
       const z = 5 + drawerSpan / 2 + i * drawerSpan;
@@ -701,11 +726,11 @@ function buildBedBase(ctx) {
   line3(groups.wiring, '24V + lighting-control: base hub -> centre bore -> rear cable bore (continues up the headboard cavity)', [
     [-2, 7, 6], [-2, 7, 2.5], [-2, 1, 2.5], [-2, 1, -1.8]
   ], 0x38bdf8, 0.8);
-  label('74 x 85 grounded base; central spine and continuous side exoskeleton', 0, 19.5, 43, 'blue', 'base');
+  label('74 x 85 grounded base (NO toe kick, flush bottom rail); side FACE FRAMES + mattress-support CENTER BEAM on floor legs + levelers; dense bolt-in slats', 0, 19.5, 43, 'blue', 'base');
   label('base/headboard bolts align to x=-36,-4,+4,+36 at AFF 5 and 14.5', 0, 17.5, 2.8, 'steel', 'base');
-  pieceLabel('BF-BASE-L-CHORD', 'left side chord (top+bottom rails, drawer openings between)', -36.5, 15.7, 42.5, '2.4 rails x 85', 'base');
-  pieceLabel('BF-BASE-R-CHORD', 'right side chord (top+bottom rails, drawer openings between)', 36.5, 15.7, 42.5, '2.4 rails x 85', 'base');
-  pieceLabel('BF-BASE-SPINE', 'base center spine', 0, 10, 42.5, '3 x 15 x 85', 'base');
+  pieceLabel('BF-BASE-L-FF', 'left side FACE FRAME (top+bottom rails, 4-in verticals framing the drawer openings)', -36.5, 15.7, 42.5, 'face frame x 85', 'base');
+  pieceLabel('BF-BASE-R-FF', 'right side FACE FRAME (top+bottom rails, 4-in verticals framing the drawer openings)', 36.5, 15.7, 42.5, 'face frame x 85', 'base');
+  pieceLabel('BF-BASE-BEAM', 'mattress-support center beam (on floor legs + levelers)', 0, 10, 42.5, '3 x 17 x 85', 'base');
 }
 
 // ----------------------------------------------------------------------------
