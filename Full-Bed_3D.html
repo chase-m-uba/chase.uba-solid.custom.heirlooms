@@ -650,7 +650,7 @@ const SPEC = Object.freeze({
   uRearLand: 1.5,
   speaker: {
     weightLb: 28.4,
-    orientation: 'horizontal',        // rotated 90deg so the cutout fits one <=20 in glue-up course (D-080, 2026-06-07)
+    orientation: 'horizontal',        // rotated 90deg so the 11.26 in cutout height fits inside one <=19 in glue-up course (D-080/D0-6; the C3 speaker course spans AFF 38..57)
     cutW: 20.71,                       // was 11.26 vertical; manufacturer cutout 526x286 mm now laid landscape
     cutH: 11.26,
     bodyW: 22.1,
@@ -1632,8 +1632,8 @@ const rearRailSegments = [[-63, -38], [-34, 34], [38, 63]];
 // front-skin seam and provides the available service / fan mounting surface if needed; no separate fan
 // rail is modeled in V1.
 
-// Horizontal course cross-rails: full-depth housed segments behind each AFF 20/40/60 face seam.
-// These ARE the rear support bars (D-060 discrete open bracing, no back panel): each course seats on / clamps to the rail below + above. Three rails x three bay segments. No vertical members (grain is horizontal + courses <=20 in tall, so these rails restrain the cup-prone direction).
+// Horizontal course cross-rails: full-depth housed segments behind each AFF 19/38/57 face seam (SPEC.courseSeamsAFF, D0-6).
+// These ARE the rear support bars (D-060 discrete open bracing): each course seats on / clamps to the rail below + above. Three rails x three bay segments. No vertical members (grain is horizontal + courses <=19 in tall, so these rails restrain the cup-prone direction).
 SPEC.courseSeamsAFF.forEach(seamAFF => {
   rearRailSegments.forEach(([x0, x1], i) => {
     const suffix = ['L', 'C', 'R'][i];
