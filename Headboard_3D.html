@@ -8,8 +8,9 @@
   CHANGE: New standalone headboard model. Imports the shared builder, so it CANNOT drift from the master.
   ASSUMPTIONS: none — geometry is single-sourced in bf-geometry.js.
 
-  130 x 72 x 8 open-back rail-and-stile headboard (Lee-call Phase 2): three bolt-together boxes split at the
-  +-36 hollow built-up mullions, built-up L-section side stiles + bottom rails, top/bottom caps, twelve
+  130 x 72 x 8 rail-and-stile headboard with a VENTILATED plywood back (Lee-call Phase 4, D0-2): three
+  bolt-together boxes split at the +-36 hollow built-up mullions, built-up L-section side stiles + bottom
+  rails, THREE butted top-cap segments (Phase 3), twelve
   RECESSED 7/8 in field skins (glued+screwed; the speaker course screw-only), top-cap LED channels, the
   in-wall speakers, and the receiver ladders + hidden fasteners. Thin HOST: all geometry comes from
   bf-geometry.js -> buildHeadboard() (single source; the 3-segment top cap is Phase 3).
@@ -1417,6 +1418,41 @@ const LED_LIT_LEN = 124, LED_VENT_EXT = 2;                          // routed gr
 // solid (un-routed) ash at each end of the crown. The lit line never breaks at a segment seam (D0-1/D-033).
 [-2.375, -5.625].forEach((gz, i) => box(groups.led, `continuous LED/heatsink run across cap segment seams + mullion gap ${i + 1} (124 in, unbroken)`, 124, 4, 1.75, 0, 68, gz, mats.void, { edgeColor: 0x22d3ee, edgeOpacity: 0.32, cast: false }));
 
+// ── Lee-call Phase 4 (D0-2, 2026-07-04): VENTILATED PLYWOOD REAR BACK + rear electronics zone + wall fit ──────
+// Owner-approved D0-2: the rear is a FULL / mostly-full PLYWOOD back (NOT the old fully-open-rear mandate) that is
+// VENTILATED + SERVICEABLE — cool-air INTAKE holes drilled LOW + natural convection exhausting UP through drilled
+// circles high + the LED-channel mount gap at the top (hot air rises). The heatsink/LED cavity still BREATHES
+// (intake low → exhaust high), so the "open rear only" mandate (D-052/054/060) is SUPERSEDED by "sealed-but-vented
+// + serviceable". Center box gets a TWO-PIECE ply back: an upper fixed panel + a removable ~30 in lower service
+// access panel. The headboard stays FREESTANDING — NO wall cleat / NO wall attachment ever (stability = bolt-down
+// to the base). Named without cap/stile tokens so the render classifier keeps the back panels as hidden structure.
+const rearZ = -D + 0.25, rearPlyTh = 0.5;               // 0.5 in plywood back; back face on the -8 rear plane
+let rearIntakeCount = 0, rearExhaustCount = 0, rearPanelCount = 0;
+HB_MODULES.forEach(m => {
+  const x0 = m.buttX0 + 1, x1 = m.buttX1 - 1, w = x1 - x0, cx = (x0 + x1) / 2, sfx = m.key;
+  if (m.ownsMullions) {
+    // CENTER box: TWO-PIECE rear ply — upper FIXED (AFF 36..66) + lower REMOVABLE ~30 in service access panel (AFF 6..36).
+    box(groups.lattice, `HB-BACK-${sfx}-U rear plywood back panel (center box, UPPER fixed; ventilated) 0.5 in ply`, w, 30, rearPlyTh, cx, 51, rearZ, mats.shellGhost, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false });
+    box(groups.lattice, `HB-BACK-${sfx}-L rear plywood REMOVABLE lower service access panel (~30 in tall, center box; unbolts for rear electronics/thermal service; D0-2)`, w, 30, rearPlyTh, cx, 21, rearZ, mats.access, { edgeColor: 0xfb923c, edgeOpacity: 0.6, cast: false });
+    box(groups.lattice, `HB-REAR-ELEC rear electronics mount zone (behind the removable access panel; lighting-control + LED-driver + control gear) [TBD-CONFIRM final gear]`, w - 6, 16, 0.1, cx, 21, rearZ + 0.4, mats.void, { edgeColor: 0x22d3ee, edgeOpacity: 0.4, cast: false });
+    rearPanelCount += 2;
+  } else {
+    box(groups.lattice, `HB-BACK-${sfx} rear plywood back panel (${m.name} box; ventilated; mostly-full sealed-but-vented) 0.5 in ply`, w, 60, rearPlyTh, cx, 36, rearZ, mats.shellGhost, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false });
+    rearPanelCount += 1;
+  }
+  // ventilation: a row of bottom cool-air INTAKE holes (low) + a row of top hot-air EXHAUST holes (high) — drilled circles.
+  for (let hx = x0 + 3; hx <= x1 - 3; hx += 8) {
+    cyl(groups.lattice, `HB-BACK-${sfx} bottom intake vent hole x=${hx.toFixed(0)} (cool-air intake, low; D0-2)`, 0.6, rearPlyTh + 0.1, hx, 7, rearZ, mats.void, 'z', { segments: 18, cast: false });
+    cyl(groups.lattice, `HB-BACK-${sfx} top exhaust vent hole x=${hx.toFixed(0)} (hot-air exhaust, high; natural convection up; D0-2)`, 0.6, rearPlyTh + 0.1, hx, 63, rearZ, mats.void, 'z', { segments: 18, cast: false });
+    rearIntakeCount++; rearExhaustCount++;
+  }
+});
+// The LED-channel mount gap at the top (behind the cap, AFF ~66..70) is the PRIMARY hot-air exhaust up and out.
+box(groups.lattice, 'HB-BACK LED-channel mount gap (TOP exhaust; the ply stops below the crown so hot air exits UP past the LED channel + heatsink; D0-2/D-052)', W - 6, 4, rearPlyTh + 0.2, 0, 68, rearZ, mats.void, { edgeColor: 0x38bdf8, edgeOpacity: 0.5, cast: false });
+// Baseboard notch: the bottom-REAR of each side stile is notched to WRAP the room baseboard so the back sits TIGHT
+// to the wall (freestanding; NO cleat). Concept notch voids at the bottom-rear outer corners.
+[-1, 1].forEach(s => box(groups.lattice, `HB baseboard notch ${s < 0 ? 'L' : 'R'} (bottom-rear notch wraps the room baseboard so the back sits tight; freestanding, no cleat / no wall fixing)`, 3.5, 4.5, 2.5, s * 62.5, 2.25, -6.75, mats.void, { edgeColor: 0x22d3ee, edgeOpacity: 0.55, cast: false }));
+
 // Segmented rear shear rails: each rail stops at the full-depth collectors.
 const rearRailSegments = [[-63, -38], [-34, 34], [38, 63]];
 [24].forEach(y => {
@@ -1796,6 +1832,23 @@ SPEC.courseSeamsAFF.forEach(seamAFF => {
       coolingFanConcept: true,                                              // 3 concept thermal-failsafe fans on the AFF-57 cross-rail [TBD-CONFIRM D-082]
       flangeRestsOnCapTop: true                                             // 44.4 mm flange on the cap top, 35 mm routed cut, <0.25 in buffer
     },
+    // Lee-call Phase 4 (D0-2): ventilated plywood rear back (sealed-but-vented + serviceable), NOT the old open-rear mandate.
+    rear: {
+      construction: 'ventilated plywood back (sealed-but-vented + serviceable; D0-2)',
+      plywoodBack: true,
+      panelCount: rearPanelCount,                                          // 4 (side L + upper/lower center + side R)
+      ventilated: true,
+      sealedUnventilated: false,                                           // negative: NOT a continuous sealed unventilated back
+      bottomIntakeHoles: rearIntakeCount,                                  // cool-air intake, low
+      topExhaustHoles: rearExhaustCount,                                   // hot-air exhaust, high
+      ledSlotExhaustGap: true,                                             // primary exhaust = the LED-channel mount gap at the crown
+      removableAccessPanel: true,                                          // lower center ~30 in removable service panel
+      accessPanelHeightIn: 30,
+      twoPieceCenterBack: true,                                           // center box = upper fixed + lower removable
+      rearElectronicsMountZone: true,
+      baseboardNotch: true,                                               // bottom-rear notch wraps the room baseboard (wall fit)
+      freestandingNoWallCleat: true                                       // NO wall cleat / NO wall attachment ever
+    },
     mullion: {
       construction: 'hollow built-up',
       count: 2,
@@ -1866,7 +1919,7 @@ const noop = () => ({ element: { dataset: {} } });
 
 // buildHeadboard takes the master's engine + label/registry hooks via ctx (here: no-op labels/registry,
 // since the standalone model shows geometry, not the master's CSS2D label/fastener-schedule layers).
-const { headboardModules: HBM, skinField: SF, frame: FR, mullion: MUL, topCap: TC } = buildHeadboard({
+const { headboardModules: HBM, skinField: SF, frame: FR, mullion: MUL, topCap: TC, rear: RR } = buildHeadboard({
   box, cyl, line3, addEdges, label: noop, pieceLabel: noop, registerFastener: () => {}, fastenerLabel: noop,
   mats, groups, FASTENER_TYPES: {}, woodPieces: [], fastenerAssemblies: [], switchPanelAssemblies: [],
   switchRearExitAssemblies: [], bedBoltCutouts: []
@@ -2036,11 +2089,28 @@ window.__BFS01.topCap.pass =
   && window.__BFS01.topCap.coolingFanFailsafeConcept >= 2
   && JSON.stringify(TC.segmentWidths) === JSON.stringify([27, 76, 27])
   && TC.overallWidthResult === 130;
-// Standalone overall pass: Phase-1 module architecture + Phase-2 skin field + built-up frame + Phase-3 top cap.
+// Lee-call Phase 4 (D0-2) — ventilated plywood rear back (sealed-but-vented + serviceable), NOT the open-rear mandate.
+window.__BFS01.rear = {
+  rearPlywoodExists: _hbCnt(/rear plywood back panel/) >= 3 && RR.plywoodBack === true,
+  ventIntakeExists: _hbCnt(/bottom intake vent hole/) >= 1 && (RR.bottomIntakeHoles || 0) >= 1,
+  ventExhaustExists: _hbCnt(/top exhaust vent hole/) >= 1 && _hbNames.some(n => /LED-channel mount gap \(TOP exhaust/.test(n)) && RR.ledSlotExhaustGap === true,
+  removableAccessPanelExists: _hbNames.some(n => /rear plywood REMOVABLE lower service access panel/.test(n)) && RR.removableAccessPanel === true && RR.accessPanelHeightIn === 30,
+  twoPieceCenterBack: RR.twoPieceCenterBack === true,
+  rearElectronicsMountZone: _hbNames.some(n => /rear electronics mount zone/.test(n)),
+  baseboardNotch: _hbCnt(/baseboard notch/) === 2 && RR.baseboardNotch === true,
+  notSealedUnventilated: RR.sealedUnventilated === false && RR.ventilated === true,
+  freestandingNoWallCleat: RR.freestandingNoWallCleat === true && !_hbNames.some(n => /wall cleat|wall bracket|wall attachment (bracket|cleat)/i.test(n))
+};
+window.__BFS01.rear.pass = window.__BFS01.rear.rearPlywoodExists && window.__BFS01.rear.ventIntakeExists
+  && window.__BFS01.rear.ventExhaustExists && window.__BFS01.rear.removableAccessPanelExists
+  && window.__BFS01.rear.twoPieceCenterBack && window.__BFS01.rear.rearElectronicsMountZone
+  && window.__BFS01.rear.baseboardNotch && window.__BFS01.rear.notSealedUnventilated && window.__BFS01.rear.freestandingNoWallCleat;
+// Standalone overall pass: Phase-1 module architecture + Phase-2 skin field + built-up frame + Phase-3 top cap + Phase-4 ventilated rear.
 window.__BFS01.pass = window.__BFS01.headboardModules.pass === true
   && window.__BFS01.skinField.pass === true
   && window.__BFS01.builtUpFrame.pass === true
-  && window.__BFS01.topCap.pass === true;
+  && window.__BFS01.topCap.pass === true
+  && window.__BFS01.rear.pass === true;
 </script>
 </body>
 </html>
