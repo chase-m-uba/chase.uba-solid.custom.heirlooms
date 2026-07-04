@@ -1142,10 +1142,25 @@ function addBuiltUpLFrameMember({ faceName, webName, group = groups.lattice, ori
 }
 
 // Shell — three finished bolt-together boxes (HB-MOD-L / HB-MOD-C / HB-MOD-R) with BUILT-UP L-section outer
-// frame members (Lee-call Phase 2). TOP cap stays ONE continuous 130-in piece for now — it is the LED crown;
-// its built-up + three-butted-segment construction (respecting the continuous routed channel) is Phase 3
-// (plan 16, D0-1). Left whole + Phase-3-compatible here: a TEMPORARY model state, NOT the final "ships whole".
-box(groups.lattice, 'top cap one-piece 130x2x8 (LED crown; built-up + 3-segment split is Phase 3 — temporary whole state, not the final target)', W, 2, D, 0, 71, zMid, mats.shell);
+// frame members (Lee-call Phase 2). ── Lee-call Phase 3 (D0-1, 2026-07-04): the TOP cap is now THREE BUTTED
+// per-box segments (was one continuous 130-in piece). One segment per module, butted at the ±38 mullion outer
+// faces (the SAME butt plane as the bottom rails): HB-TC-L (27 in, −65..−38), HB-TC-C (76 in, −38..+38, spans
+// BOTH ±36 mullions), HB-TC-R (27 in, +38..+65). The side stiles + mullions run FULL height (AFF 2..70) and
+// each cap segment sits on top (y 70..72). The two LED channels + their heatsinks stay ONE continuous drop-in
+// run routed straight ACROSS the butt seams (sub-slots machined to align, so the lit line never breaks) — see
+// the LED block below. This is the owner-approved FINAL construction (D0-1); the one-piece cap is GONE.
+HB_MODULES.forEach(m => {
+  const w = m.buttX1 - m.buttX0;
+  const capId = m.id.replace('MOD', 'TC');   // HB-MOD-C -> HB-TC-C
+  box(groups.lattice, `${capId} top cap segment ${w}x2x8 (${m.name} box; butted per-box top-cap segment at the ±38 mullion face${m.ownsMullions ? '; spans both ±36 mullions + carries the LED crown' : '; butts HB-TC-C at the mullion face'}; continuous drop-in LED run crosses the seams)`, w, 2, D, (m.buttX0 + m.buttX1) / 2, 71, zMid, mats.shell, { edgeColor: 0x6a4d22, edgeOpacity: 0.44 });
+});
+// Top-cap BUTT-SEAM markers at the ±38 module boundaries where adjacent cap segments meet (the continuous LED
+// run crosses these seams). Named WITHOUT the "top cap"/"bottom cap"/"side stile" tokens so the render-export
+// classifier hides the void marker as headboard structure (never a visible furniture-exterior part).
+[-HB_MULLION_FACE, HB_MULLION_FACE].forEach((sx, i) => {
+  const pair = i === 0 ? 'HB-TC-L | HB-TC-C' : 'HB-TC-C | HB-TC-R';
+  box(groups.lattice, `HB-TC crown segment butt-seam plane at module boundary x=${sx} (${pair}; adjacent cap segments butt here; the continuous drop-in LED/heatsink run crosses it unbroken)`, 0.06, 2, D, sx, 71, zMid, mats.void, { edgeColor: 0x22d3ee, edgeOpacity: 0.5, cast: false });
+});
 // BOTTOM cap → three per-module BUILT-UP L-section bottom rails so each box reads as a finished framed unit
 // (plan 16 §1.4). The CENTER rail spans mullion-to-mullion + carries BOTH mullions; the side rails butt to it
 // at the mullion outer faces (±38).
@@ -1277,8 +1292,8 @@ const mulWebX = mulChaseClear / 2 + mulWebTh / 2;                 // web centerl
     id: `F-VB-TC-${sideName}-${pos}`,
     groupKey: 'capFasteners',
     labelSection: 'fastenerCap',
-    joint: `${mullionId} ${pos.toLowerCase()} land to HB-TC-01 (vertical insert draw-bolt)`,
-    pieceIds: [mullionId, 'HB-TC-01'],
+    joint: `${mullionId} ${pos.toLowerCase()} land to HB-TC-C center top-cap segment (vertical insert draw-bolt)`,
+    pieceIds: [mullionId, 'HB-TC-C'],
     x,
     y: 68.8,
     z
@@ -1295,8 +1310,8 @@ const mulWebX = mulChaseClear / 2 + mulWebTh / 2;                 // web centerl
       id: `F-BB-TC-ST-${sideName}-${i + 1}`,
       groupKey: 'capFasteners',
       labelSection: 'fastenerCap',
-      joint: `${stileId} to HB-TC-01 top-cap bed-bolt / barrel-connector drawdown`,
-      pieceIds: [stileId, 'HB-TC-01'],
+      joint: `${stileId} to HB-TC-${sideName} side top-cap segment bed-bolt / barrel-connector drawdown`,
+      pieceIds: [stileId, `HB-TC-${sideName}`],
       x,
       y: 70.75,
       z
@@ -1316,8 +1331,8 @@ const mulWebX = mulChaseClear / 2 + mulWebTh / 2;                 // web centerl
   });
   addTenonKey({
     id: `F-TENON-TC-ST-${sideName}`,
-    joint: `${stileId} to HB-TC-01 alignment key`,
-    pieceIds: [stileId, 'HB-TC-01'],
+    joint: `${stileId} to HB-TC-${sideName} side top-cap segment alignment key`,
+    pieceIds: [stileId, `HB-TC-${sideName}`],
     x,
     y: 69.0,
     z: -4.0,
@@ -1369,23 +1384,38 @@ const mulWebX = mulChaseClear / 2 + mulWebTh / 2;                 // web centerl
 // Top-cap LED system to the REAL LED profile (LED-Hardware-Reference): overall 44.4 mm (1.748 in) wide
 // x 24 mm (0.945 in) deep, inward wings to the 33.4 mm (1.315 in) mouth, TWO strips side-by-side in the 31.4 mm
 // (1.236 in) seat, ~31 mm light aperture; extruded heatsink bonded to the flat 33.4 mm back, fins into the open cavity.
-// 124 in routed run centered in the 130 in cap -> ~3 in solid ash ends. (warm front / red rear; light emits up.)
+// Lee-call Phase 3 (D0-1): the cap is now THREE butted segments (above), but the LED/heatsink is ONE continuous
+// drop-in run of 124 in routed straight ACROSS the two ±38 butt seams (sub-slots machined to align, so the lit
+// line never breaks) — centered in the 130 in crown -> ~3 in solid ash ends. (warm front / red rear; emits up.)
 const VchW = 1.748, VchH = 0.945, Vmouth = 1.315, Vseat = 1.236, Vcut = 1.378, Vflange = 1.748;
+const LED_LIT_LEN = 124, LED_VENT_EXT = 2;                          // routed groove runs LED_VENT_EXT past each lit end for top-vent exhaust (3.4)
 // Two channels CENTERED in the two 1.75 in gaps between the 3 mullion lands (front/center/rear).
 // The routed CUT is 35 mm (1.378 in) wide x full 2 in THROUGH; the 44.4 mm (1.748 in) flange rests ON the cap top.
 [{ z: -2.375, mat: mats.ledWarm, key: 'warm' }, { z: -5.625, mat: mats.ledRed, key: 'red' }].forEach(ch => {
   const chTop = 71.9, chBot = chTop - VchH, chMidY = (chTop + chBot) / 2;
-  box(groups.led, `${ch.key} routed through-slot in 8 in top cap (35 mm cut, full 2 in through; 124 in; emits up)`, 124, 2.0, Vcut + 0.06, 0, 71, ch.z, mats.void, { edgeColor: 0x22d3ee, edgeOpacity: 0.22, cast: false });
-  box(groups.led, `${ch.key} LED channel back (33.4 mm body; heatsink bond face)`, 124, 0.12, Vmouth, 0, chBot + 0.06, ch.z, mats.liftSteel, { edgeOpacity: 0.22 });
-  [-1, 1].forEach(s => box(groups.led, `${ch.key} LED channel side wall ${s < 0 ? 'a' : 'b'}`, 124, VchH, 0.09, 0, chMidY, ch.z + s * (Vcut / 2 - 0.05), mats.liftSteel, { edgeOpacity: 0.2, cast: false }));
-  [-1, 1].forEach(s => box(groups.led, `${ch.key} LED wing/flange ${s < 0 ? 'a' : 'b'} (44.4 mm flange rests ON cap top)`, 124, 0.1, (Vflange - Vmouth) / 2, 0, 71.98, ch.z + s * (Vmouth / 2 + (Vflange - Vmouth) / 4), mats.liftSteel, { edgeOpacity: 0.18, cast: false }));
-  [-1, 1].forEach(s => box(groups.led, `${ch.key} LED-channel strip ${s < 0 ? '1' : '2'} (emits up)`, 124, 0.12, Vseat / 2 - 0.07, 0, chTop - 0.18, ch.z + s * Vseat / 4, ch.mat, { edgeOpacity: 0.14 }));
-  box(groups.led, `${ch.key} extruded heatsink base (bonded to channel back)`, 124, 0.45, Vmouth - 0.06, 0, chBot - 0.24, ch.z, mats.liftSteel, { edgeColor: 0xd1d5db, edgeOpacity: 0.24 });
-  [-0.62, -0.31, 0, 0.31, 0.62].forEach((dz, k) => box(groups.led, `${ch.key} extruded heatsink fin ${k} (into open cavity)`, 124, 1.5, 0.06, 0, chBot - 1.2, ch.z + dz, mats.steel, { edges: false, cast: false }));
+  box(groups.led, `${ch.key} routed through-slot in 8 in top cap (35 mm cut, full 2 in through; ${LED_LIT_LEN} in continuous drop-in run across the 3 cap segments; emits up)`, LED_LIT_LEN, 2.0, Vcut + 0.06, 0, 71, ch.z, mats.void, { edgeColor: 0x22d3ee, edgeOpacity: 0.22, cast: false });
+  box(groups.led, `${ch.key} LED channel back (33.4 mm body; heatsink bond face)`, LED_LIT_LEN, 0.12, Vmouth, 0, chBot + 0.06, ch.z, mats.liftSteel, { edgeOpacity: 0.22 });
+  [-1, 1].forEach(s => box(groups.led, `${ch.key} LED channel side wall ${s < 0 ? 'a' : 'b'}`, LED_LIT_LEN, VchH, 0.09, 0, chMidY, ch.z + s * (Vcut / 2 - 0.05), mats.liftSteel, { edgeOpacity: 0.2, cast: false }));
+  [-1, 1].forEach(s => box(groups.led, `${ch.key} LED wing/flange ${s < 0 ? 'a' : 'b'} (44.4 mm flange rests ON cap top; <0.25 in side buffer)`, LED_LIT_LEN, 0.1, (Vflange - Vmouth) / 2, 0, 71.98, ch.z + s * (Vmouth / 2 + (Vflange - Vmouth) / 4), mats.liftSteel, { edgeOpacity: 0.18, cast: false }));
+  [-1, 1].forEach(s => box(groups.led, `${ch.key} LED-channel strip ${s < 0 ? '1' : '2'} (emits up)`, LED_LIT_LEN, 0.12, Vseat / 2 - 0.07, 0, chTop - 0.18, ch.z + s * Vseat / 4, ch.mat, { edgeOpacity: 0.14 }));
+  box(groups.led, `${ch.key} extruded heatsink base (bonded to channel back)`, LED_LIT_LEN, 0.45, Vmouth - 0.06, 0, chBot - 0.24, ch.z, mats.liftSteel, { edgeColor: 0xd1d5db, edgeOpacity: 0.24 });
+  [-0.62, -0.31, 0, 0.31, 0.62].forEach((dz, k) => box(groups.led, `${ch.key} extruded heatsink fin ${k} (into open cavity)`, LED_LIT_LEN, 1.5, 0.06, 0, chBot - 1.2, ch.z + dz, mats.steel, { edges: false, cast: false }));
+  // (3.4) TOP-VENT EXHAUST: the routed groove runs ~2 in PAST the lit channel at each end so hot air rises out the groove ends.
+  [-1, 1].forEach(s => box(groups.led, `${ch.key} LED-groove top-vent exhaust extension ${s < 0 ? 'L' : 'R'} (routed groove runs ${LED_VENT_EXT} in past the lit end; hot air exits UP)`, LED_VENT_EXT, 2.0, Vcut + 0.06, s * (LED_LIT_LEN / 2 + LED_VENT_EXT / 2), 71, ch.z, mats.void, { edgeColor: 0x38bdf8, edgeOpacity: 0.5, cast: false }));
+  // (3.3) LED-CHANNEL VENTILATION: bridged round holes on ~9 in centers along the slot edge (concept; passive convection intake/exhaust for the channel).
+  for (let vx = -54; vx <= 54; vx += 9) cyl(groups.led, `${ch.key} LED-channel bridged vent hole x=${vx} (~9 in centers along the slot edge; passive convection)`, 0.2, 2.0, vx, 71, ch.z + (Vcut / 2 + 0.18), mats.void, 'y', { segments: 16, cast: false });
 });
-// The cap is ONE 130 in board (see top cap one-piece, above); the 124 in run is routed INTO it, leaving ~3 in of
-// solid (un-routed) ash at each end. There are NO separate end blocks — the ends are just the same one-piece cap.
-[-2.375, -5.625].forEach((gz, i) => box(groups.led, `continuous LED/heatsink run through mullion gap ${i + 1} (124 in)`, 124, 4, 1.75, 0, 68, gz, mats.void, { edgeColor: 0x22d3ee, edgeOpacity: 0.32, cast: false }));
+// (3.5) CONCEPT COOLING FANS (thermal FAILSAFE) on the AFF-57 top course cross-rail below the cap — quiet PWM fans
+// sweep the 124 in of fins; expected to rarely/never run (the passive extruded heatsink is the primary). Concept-level part /
+// location + controller [TBD-CONFIRM Lee/thermal bench test, D-082]. Named without cap tokens so the render classifier hides them.
+[-40, 0, 40].forEach((fx, i) => {
+  box(groups.led, `HB-FAN-${i + 1} concept cooling fan / thermal-failsafe location on the AFF-57 cross-rail below the cap [TBD-CONFIRM controller/thermal bench, D-082] x=${fx}`, 2.4, 2.4, 1.0, fx, 58.5, -6.6, mats.darkSteel, { edgeColor: 0x94a3b8, edgeOpacity: 0.4, cast: false });
+  cyl(groups.led, `HB-FAN-${i + 1} concept fan hub x=${fx}`, 0.5, 0.9, fx, 58.5, -6.6, mats.steel, 'z', { segments: 20, cast: false });
+});
+// The cap is now THREE butted segments (see the top-cap segments, above); the 124 in LED run is routed as ONE
+// continuous drop-in piece straight across the two ±38 butt seams (sub-slots machined to align), leaving ~3 in of
+// solid (un-routed) ash at each end of the crown. The lit line never breaks at a segment seam (D0-1/D-033).
+[-2.375, -5.625].forEach((gz, i) => box(groups.led, `continuous LED/heatsink run across cap segment seams + mullion gap ${i + 1} (124 in, unbroken)`, 124, 4, 1.75, 0, 68, gz, mats.void, { edgeColor: 0x22d3ee, edgeOpacity: 0.32, cast: false }));
 
 // Segmented rear shear rails: each rail stops at the full-depth collectors.
 const rearRailSegments = [[-63, -38], [-34, 34], [38, 63]];
@@ -1745,7 +1775,26 @@ SPEC.courseSeamsAFF.forEach(seamAFF => {
       returnWebDepth: SPEC.frameWebDepth,                                    // 7.125
       overallDepth: SPEC.D,                                                  // 8 (0.875 face + 7.125 web)
       proudFacePlaneZ: 0,                                                    // skins recess 3/16 behind this
-      members: ['top cap one-piece (LED crown; Phase-3 segment)', '3 per-module bottom rails (built-up L)', '2 side stiles (built-up L)']
+      members: ['3 butted per-box top-cap segments (LED crown; Phase 3)', '3 per-module bottom rails (built-up L)', '2 side stiles (built-up L)']
+    },
+    // Lee-call Phase 3 (D0-1): the top cap is THREE butted per-box segments carrying ONE continuous drop-in LED run.
+    topCap: {
+      segmented: true,
+      onePiece: false,                                                       // negative guard: the one-piece 130-in cap is GONE
+      segmentCount: HB_MODULES.length,                                       // 3
+      segments: HB_MODULES.map(m => ({ id: m.id.replace('MOD', 'TC'), key: m.key, name: m.name, x0: m.buttX0, x1: m.buttX1, width: m.buttX1 - m.buttX0, spansMullions: m.ownsMullions })),
+      segmentWidths: HB_MODULES.map(m => m.buttX1 - m.buttX0),               // [27, 76, 27]
+      buttSeamsX: [-HB_MULLION_FACE, HB_MULLION_FACE],                       // ±38 module boundaries where segments meet
+      overallWidthResult: HB_MODULES.reduce((a, m) => a + (m.buttX1 - m.buttX0), 0),  // 130 (result of the 3 segments)
+      centerSegmentSpansBothMullions: HB_MODULES.find(m => m.key === 'C').ownsMullions === true,
+      ledContinuousAcrossSeams: true,                                        // ONE drop-in 124 in LED/heatsink run crosses the ±38 seams unbroken
+      ledRunLength: LED_LIT_LEN,                                             // 124
+      ledChannelCount: 2,                                                    // warm + red (front/rear lands preserved)
+      threeLandWReliefPreserved: true,                                       // front/center/rear lands + two channel gaps intact
+      ledVentExhaustExtensionEachInches: LED_VENT_EXT,                       // routed groove runs 2 in past each lit end (top-vent exhaust)
+      ledVentHoleCentersInches: 9,                                           // bridged round vent holes ~9 in centers along the slot edge
+      coolingFanConcept: true,                                              // 3 concept thermal-failsafe fans on the AFF-57 cross-rail [TBD-CONFIRM D-082]
+      flangeRestsOnCapTop: true                                             // 44.4 mm flange on the cap top, 35 mm routed cut, <0.25 in buffer
     },
     mullion: {
       construction: 'hollow built-up',
@@ -1817,7 +1866,7 @@ const noop = () => ({ element: { dataset: {} } });
 
 // buildHeadboard takes the master's engine + label/registry hooks via ctx (here: no-op labels/registry,
 // since the standalone model shows geometry, not the master's CSS2D label/fastener-schedule layers).
-const { headboardModules: HBM, skinField: SF, frame: FR, mullion: MUL } = buildHeadboard({
+const { headboardModules: HBM, skinField: SF, frame: FR, mullion: MUL, topCap: TC } = buildHeadboard({
   box, cyl, line3, addEdges, label: noop, pieceLabel: noop, registerFastener: () => {}, fastenerLabel: noop,
   mats, groups, FASTENER_TYPES: {}, woodPieces: [], fastenerAssemblies: [], switchPanelAssemblies: [],
   switchRearExitAssemblies: [], bedBoltCutouts: []
@@ -1954,10 +2003,44 @@ window.__BFS01.builtUpFrame.pass =
   && window.__BFS01.builtUpFrame.mullionChaseClearsMin === true
   && window.__BFS01.builtUpFrame.switchPocketFitsChase === true
   && window.__BFS01.builtUpFrame.noOnePieceExtrudedMullion === true;
-// Standalone overall pass: Phase-1 module architecture + Phase-2 skin field + built-up frame.
+// Lee-call Phase 3 (D0-1) — top cap = THREE butted per-box segments carrying ONE continuous drop-in LED run (scene + shared metadata).
+window.__BFS01.topCap = {
+  segmentCount: _hbCnt(/top cap segment/),
+  metaSegmentCount: TC.segmentCount,
+  noOnePieceCap: !_hbNames.some(n => /top cap one[- ]piece/.test(n)),
+  buttSeamPlanes: _hbCnt(/crown segment butt-seam plane/),
+  centerSegmentSpansBothMullions: TC.centerSegmentSpansBothMullions === true,
+  ledContinuousAcrossSeams: _hbNames.some(n => /continuous LED\/heatsink run across cap segment seams/.test(n)) && TC.ledContinuousAcrossSeams === true,
+  ledRunLength: TC.ledRunLength,
+  ledChannelCount: TC.ledChannelCount,
+  threeLandWReliefPreserved: TC.threeLandWReliefPreserved === true && _hbCnt(/routed through-slot in 8 in top cap/) === 2,
+  ledTopVentExhaustExtensions: _hbCnt(/top-vent exhaust extension/),
+  ledChannelVentHoles: _hbCnt(/bridged vent hole/),
+  coolingFanFailsafeConcept: _hbCnt(/concept cooling fan/),
+  segmentWidths: TC.segmentWidths,
+  overallWidthResult: TC.overallWidthResult
+};
+window.__BFS01.topCap.pass =
+     window.__BFS01.topCap.segmentCount === 3
+  && TC.segmentCount === 3
+  && window.__BFS01.topCap.noOnePieceCap === true
+  && window.__BFS01.topCap.buttSeamPlanes === 2
+  && JSON.stringify(TC.buttSeamsX) === JSON.stringify([-38, 38])
+  && window.__BFS01.topCap.centerSegmentSpansBothMullions === true
+  && window.__BFS01.topCap.ledContinuousAcrossSeams === true
+  && TC.ledRunLength === 124
+  && TC.ledChannelCount === 2
+  && window.__BFS01.topCap.threeLandWReliefPreserved === true
+  && window.__BFS01.topCap.ledTopVentExhaustExtensions >= 2
+  && window.__BFS01.topCap.ledChannelVentHoles >= 8
+  && window.__BFS01.topCap.coolingFanFailsafeConcept >= 2
+  && JSON.stringify(TC.segmentWidths) === JSON.stringify([27, 76, 27])
+  && TC.overallWidthResult === 130;
+// Standalone overall pass: Phase-1 module architecture + Phase-2 skin field + built-up frame + Phase-3 top cap.
 window.__BFS01.pass = window.__BFS01.headboardModules.pass === true
   && window.__BFS01.skinField.pass === true
-  && window.__BFS01.builtUpFrame.pass === true;
+  && window.__BFS01.builtUpFrame.pass === true
+  && window.__BFS01.topCap.pass === true;
 </script>
 </body>
 </html>

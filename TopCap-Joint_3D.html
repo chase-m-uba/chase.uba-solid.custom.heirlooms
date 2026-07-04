@@ -1,16 +1,18 @@
 <!DOCTYPE html>
 <!--
-  TopCap-Joint - Mullion / Top-Cap U-Joint Detail (V1 builder review).
-  Close-up of ONE headboard mullion top meeting the 130x2x8 top cap: the one-piece W-relief (THREE 1.5in
-  lands), the two LED LED channels (35mm cuts) + extruded heatsinks running CONTINUOUSLY through the
-  two gaps, and the three vertical insert draw-bolts (one per land). Units: inches; X width, Y height AFF, Z front(0) -> rear(-8).
+  TopCap-Joint - Segmented Top-Cap / Mullion Joint Detail (Lee-call Phase 3, D0-1).
+  Close-up of ONE headboard mullion top where two BUTTED top-cap segments meet at the module boundary: the top
+  cap is now THREE per-box segments (was one 130x2x8 piece), the W-relief 3-land throat is machined into the
+  full-height built-up mullion, and the two LED channels (35mm cuts) + extruded heatsinks run CONTINUOUSLY as
+  ONE drop-in piece across BOTH the mullion gaps AND the cap butt seam; three vertical insert draw-bolts (one
+  per land) pull the center cap segment down. Units: inches; X width, Y height AFF, Z front(0) -> rear(-8).
   Canonical companion to Blueprints/Full-Bed_3D.html and Rationale Register sec5.
 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>TopCap-Joint - Mullion / Top-Cap U-Joint Detail (V1)</title>
+<title>TopCap-Joint - Segmented Top-Cap / Mullion Joint Detail</title>
 <style>
   * { box-sizing: border-box; }
   html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #0b1018; color: #eef4fb; font-family: Inter, "Segoe UI", Arial, sans-serif; }
@@ -50,12 +52,12 @@
 <body>
 <div id="app"></div>
 <section class="hud">
-  <h1>TopCap-Joint &middot; Mullion / Top-Cap U-Joint Detail</h1>
-  <p>Close-up of one <b>4 &times; 8 in full-depth mullion</b> meeting the one-piece <b>130 &times; 2 &times; 8 in</b> top cap. Drag to orbit, scroll to zoom; toggle the layers at lower-left. V1 builder review &mdash; inches.</p>
+  <h1>TopCap-Joint &middot; Segmented Top-Cap / Mullion Joint Detail</h1>
+  <p>Close-up of one <b>4 &times; 8 in full-depth mullion</b> where two <b>butted top-cap segments</b> meet at the module boundary (the cap is now THREE per-box segments; the continuous drop-in LED run crosses the seam unbroken). Drag to orbit, scroll to zoom; toggle the layers at lower-left. Lee-call Phase 3 (D0-1) &mdash; inches.</p>
 </section>
 <aside class="legend">
   <h2>Legend</h2>
-  <div class="row"><span class="sw" style="background:#c79a5b"></span><div><b>Ash</b> &mdash; one-piece mullion + top cap (channels routed in; no end blocks)</div></div>
+  <div class="row"><span class="sw" style="background:#c79a5b"></span><div><b>Ash</b> &mdash; full-height mullion + <b>3 butted top-cap segments</b> (LED channels routed continuous across the seams)</div></div>
   <div class="row"><span class="sw" style="background:#ffd9a0"></span><div>Warm-white LED channel (front)</div></div>
   <div class="row"><span class="sw" style="background:#ff5a5a"></span><div>Deep-red LED channel (rear)</div></div>
   <div class="row"><span class="sw" style="background:#c9d2dc"></span><div>Aluminium channel + extruded heatsink</div></div>
@@ -83,7 +85,7 @@
     </div>
   </div>
 </nav>
-<div class="footer">TopCap-Joint &middot; one-piece mullion / top-cap U-joint &middot; companion to Full-Bed + TopCap-LED &middot; Bed Frame project</div>
+<div class="footer">TopCap-Joint &middot; segmented top-cap (3 butted per-box segments) / full-height mullion joint &middot; companion to Full-Bed &middot; Bed Frame project</div>
 
 <script type="importmap">
 { "imports": {
@@ -482,17 +484,24 @@ function dim(name, a, b, color = 0x6f8bb5) {
 }
 
 // =========================================================================================
-// 1) TOP CAP SECTION (one-piece 130x2x8; here a 46-in slice centred on the mullion)
+// 1) TOP CAP — THREE BUTTED per-box segments (Lee-call Phase 3, D0-1). This detail shows the joint at ONE
+//    module boundary (the ±38 mullion OUTER FACE, local x=-2, 2 in from the mullion center at x=0): the CENTER
+//    cap segment (HB-TC-C, over the mullion) BUTTS the SIDE cap segment (HB-TC-L) here, and the continuous
+//    drop-in LED run crosses the butt seam unbroken. The old one-piece 130-in cap is GONE.
 // =========================================================================================
-box(groups.wood, 'HB-TC-01 top cap one-piece (130x2x8; 46 in section shown)', SPEC.capSection, SPEC.capH, SPEC.D,
-  0, (SPEC.capTopY + SPEC.capBotY) / 2, BACK / 2, mats.ashCap, { edgeColor: 0x6a4d22, edgeOpacity: 0.5 });
-// two routed LED through-slots in the cap underside (front warm, rear red) -- the cap is notched, LED emits UP
+const CAP_SEAM_X = -2;                                     // module boundary = mullion outer face (mullion center x=0)
+const capMidY = (SPEC.capTopY + SPEC.capBotY) / 2, capZc = BACK / 2;
+box(groups.wood, `HB-TC-C top cap segment (center box; spans the mullion + carries the LED crown; 76 in in the full cap, ${23 - CAP_SEAM_X} in slice shown)`, 23 - CAP_SEAM_X, SPEC.capH, SPEC.D, (CAP_SEAM_X + 23) / 2, capMidY, capZc, mats.ashCap, { edgeColor: 0x6a4d22, edgeOpacity: 0.5 });
+box(groups.wood, `HB-TC-L top cap segment (left side box; 27 in in the full cap, ${CAP_SEAM_X + 23} in slice shown; butts HB-TC-C at the mullion face)`, CAP_SEAM_X + 23, SPEC.capH, SPEC.D, (-23 + CAP_SEAM_X) / 2, capMidY, capZc, mats.ashCap, { edgeColor: 0x6a4d22, edgeOpacity: 0.5 });
+box(groups.wood, 'HB-TC cap butt seam at the module boundary (adjacent cap segments meet; the continuous drop-in LED run crosses it unbroken)', 0.05, SPEC.capH + 0.02, SPEC.D, CAP_SEAM_X, capMidY, capZc, mats.void, { edgeColor: 0x22d3ee, edgeOpacity: 0.75, cast: false });
+// two routed LED through-slots -- ONE continuous drop-in run across the butt seam (front warm, rear red); the cap is notched, LED emits UP
 [['front warm warm-white', -2.375], ['rear red deep-red', -5.625]].forEach(([k, cz]) =>
-  box(groups.wood, `HB-TC-01 routed LED through-slot (${k}; 35 mm cut, full 2 in through)`, SPEC.capSection, SPEC.capH + 0.04, SPEC.Vch.cut, 0, SPEC.capTopY - 1, cz, mats.void,
+  box(groups.wood, `routed LED through-slot (${k}; 35 mm cut, full 2 in through; continuous drop-in run crosses the cap butt seam)`, SPEC.capSection, SPEC.capH + 0.04, SPEC.Vch.cut, 0, SPEC.capTopY - 1, cz, mats.void,
     { edgeColor: 0x38bdf8, edgeOpacity: 0.5, cast: false }));
 
 // =========================================================================================
-// 2) ONE-PIECE MULLION (single extruded W-profile, 3 lands -> no internal seam lines)
+// 2) FULL-HEIGHT HOLLOW BUILT-UP MULLION (Phase 2) with the W-relief 3-land throat machined into its top
+//    (Phase 3): the side stiles + mullions run FULL height and the segmented cap bears on the 3 lands.
 // =========================================================================================
 (function () {
   const g1f = SPEC.uFrontLand, g1b = g1f + SPEC.uGap, clb = g1b + SPEC.uCenterLand, g2b = clb + SPEC.uGap;
@@ -505,7 +514,7 @@ box(groups.wood, 'HB-TC-01 top cap one-piece (130x2x8; 46 in section shown)', SP
   s.lineTo(-SPEC.D, SPEC.throatTopY); s.closePath();
   const geo = new THREE.ExtrudeGeometry(s, { depth: SPEC.mullionW, bevelEnabled: false });
   const m = new THREE.Mesh(geo, mats.ash); m.rotation.y = -Math.PI / 2; m.position.set(SPEC.mullionW / 2, 0, 0);
-  m.castShadow = true; m.receiveShadow = true; m.name = 'HB-MUL one-piece mullion (single extruded W-profile board, 3 lands) 4x8';
+  m.castShadow = true; m.receiveShadow = true; m.name = 'HB-MUL hollow built-up mullion top — W-relief 3-land throat machined into the full-height built-up mullion (7/8 face board + two spaced webs below); the segmented cap bears on the 3 lands; 4x8';
   groups.wood.add(m);
   m.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo, 20), new THREE.LineBasicMaterial({ color: 0x6a4d22, transparent: true, opacity: 0.55 })));
 })();
@@ -536,6 +545,8 @@ chans.forEach(c => {
 });
 // the two continuous-run clearances passing through the mullion GAPS (proof the LED never breaks at the mullion)
 [-2.375, -5.625].forEach((gz, i) => box(groups.led, `continuous LED + heatsink run THROUGH the mullion gap ${i + 1}`, runLen, 3.0, SPEC.uGap, 0, SPEC.throatTopY - 2, gz, mats.void, { edgeColor: 0x22d3ee, edgeOpacity: 0.4, cast: false }));
+// Phase-3 proof: the ONE continuous drop-in LED/heatsink run also crosses the CAP BUTT SEAM unbroken (sub-slots machined to align across the two adjacent cap segments).
+box(groups.led, 'continuous drop-in LED run crosses the cap butt seam unbroken (Phase 3; sub-slots machined to align across the segments)', 3.0, chH + 0.3, 4.6, CAP_SEAM_X, 71.4, -4.0, mats.void, { edgeColor: 0x22d3ee, edgeOpacity: 0.55, cast: false });
 
 // =========================================================================================
 // 4) THREE VERTICAL INSERT DRAW-BOLTS (cap <-> mullion) -- one per land (front / center / rear). D-089: replaces the
@@ -566,8 +577,8 @@ dim('rear land 1.5', [xL + 1.2, 70.6, -_g2b], [xL + 1.2, 70.6, -SPEC.D]);
 dim('cap 2.0', [xL, 72, 0.2], [xL, 70, 0.2]);
 dim('mullion 4 wide', [-2, 58.4, 0.3], [2, 58.4, 0.3]);
 
-label('HB-TC-01 top cap 130 x 2 x 8', -SPEC.capSection / 2 + 6, 72.9, BACK / 2, 'metal');
-label('one-piece 4 x 8 mullion (extruded W-profile, 3 lands - no stacked seams)', 2.6, 60, -1, '');
+label('HB-TC top cap = 3 butted per-box segments (this joint = center | side seam at the mullion face)', -SPEC.capSection / 2 + 6, 72.9, BACK / 2, 'metal');
+label('full-height 4 x 8 hollow built-up mullion; W-relief 3-land throat machined into the top; the segmented cap bears on the 3 lands', 2.6, 60, -1, '');
 label('W-relief NOTCHED from one board: 1.5 land / 1.75 gap / 1.5 land / 1.75 gap / 1.5 land, 4.0 drop', xL + 1.6, 71.4, -4, 'dim');
 label('WHY: two LED runs pass through the two gaps -> top light never breaks; the new center land carries the middle of the cap', -2, 73.8, -4.0, 'warm');
 label('front LED channel = warm-white (35 mm cut, centered in the gap)', -SPEC.capSection / 2 + 7, 70.2, -2.375, 'warm');
@@ -628,24 +639,31 @@ addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; cam
   const names = []; scene.traverse(o => { if (o.name) names.push(o.name); });
   const has = re => names.some(n => re.test(n));
   const cnt = re => names.filter(n => re.test(n)).length;
+  // ── Lee-call Phase 3 (D0-1): SEGMENTED-CAP contract. The old one-piece-cap / one-piece-mullion assumptions are
+  //    RETIRED — this contract FAILS if a one-piece cap is present, and PROVES the 3-butted-segment crown with a
+  //    continuous drop-in LED run across the butt seam. (fails[] considers only booleans, so numeric metadata is allowed.)
   window.__BF_D08 = {
-    onePieceMullion: cnt(/one-piece mullion .*extruded W-profile/) === 1,
-    wProfileThreeLands: has(/W-profile/) && has(/3 lands/),
+    capTwoButtedSegmentsShown: cnt(/top cap segment/) === 2,           // this joint slice shows 2 of the 3 segments (center + side) butting at the module boundary
+    fullCapSegmentCount: 3,                                            // metadata: the full crown is THREE butted segments
+    noOnePieceCap: !has(/top cap one[- ]piece/),                       // negative guard: the old one-piece 130-in cap is GONE
+    capButtSeam: has(/cap butt seam at the module boundary/),
+    mullionFullHeightBuiltUpTop: has(/hollow built-up mullion top/),   // full-height built-up mullion (Phase 2), NOT a one-piece extruded board
+    wReliefThreeLands: has(/W-relief/) && (has(/3-land/) || has(/3 land/)),
+    noOnePieceMullion: !has(/one-piece mullion/) && !has(/single extruded W-profile/),  // negative guard: old one-piece extruded mullion GONE
     centerLand: has(/center land/i),                                   // the dim 'center land 1.5'
     twoLedChannels: cnt(/LED .*channel back/) === 2,
     warmAndRed: (has(/warm channel/) && has(/red channel/)),
     heatsinkFins: cnt(/extruded heatsink .*fin/) >= 8,
     flangeOnCapTop: cnt(/flange rests ON cap top/i) >= 2,
+    ledContinuousAcrossCapSeam: has(/continuous drop-in LED run crosses the cap butt seam/),
     continuousRunThroughGaps: cnt(/continuous LED \+ heatsink run THROUGH the mullion gap/) === 2,
     threeCapDrawBolts: cnt(/F-VB cap draw-bolt stud/) === 3,
     metalBearingFace: cnt(/metal washer bearing face/) === 3,
     threadedInserts: cnt(/threaded insert in cap/) === 3,
-    openRearCavity: has(/open rear service cavity/),
-    capSection: has(/top cap one-piece/),
-    dimsPresent: window.document.querySelectorAll ? true : true
+    openRearCavity: has(/open rear service cavity/)
   };
   const d = window.__BF_D08;
-  d.fails = Object.keys(d).filter(k => k !== 'fails' && d[k] !== true);
+  d.fails = Object.keys(d).filter(k => k !== 'fails' && typeof d[k] === 'boolean' && d[k] !== true);
   window.__BF_LOAD_OK = true; window.__BF_RENDER_OK = true;
   window.__BF_VALIDATION_OK = (d.fails.length === 0);
   window.__BF_OK = (window.__BF_VALIDATION_OK === true);
