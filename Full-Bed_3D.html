@@ -178,7 +178,7 @@
   <div class="panel-head" data-collapse="hudPanel"><span>Full-Bed &#183; Master Assembly &#183; V1</span><span class="caret">&#9662;</span></div>
   <div class="panel-body">
   <p>Canonical full-bed master assembly: detailed open-back headboard, the <b>74 x 85</b> grounded 6-drawer base, and the <b>74 x 41 x 16</b> TV-lift footboard. V1 builder-review geometry; sample/builder-confirm items are labeled.</p>
-  <p>The headboard remains the detailed <b>130 x 72 x 8 in</b> open-back assembly. Front face is twelve <b>7/8 in removable flush front skins</b> (four horizontal courses x three bays, seams at AFF 20/40/60); structural loads land in the side stiles, two full-depth mullions, deeper receiver rails, and the lower receiver ladder.</p>
+  <p>The headboard remains the detailed <b>130 x 72 x 8 in</b> open-back assembly. Front face is twelve <b>7/8 in recessed field skins</b> (four horizontal courses x three bays, seams at AFF 19/38/57, recessed 3/16 in behind the proud face-frame; standard courses glued+screwed, the speaker course screw-only); structural loads land in the built-up L side stiles, two hollow built-up mullions, deeper receiver rails, and the lower receiver ladder.</p>
   <p>The top mullions use the current <b>3-land W-relief</b>: three 1.5 in lands (front / center / rear) with two 1.75 in gaps for the 35 mm channels, 4.0 in service drop. The cap pulls down with <b>three vertical insert draw-bolts per mullion</b> (one per land).</p>
   </div>
 </section>
@@ -255,7 +255,7 @@
       <button data-toggle="lowerLadderFasteners" class="active">Lower Ladder Fasteners</button>
       <button data-toggle="baseTieFasteners" class="active">Base Tie Fasteners</button>
       <button data-toggle="nightstandFasteners" class="active">Nightstand Fasteners</button>
-      <button data-toggle="panelKeeperFasteners" class="active">Front-skin retainers</button>
+      <button data-toggle="panelKeeperFasteners" class="active">Front-skin screws</button>
       <button data-toggle="alignmentKeys" class="active">Alignment Keys</button>
       <button id="allFastenersToggle" class="active">All Fasteners</button>
     </div>
@@ -284,7 +284,7 @@
       <button data-label-section="fastenerLadder">Ladder Fastener IDs</button>
       <button data-label-section="fastenerBase">Base Tie IDs</button>
       <button data-label-section="fastenerNightstand">Nightstand Fastener IDs</button>
-      <button data-label-section="fastenerPanel">Front-skin retainer IDs</button>
+      <button data-label-section="fastenerPanel">Front-skin screw IDs</button>
       <button data-label-section="fastenerAlign">Alignment Key IDs</button>
       <button id="fastenerLabelsAll">Fastener Labels</button>
       <button id="labelsAll">All Labels</button>
@@ -633,10 +633,15 @@ const SPEC = Object.freeze({
   sideW: 2,
   panelTh: 0.875,
   skinTh: 0.875,
-  courseSeamsAFF: [20, 40, 60],      // front skins are horizontal COURSES <=20 in tall (board-width / warp limit, builder 2026-06-06); seams at AFF 20/40/60 -> course heights 18/20/20/10; speaker in the 40-60 course (D-060/D-008, owner 2026-06-07)
+  skinReveal: 0.1875,                 // field skins sit 3/16 in BEHIND the proud face-frame front plane (recessed field panels let into a dado; D0-5 owner 2026-07-03, Lee-call Phase 2)
+  courseSeamsAFF: [19, 38, 57],       // front skins are horizontal COURSES <=19 in tall (grain horizontal; D0-6 owner 2026-07-03); seams at AFF 19/38/57 -> course heights 17/19/19/13; the speaker cutout (43.995..55.255 AFF) sits fully INSIDE the 38..57 speaker course, so NO horizontal seam crosses it (D-060/D-008, Lee-call Phase 2; was 20/40/60 -> 18/20/20/10)
+  courseMaxHeight: 19,                // <=19 in horizontal-course cap (D0-6; was <=20)
   loadReceiverRailDepth: 7,
-  skinRetainer: { proj: 0.75, depth: 1.0, boltSpacing: 15, speakerProj: 1.0, speakerDepth: 1.25, speakerBoltSpacing: 10, movementAllowance: 0.125, datumPerSkin: 1 },  // HB-RET picture-frame retainer lips (D-092): proj into opening, front at the 7/8 in skin-back plane; RTF-IB to frame inner face + SKR-IB skin-to-lip from the open rear; [TBD-CONFIRM Lee]
+  frameFaceTh: 0.875,                 // built-up L-section outer frame members (top cap / bottom rails / side stiles): 7/8 in visible show-FACE board at the proud front plane (Lee-call Phase 2, rpt 6)
+  frameWebDepth: 7.125,              // built-up L-section return WEB depth (0.875 face + 7.125 web ~= 8 in overall visual depth); replaces the solid 2x8 slab (true ash slab not stocked / cracks, rpt 6/34)
   mullionW: 4,
+  mullionFaceTh: 0.875,             // hollow built-up mullion: 7/8 in show-FACE board spanning the 4 in mullion width (Lee-call Phase 2, rpt 7/9; was one solid extruded W-profile board)
+  mullionWebTh: 0.875,              // hollow built-up mullion: each of TWO spaced 7/8 in webs; clear internal chase = 4 - 2*0.875 = 2.25 in (>2 in) carries the switch pocket + rear wire chase
   seamX: 36,
   uDrop: 4,
   uFrontLand: 1.5,
@@ -1190,66 +1195,34 @@ function addSmallScrew({ id, groupKey, labelSection, type = 'KS', joint, pieceId
   fastenerLabel(id, type, x + 0.45, y + 0.25, z, labelSection);
 }
 
-// --- Front-skin retention: picture-frame retainer lips, one set per skin (D-092) -------------------------
-// PICTURE FRAME: each skin drops into its opening FROM THE FRONT and seats on a recessed ash lip fixed to the
-// INNER FACE of each bounding frame member (stile / mullion / cross-rail / cap). The lip front sits at the skin
-// back plane (z = -panelTh, i.e. 7/8 in deep) and projects `proj` INTO the opening, so the skin laps onto it and
-// the show face stays flush. Every lip sits JUST INSIDE the opening (inboard of the member body), so the open
-// rear cavity is right behind it -> BOTH bolts are reachable: RTF-IB drives laterally from the lip into the member
-// inner face; SKR-IB drives from the OPEN REAR through the lip into the skin back. Horizontal lips are inset clear
-// of the full-depth cross-rails/caps. One brass datum SKR per skin (bottom lip centre); the rest are steel slip
-// points (vertical clearance) so the course breathes up across the grain. Speaker skins get a beefier lip + bolts.
-function addSkinRetention(p) {
-  const grp = groups.panelKeeperFasteners, R = SPEC.skinRetainer, isSpk = !!p.isSpeakerPanel;
-  const proj = isSpk ? R.speakerProj : R.proj;          // lip projection INTO the opening (the seat width)
-  const dep = isSpk ? R.speakerDepth : R.depth;         // lip thickness in z
-  const gap = isSpk ? R.speakerBoltSpacing : R.boltSpacing;
-  const hins = 1.0;                                     // horizontal lips inset past the cross-rail/cap body (rear access)
-  const zF = -SPEC.panelTh, zc = zF - dep / 2, zR = zF - dep;   // lip front = skin back; SKR heads at zR (open rear)
-  const cxS = (p.x0 + p.x1) / 2, cyS = (p.y0 + p.y1) / 2;
-  const yB = p.y0 + hins, yT = p.y1 - hins;
-  const fL = p.col === 'L' ? 'HB-ST-L' : p.col === 'C' ? 'HB-MUL-L' : 'HB-MUL-R';
-  const fR = p.col === 'L' ? 'HB-MUL-L' : p.col === 'C' ? 'HB-MUL-R' : 'HB-ST-R';
-  const fB = { C1: 'HB-BC-01', C2: 'HB-SR20', C3: 'HB-SR40', C4: 'HB-SR60' }[p.row];
-  const fT = { C1: 'HB-SR20', C2: 'HB-SR40', C3: 'HB-SR60', C4: 'HB-TC-01' }[p.row];
-
-  // 4 recessed picture-frame lips projecting into the opening (verticals full height; horizontals between them, inset)
-  box(grp, `${p.id} lip-L (HB-RET on ${fL})`, proj, p.y1 - p.y0, dep, p.x0 + proj / 2, cyS, zc, mats.panelBatten, { edgeColor: 0x6b4a1c });
-  box(grp, `${p.id} lip-R (HB-RET on ${fR})`, proj, p.y1 - p.y0, dep, p.x1 - proj / 2, cyS, zc, mats.panelBatten, { edgeColor: 0x6b4a1c });
-  box(grp, `${p.id} lip-B (HB-RET on ${fB})`, (p.x1 - p.x0) - 2 * proj, proj, dep, cxS, yB, zc, mats.panelBatten, { edgeColor: 0x6b4a1c });
-  box(grp, `${p.id} lip-T (HB-RET on ${fT})`, (p.x1 - p.x0) - 2 * proj, proj, dep, cxS, yT, zc, mats.panelBatten, { edgeColor: 0x6b4a1c });
-
-  const rtf = (id, x, y, axis, tgt) => {
-    registerFastener({ id, type: 'RTF-IB', groupKey: 'panelKeeperFasteners', labelSection: 'fastenerPanel',
-      joint: `${p.id} retainer lip fixed to ${tgt}`, pieceIds: [`${p.id} retainer lip`, tgt, 'threaded insert in frame'],
-      position: { x, y, z: zc }, notes: 'Retainer-to-frame: machine bolt + insert, lateral into the frame-member inner face.' });
-    cyl(grp, `${id} bolt`, 0.06, proj + 0.7, x, y, zc, mats.darkSteel, axis, { segments: 14 });
-    cyl(grp, `${id} head`, 0.15, 0.13, x, y, zc, mats.darkSteel, axis, { segments: 6 });
-  };
-  const skr = (id, x, y, datum) => {
-    registerFastener({ id, type: 'SKR-IB', groupKey: 'panelKeeperFasteners', labelSection: 'fastenerPanel',
-      joint: `${p.id} skin drawn to its retainer lip ${datum ? 'fixed datum' : 'slip point'}`, pieceIds: [p.id, `${p.id} retainer lip`, 'threaded insert in skin back'],
-      position: { x, y, z: zR }, notes: datum ? 'Fixed datum (one per skin): locates the skin.' : 'Slip point: vertical clearance for seasonal cross-grain movement.' });
-    cyl(grp, `${id} bolt`, 0.06, dep + 0.5, x, y, zc + 0.05, mats.darkSteel, 'z', { segments: 14 });
-    cyl(grp, `${id} head`, 0.15, 0.12, x, y, zR - 0.02, datum ? mats.brass : mats.darkSteel, 'z', { segments: 6 });
-  };
-  const stn = (a, b) => { const n = Math.max(1, Math.round((b - a) / gap)); const o = []; for (let i = 0; i <= n; i++) o.push(a + (b - a) * i / n); return o; };
-
-  // vertical lips: RTF laterally into the side member; SKR from the open rear into the skin
-  stn(p.y0 + 1.6, p.y1 - 1.6).forEach((y, i) => {
-    rtf(`F-RTF-${p.id}-L${i + 1}`, p.x0 + 0.3, y, 'x', fL);
-    rtf(`F-RTF-${p.id}-R${i + 1}`, p.x1 - 0.3, y, 'x', fR);
-    skr(`F-SKR-${p.id}-L${i + 1}`, p.x0 + proj * 0.55, y, false);
-    skr(`F-SKR-${p.id}-R${i + 1}`, p.x1 - proj * 0.55, y, false);
+// --- Front-skin field ATTACHMENT (Lee-call Phase 2, rpt 12/63) — HB-RET is RETIRED --------------------------
+// The 4-sided ash picture-frame retainer (HB-RET / RTF-IB / SKR-IB, D-092) is GONE. Each recessed 7/8 in field
+// skin is fixed DIRECTLY to the frame/rails from the open rear by rear-driven screws. STANDARD courses are
+// GLUED + SCREWED. The SPEAKER-height course (C3) is SCREW-ONLY / NO GLUE so it stays FIELD-REPLACEABLE (pull
+// the screws to swap the speaker skin without breaking a glue bond). No retainer lips, no RTF-IB/SKR-IB, no
+// HB-RET geometry. Screw field is concept-level (spacing/count [TBD-CONFIRM Lee]); one fastener type: SKF.
+function addSkinFieldScrews(p) {
+  const grp = groups.panelKeeperFasteners;
+  const isSpk = p.row === 'C3';                                     // the speaker-height course
+  const method = isSpk ? 'screw-only (no glue, field-replaceable)' : 'glued+screwed';
+  const zBack = skinBackZ;                                          // recessed skin back plane = rear-rail seat
+  const cxS = (p.x0 + p.x1) / 2;
+  const nCol = Math.max(2, Math.round((p.x1 - p.x0) / 14));         // ~1 screw column / 14 in
+  const xs = []; for (let i = 0; i <= nCol; i++) xs.push(p.x0 + 3 + (p.x1 - p.x0 - 6) * i / nCol);
+  [['B', p.y0 + 1.5], ['T', p.y1 - 1.5]].forEach(([edge, yy]) => {  // top + bottom edges into the backing rail/frame
+    xs.forEach((x, i) => {
+      const id = `F-SKF-${p.id}-${edge}${i + 1}`;
+      registerFastener({ id, type: 'SKF', groupKey: 'panelKeeperFasteners', labelSection: 'fastenerPanel',
+        joint: `${p.id} recessed field skin ${method} to the ${edge === 'B' ? 'bottom' : 'top'} backing rail/frame`,
+        pieceIds: [p.id, 'backing cross-rail / frame'], position: { x, y: yy, z: zBack },
+        notes: isSpk
+          ? 'SPEAKER-height course: SCREW-ONLY, NO glue -> field-replaceable (D-060 Phase 2, rpt 63).'
+          : 'Standard course: GLUED + SCREWED direct to the frame/rail (D-060 Phase 2, rpt 12; HB-RET retired).' });
+      cyl(grp, `${id} ${method} field skin screw shaft`, 0.055, 1.0, x, yy, zBack - 0.5, mats.darkSteel, 'z', { segments: 14 });
+      cyl(grp, `${id} field skin screw head`, 0.14, 0.08, x, yy, zBack - 1.0, mats.steel, 'z', { segments: 18 });
+    });
   });
-  // horizontal lips: RTF into the rail/cap; SKR from the open rear into the skin (inset clear of the rail body)
-  stn(p.x0 + proj + 1.6, p.x1 - proj - 1.6).forEach((x, i) => {
-    rtf(`F-RTF-${p.id}-T${i + 1}`, x, yT + 0.3, 'y', fT);
-    rtf(`F-RTF-${p.id}-B${i + 1}`, x, yB - 0.3, 'y', fB);
-    skr(`F-SKR-${p.id}-T${i + 1}`, x, yT, false);
-    if (Math.abs(x - cxS) > 1.6) skr(`F-SKR-${p.id}-B${i + 1}`, x, yB, false);
-  });
-  skr(`F-SKR-${p.id}-DATUM`, cxS, yB, true);   // one brass datum per skin, bottom lip centre
+  fastenerLabel(`F-SKF-${p.id}`, 'SKF', cxS, (p.y0 + p.y1) / 2, zBack - 0.6, 'fastenerPanel');
 }
 
 function addMullionSwitchPanel({ sideName, x }) {
@@ -1299,11 +1272,16 @@ function housedRail(group, name, x0, x1, y, h, d, z, mat, options = {}) {
   return rail;
 }
 
-// Coordinate convention: front face z=0, rear/open side z=-8.
+// Coordinate convention: front face z=0 (the PROUD face-frame front plane), rear/open side z=-8.
 const W = SPEC.W, H = SPEC.H, D = SPEC.D;
 const zMid = -D / 2;
 const loadRailDepth = SPEC.loadReceiverRailDepth;
-const loadRailZ = -SPEC.panelTh - loadRailDepth / 2;
+// Field skins are RECESSED 3/16 in behind the proud front plane (skinReveal): skin front at z=-skinReveal,
+// skin back at z=-(skinReveal+skinTh). The rear cross-rails seat/back the recessed skins, so their front face
+// sits at the skin-back plane -> shift the rear-rail datum back by the reveal + skin thickness.
+const skinFrontZ = -SPEC.skinReveal;                 // recessed skin front plane
+const skinBackZ = -SPEC.skinReveal - SPEC.skinTh;    // recessed skin back plane (rear-rail seat)
+const loadRailZ = skinBackZ - loadRailDepth / 2;
 
 // ── Lee-call Phase 1 (2026-07-03): headboard delivered as THREE bolt-together finished boxes ──────────
 // Split at the ±36 mullion centerlines (HB_SEAMS = mullion.centerX). The CENTER box (HB-MOD-C) owns BOTH
@@ -1311,7 +1289,8 @@ const loadRailZ = -SPEC.panelTh - loadRailDepth / 2;
 // reads as ONE clean 4-in mullion line per seam — no doubled verticals (rpt 1/4). 130 in overall is a
 // RESULT of the three module widths (nominal 29 / 72 / 29), not a monolithic input (rpt 5/73). Precise
 // module dimensions wait on Lee's parts spreadsheet (plan 16 §1.4) — this is concept architecture only.
-// Built-up L-section members / face-frame / HB-RET removal are Phase 2; the 3-piece top cap is Phase 3.
+// Built-up L-section members + proud face-frame + recessed 3/16 skins + HB-RET removal are now IMPLEMENTED
+// (Lee-call Phase 2, this run); the 3-butted-segment top cap is Phase 3 (D0-1).
 const halfW = W / 2;                                         // 65 — outer edge of the side boxes
 const HB_SEAMS = [-SPEC.seamX, SPEC.seamX];                  // ±36 nominal module seams = mullion centerlines
 const HB_MULLION_FACE = SPEC.seamX + SPEC.mullionW / 2;      // 38 — mullion outer face = physical butt plane
@@ -1346,20 +1325,49 @@ function addHeadboardModuleConnector({ id, seamSide, y, tag }) {
   fastenerLabel(id, 'MOD-CB', headX, y + 0.6, zMid, 'fastenerCap');
 }
 
-// Shell — three finished bolt-together boxes (HB-MOD-L / HB-MOD-C / HB-MOD-R).
-// TOP cap: retained as ONE 130-in piece for Phase 1 (the delivered-loose LED crown spans all three boxes).
-// Its division into three butted per-box lengths (one per module) is Phase 3 (plan 16, D0-1) — deferred
-// here so Phase 1 stays isolated.
-box(groups.lattice, 'top cap one-piece 130x2x8', W, 2, D, 0, 71, zMid, mats.shell);
-// BOTTOM cap → three per-module bottom rails so each box reads as a finished framed unit with its own
-// bottom structure (plan 16 §1.4). The CENTER box's rail runs the full mullion-to-mullion span and carries
-// BOTH mullions; the side rails butt to it at the mullion outer faces (±38).
+// Built-up L-section outer frame member (Lee-call Phase 2, rpt 6): the solid 8-in-deep cap/stile is REPLACED
+// by a built-up L — a 7/8 in show-FACE board at the proud front plane (z 0..-frameFaceTh) + a perpendicular
+// 7/8 in RETURN WEB going back frameWebDepth (~8 in overall visual depth) — instead of a solid 2x8 ash slab
+// (a true 2x8 ash slab is not stocked / is prone to cracking, rpt 6/34). orient 'v' = web returns down the
+// member length at one X edge; 'h' = web returns along the length at one Y edge. The show FACE stays at z=0
+// (the PROUD face-frame plane the recessed field skins sit 3/16 in behind). Web names deliberately omit the
+// "side stile"/"bottom cap rail" tokens so the Phase-1 module count validators keep matching only the faces.
+function addBuiltUpLFrameMember({ faceName, webName, group = groups.lattice, orient, x0, x1, y0, y1, webEdge, mat = mats.shell }) {
+  const fTh = SPEC.frameFaceTh, wDepth = SPEC.frameWebDepth;
+  const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, w = x1 - x0, h = y1 - y0;
+  const opts = { edgeColor: 0x5f411a, edgeOpacity: 0.44 };
+  box(group, faceName, w, h, fTh, cx, cy, -fTh / 2, mat, opts);                                  // 7/8 show face at the proud front plane
+  if (orient === 'v') box(group, webName, fTh, h, wDepth, webEdge === 'low' ? x0 + fTh / 2 : x1 - fTh / 2, cy, -fTh - wDepth / 2, mat, opts);
+  else                box(group, webName, w, fTh, wDepth, cx, webEdge === 'low' ? y0 + fTh / 2 : y1 - fTh / 2, -fTh - wDepth / 2, mat, opts);
+}
+
+// Shell — three finished bolt-together boxes (HB-MOD-L / HB-MOD-C / HB-MOD-R) with BUILT-UP L-section outer
+// frame members (Lee-call Phase 2). TOP cap stays ONE continuous 130-in piece for now — it is the LED crown;
+// its built-up + three-butted-segment construction (respecting the continuous routed channel) is Phase 3
+// (plan 16, D0-1). Left whole + Phase-3-compatible here: a TEMPORARY model state, NOT the final "ships whole".
+box(groups.lattice, 'top cap one-piece 130x2x8 (LED crown; built-up + 3-segment split is Phase 3 — temporary whole state, not the final target)', W, 2, D, 0, 71, zMid, mats.shell);
+// BOTTOM cap → three per-module BUILT-UP L-section bottom rails so each box reads as a finished framed unit
+// (plan 16 §1.4). The CENTER rail spans mullion-to-mullion + carries BOTH mullions; the side rails butt to it
+// at the mullion outer faces (±38).
 HB_MODULES.forEach(m => {
   const w = m.buttX1 - m.buttX0;
-  box(groups.lattice, `${m.id} bottom cap rail ${w}x2x8 (${m.name} box bottom structure${m.ownsMullions ? '; carries both ±36 mullions' : '; butts HB-MOD-C at the mullion face'})`, w, 2, D, (m.buttX0 + m.buttX1) / 2, 1, zMid, mats.shell);
+  addBuiltUpLFrameMember({
+    faceName: `${m.id} bottom cap rail ${w}x2x8 (${m.name} box bottom structure${m.ownsMullions ? '; carries both ±36 mullions' : '; butts HB-MOD-C at the mullion face'}) built-up L show-FACE board`,
+    webName: `${m.id} bottom-frame built-up L return web (7/8 x 7.125 deep; ~8 in visual depth)`,
+    orient: 'h', x0: m.buttX0, x1: m.buttX1, y0: 0, y1: 2, webEdge: 'high'
+  });
 });
-box(groups.lattice, 'HB-MOD-L left side stile 2x68x8 (left box outer frame)', 2, 68, D, -64, 36, zMid, mats.shell);
-box(groups.lattice, 'HB-MOD-R right side stile 2x68x8 (right box outer frame)', 2, 68, D, 64, 36, zMid, mats.shell);
+// Two BUILT-UP L-section side stiles (7/8 face + 7.125 return web at the inner edge, toward the open cavity).
+addBuiltUpLFrameMember({
+  faceName: 'HB-MOD-L left side stile 2x68x8 (left box outer frame) built-up L show-FACE board',
+  webName: 'HB-ST-L side-stile built-up L return web (7/8 x 7.125 deep; ~8 in visual depth)',
+  orient: 'v', x0: -65, x1: -63, y0: 2, y1: 70, webEdge: 'high'
+});
+addBuiltUpLFrameMember({
+  faceName: 'HB-MOD-R right side stile 2x68x8 (right box outer frame) built-up L show-FACE board',
+  webName: 'HB-ST-R side-stile built-up L return web (7/8 x 7.125 deep; ~8 in visual depth)',
+  orient: 'v', x0: 63, x1: 65, y0: 2, y1: 70, webEdge: 'low'
+});
 
 // Module boundary seam markers at the nominal split lines x = ±36 (mullion centerlines). Thin translucent
 // planes flag where the three delivered boxes divide; the physical butt is 2 in outboard at the mullion
@@ -1379,20 +1387,21 @@ HB_MODULES.forEach(m => {
   });
 });
 
-// Twelve removable front skins, 7/8 in (0.875) thick, installed flush from the rear.
+// Twelve RECESSED field skins, 7/8 in (0.875) thick, let in 3/16 in BEHIND the proud face-frame (D0-5).
 const panelColumns = [
   { key: 'L', x0: -63, x1: -38, name: 'left' },
   { key: 'C', x0: -34, x1: 34, name: 'center' },
   { key: 'R', x0: 38, x1: 63, name: 'right' }
 ];
-// Front skins are horizontal COURSES, each <=20 in tall (grain horizontal). Seams at AFF 20/40/60; the speaker lives in the 40-60 course. Each course seats on / clamps to the cross-rail below + above it (or the caps at the very bottom/top). Skins kept whole per bay (no vertical breakup) - owner 2026-06-07, D-060/D-008. [TBD-CONFIRM Lee: continuous ~68 in center run warp-safe length; only break up vertically if too long.]
-const panelRows = [
-  { key: 'C1', y0: 2,  y1: 20, name: 'course-1',           bottomRail: 'HB-BC-01', topRail: 'HB-SR20' },
-  { key: 'C2', y0: 20, y1: 40, name: 'course-2',           bottomRail: 'HB-SR20', topRail: 'HB-SR40' },
-  { key: 'C3', y0: 40, y1: 60, name: 'course-3 (speaker)', bottomRail: 'HB-SR40', topRail: 'HB-SR60' },
-  { key: 'C4', y0: 60, y1: 70, name: 'course-4',           bottomRail: 'HB-SR60', topRail: 'HB-TC-01' }
-];
-// Distribute bolt points along an edge: ~`gap` spacing, `margin` end insets, >=2 points (1 if the edge is too short for the margins). Height-aware so the <=20 in (and 10 in) courses don't get crossed bolt rows.
+// Front skins are horizontal COURSES, each <=19 in tall (grain horizontal; D0-6). Course bounds are DERIVED from
+// SPEC.courseSeamsAFF [19,38,57] -> AFF 2-19 / 19-38 / 38-57 / 57-70 = 17/19/19/13 in (all <=19). The speaker
+// cutout (43.995..55.255 AFF) sits fully INSIDE the C3 (38-57) speaker course, so NO horizontal seam crosses it.
+// Skins kept whole per bay (D-060/D-008). Field skins are recessed 3/16 in behind the proud frame (a dado read).
+const courseBounds = [2, ...SPEC.courseSeamsAFF, 70];        // [2, 19, 38, 57, 70]
+const panelRows = courseBounds.slice(0, -1).map((y0, i) => ({
+  key: `C${i + 1}`, y0, y1: courseBounds[i + 1], name: `course-${i + 1}${i === 2 ? ' (speaker)' : ''}`
+}));
+// Distribute points along an edge: ~`gap` spacing, `margin` end insets, >=2 points (1 if too short for the margins).
 const distrib = (a, b, margin, gap) => {
   const lo = a + margin, hi = b - margin;
   if (hi <= lo + 0.5) return [(a + b) / 2];
@@ -1409,69 +1418,56 @@ panelRows.forEach(row => {
     const height = row.y1 - row.y0;
     const cx = (col.x0 + col.x1) / 2;
     const cy = (row.y0 + row.y1) / 2;
-    const isSpeakerPanel = row.key === 'C3' && col.key !== 'C';
-    frontPanels.push({ id, col: col.key, row: row.key, x0: col.x0, x1: col.x1, y0: row.y0, y1: row.y1, width, height, cx, cy, isSpeakerPanel });
-    const zSkin = -SPEC.panelTh / 2;
+    const isSpeakerPanel = row.key === 'C3' && col.key !== 'C';    // side-bay speaker skins carry the cutout
+    const isSpeakerCourse = row.key === 'C3';                      // the WHOLE speaker-height course (screw-only)
+    const attachMethod = isSpeakerCourse ? 'screw-only (no glue, field-replaceable)' : 'glued+screwed';
+    frontPanels.push({ id, col: col.key, row: row.key, x0: col.x0, x1: col.x1, y0: row.y0, y1: row.y1, width, height, cx, cy, isSpeakerPanel, isSpeakerCourse, attachMethod });
+    const zSkin = skinFrontZ - SPEC.skinTh / 2;                    // recessed: front at -skinReveal, back at -(skinReveal+skinTh)
     if (isSpeakerPanel) {
-      // The speaker skin is NOT a solid board: a window is cut for the in-wall speaker so the exposed black baffle
-      // reads against a dark recess instead of solid wood grain (the speaker cutout was never subtracted before, so a
-      // wood panel sat right at the front plane around/behind the drivers). The skin becomes a 4-piece wood frame
-      // (two jambs + head/sill rails) around the cutW x cutH opening, centred on the speaker. (D-080 cutout.)
+      // The speaker skin is ONE recessed speaker-course panel ASSEMBLY (NOT four unrelated boards): a window is cut
+      // for the in-wall speaker so the exposed baffle reads against a dark recess, not solid wood. The assembly is
+      // two jambs + sill + head around the cutW x cutH opening, all sharing the HB-FP id + the SAME recessed plane.
       const sCx = Math.sign(cx) * SPEC.speaker.centerX;
       const cutX0 = sCx - SPEC.speaker.cutW / 2, cutX1 = sCx + SPEC.speaker.cutW / 2;
       const cutY0 = SPEC.speaker.bottom, cutY1 = SPEC.speaker.top;
-      const jW0 = cutX0 - col.x0, jW1 = col.x1 - cutX1;      // inboard / outboard jamb widths
-      const rHB = cutY0 - row.y0, rHT = row.y1 - cutY1;       // sill / head rail heights
-      box(groups.skins, `${id} ${col.name} ${row.name} skin jamb A 0.875 in`, jW0, height, SPEC.panelTh, (col.x0 + cutX0) / 2, cy, zSkin, mats.skin, { edgeOpacity: 0.28 });
-      box(groups.skins, `${id} ${col.name} ${row.name} skin jamb B 0.875 in`, jW1, height, SPEC.panelTh, (cutX1 + col.x1) / 2, cy, zSkin, mats.skin, { edgeOpacity: 0.28 });
-      box(groups.skins, `${id} ${col.name} ${row.name} skin sill rail 0.875 in`, SPEC.speaker.cutW, rHB, SPEC.panelTh, sCx, (row.y0 + cutY0) / 2, zSkin, mats.skin, { edgeOpacity: 0.28 });
-      box(groups.skins, `${id} ${col.name} ${row.name} skin head rail 0.875 in`, SPEC.speaker.cutW, rHT, SPEC.panelTh, sCx, (cutY1 + row.y1) / 2, zSkin, mats.skin, { edgeOpacity: 0.28 });
+      const jW0 = cutX0 - col.x0, jW1 = col.x1 - cutX1;           // inboard / outboard jamb widths
+      const rHB = cutY0 - row.y0, rHT = row.y1 - cutY1;            // sill / head rail heights
+      const A = `${id} recessed speaker-course skin assembly`;    // ONE assembly id; 4 milled members around the cutout
+      box(groups.skins, `${A} jamb-inboard 0.875 in (3/16 in recess)`, jW0, height, SPEC.skinTh, (col.x0 + cutX0) / 2, cy, zSkin, mats.skin, { edgeOpacity: 0.28 });
+      box(groups.skins, `${A} jamb-outboard 0.875 in (3/16 in recess)`, jW1, height, SPEC.skinTh, (cutX1 + col.x1) / 2, cy, zSkin, mats.skin, { edgeOpacity: 0.28 });
+      box(groups.skins, `${A} sill-rail 0.875 in (3/16 in recess)`, SPEC.speaker.cutW, rHB, SPEC.skinTh, sCx, (row.y0 + cutY0) / 2, zSkin, mats.skin, { edgeOpacity: 0.28 });
+      box(groups.skins, `${A} head-rail 0.875 in (3/16 in recess)`, SPEC.speaker.cutW, rHT, SPEC.skinTh, sCx, (cutY1 + row.y1) / 2, zSkin, mats.skin, { edgeOpacity: 0.28 });
     } else {
-      box(groups.skins, `${id} ${col.name} ${row.name} flush removable panel 0.875 in`, width, height, SPEC.panelTh, cx, cy, zSkin, mats.skin, { edgeOpacity: 0.28 });
+      box(groups.skins, `${id} ${col.name} ${row.name} recessed field skin 0.875 in (3/16 in reveal behind the proud face-frame)`, width, height, SPEC.skinTh, cx, cy, zSkin, mats.skin, { edgeOpacity: 0.28 });
     }
-
-    // (front-skin retention hardware removed 2026-06-13 — bare skin pending rebuild)
+    // Field-skin ATTACHMENT (HB-RET retired): standard courses glued+screwed; the C3 speaker course screw-only/no-glue.
+    addSkinFieldScrews(frontPanels[frontPanels.length - 1]);
   });
 });
-// Visible horizontal course seams across each bay at AFF 20/40/60 (continuous left->center->right).
+// Visible horizontal course seams across each bay at AFF 19/38/57 (continuous left->center->right), on the recessed plane.
 SPEC.courseSeamsAFF.forEach(seam => {
   [[-63, -38, 'left'], [-34, 34, 'center'], [38, 63, 'right']].forEach(([bx0, bx1, bay]) => {
-    line3(groups.skins, `visible horizontal course seam at AFF ${seam} ${bay} bay`, [[bx0, seam, 0.08], [bx1, seam, 0.08]], 0x111827, 0.9);
+    line3(groups.skins, `visible horizontal course seam at AFF ${seam} ${bay} bay`, [[bx0, seam, skinFrontZ + 0.02], [bx1, seam, skinFrontZ + 0.02]], 0x111827, 0.9);
   });
 });
 
-// Front-skin retention (D-092): the cross-rails/caps back each skin's top & bottom edges (they are full-depth
-// with their front face at the skin back plane); bolted ash retainer strips go ONLY on the rear-accessible
-// SIDE edges, RTF-IB into the mullion/stile + SKR-IB into the skin (one brass datum + steel slip). See addSkinRetention().
-frontPanels.forEach(addSkinRetention);
-
-// Full-depth visible mullions: ONE piece each, with the W-relief (THREE 1.5in lands) NOTCHED into the top (lands continuous with the body).
+// Hollow BUILT-UP mullions (Lee-call Phase 2, rpt 7/9): each ±36 mullion is NO LONGER a single solid one-piece
+// extruded W-profile board. It is a HOLLOW BUILT-UP box — a 4-in-wide 7/8-in show-FACE board at the proud front
+// plane + TWO spaced 7/8-in WEBS returning to the open rear — leaving a >2 in clear internal chase
+// (4 − 2×0.875 = 2.25 in) that carries the switch pocket + rear wire chase. HB-MOD-C owns both mullions. The
+// top-cap 3-land W-relief / LED throat (D-033/D0-1) is Phase 3; the built-up hollow body is machined to those
+// W-lands when the cap is segmented — here the mullion BODY is the hollow box (Phase-3-compatible, no faking).
+const mulFaceTh = SPEC.mullionFaceTh, mulWebTh = SPEC.mullionWebTh;
+const mulChaseClear = SPEC.mullionW - 2 * mulWebTh;               // 2.25 in clear internal chase (>2 in)
+const mulWebDepth = D - mulFaceTh;                                // 7.125 in webs return face -> open rear
+const mulWebX = mulChaseClear / 2 + mulWebTh / 2;                 // web centerline offset from mullion center (±1.5625)
 [-SPEC.seamX, SPEC.seamX].forEach(x => {
   const sideName = x < 0 ? 'L' : 'R';
   const mullionId = `HB-MUL-${sideName}`;
-  // ONE-PIECE mullion: a single EXTRUDED W-profile board (TWO reliefs NOTCHED out of the TOP, leaving 3 lands:
-  // front / center / rear). Because it is ONE mesh, only the outer silhouette + the notch outlines draw -- there are
-  // NO internal seams / stacked-piece lines anywhere on the faces. Lands 1.5in; gaps 1.75in (35mm channel centered).
-  const g1f = SPEC.uFrontLand;                       // 1.5  gap1 front edge
-  const g1b = g1f + SPEC.uGap;                        // 3.25 gap1 back edge
-  const clb = g1b + SPEC.uCenterLand;                 // 4.75 center-land back edge
-  const g2b = clb + SPEC.uGap;                        // 6.5  gap2 back edge (= D - uRearLand)
-  const reliefY = 70 - SPEC.uDrop;                    // 66
-  const mShape = new THREE.Shape();
-  mShape.moveTo(-D, 2); mShape.lineTo(0, 2); mShape.lineTo(0, 70);
-  mShape.lineTo(-g1f, 70); mShape.lineTo(-g1f, reliefY);     // front land, drop into gap1
-  mShape.lineTo(-g1b, reliefY); mShape.lineTo(-g1b, 70);     // gap1 floor, rise to center land
-  mShape.lineTo(-clb, 70); mShape.lineTo(-clb, reliefY);     // center land top, drop into gap2
-  mShape.lineTo(-g2b, reliefY); mShape.lineTo(-g2b, 70);     // gap2 floor, rise to rear land
-  mShape.lineTo(-D, 70); mShape.closePath();
-  const mGeo = new THREE.ExtrudeGeometry(mShape, { depth: SPEC.mullionW, bevelEnabled: false });
-  const mMesh = new THREE.Mesh(mGeo, mats.collector);
-  mMesh.rotation.y = -Math.PI / 2;
-  mMesh.position.set(x + SPEC.mullionW / 2, 0, 0);
-  mMesh.castShadow = true; mMesh.receiveShadow = true;
-  mMesh.name = `mullion one-piece (single extruded W-profile board, 3 lands; HB-MOD-C owns) x=${x}`;
-  groups.lattice.add(mMesh);
-  mMesh.add(new THREE.LineSegments(new THREE.EdgesGeometry(mGeo, 20), new THREE.LineBasicMaterial({ color: 0x17212b, transparent: true, opacity: 0.34 })));
+  // 7/8 show-FACE board spanning the full 4-in mullion width (AFF 2..70) at the proud front plane (z 0..-7/8)
+  box(groups.lattice, `${mullionId} hollow built-up mullion FACE board 4x68x0.875 (7/8 in show face; HB-MOD-C owns) x=${x}`, SPEC.mullionW, 68, mulFaceTh, x, 36, -mulFaceTh / 2, mats.collector, { edgeColor: 0x6b4a1c, edgeOpacity: 0.4 });
+  // TWO spaced 7/8 in webs return to the open rear -> 2.25 in clear internal chase between them (switch pocket + wire)
+  [-1, 1].forEach(s => box(groups.lattice, `${mullionId} hollow built-up mullion WEB ${s < 0 ? 'a' : 'b'} 0.875x68x${mulWebDepth.toFixed(3)} (spaced web; ${mulChaseClear} in clear chase between) x=${x}`, mulWebTh, 68, mulWebDepth, x + s * mulWebX, 36, -mulFaceTh - mulWebDepth / 2, mats.collector, { edgeColor: 0x6b4a1c, edgeOpacity: 0.4 }));
   addMullionSwitchPanel({ sideName, x });
 
   // THREE vertical insert draw-bolts -- one per land (front / center / rear). Owner 2026-06-05 (D-089): replaces the
@@ -1920,6 +1916,50 @@ SPEC.courseSeamsAFF.forEach(seamAFF => {
       connectorAssemblies: (HB_MODULES.length - 1) * 3,                      // 6
       overallWidthResult: HB_MODULES.reduce((a, m) => a + (m.buttX1 - m.buttX0), 0),  // 130 (result, not input)
       modules: HB_MODULES.map(m => ({ id: m.id, key: m.key, name: m.name, nomX0: m.nomX0, nomX1: m.nomX1, buttX0: m.buttX0, buttX1: m.buttX1, ownsMullions: m.ownsMullions }))
+    },
+    // Lee-call Phase 2 metadata (consumed by BOTH host validators): recessed field skins + built-up frame + hollow mullions.
+    skinField: {
+      skinCount: frontPanels.length,                                         // 12
+      skinReveal: SPEC.skinReveal,                                           // 0.1875 (3/16 recess behind the proud frame)
+      skinThickness: SPEC.skinTh,                                            // 0.875
+      courseCount: panelRows.length,                                         // 4
+      courseSeamsAFF: SPEC.courseSeamsAFF,                                   // [19, 38, 57]
+      courseHeights: panelRows.map(r => r.y1 - r.y0),                        // [17, 19, 19, 13]
+      courseMaxHeight: Math.max(...panelRows.map(r => r.y1 - r.y0)),         // 19
+      courseHeightCap: SPEC.courseMaxHeight,                                 // 19
+      allCoursesWithinCap: panelRows.every(r => (r.y1 - r.y0) <= SPEC.courseMaxHeight + 1e-9),
+      speakerCourseKey: 'C3',
+      speakerCutout: { bottomAFF: SPEC.speaker.bottom, topAFF: SPEC.speaker.top },
+      noSeamCrossesSpeakerCutout: SPEC.courseSeamsAFF.every(s => s <= SPEC.speaker.bottom || s >= SPEC.speaker.top),
+      retentionMethodStandard: 'glued+screwed to frame/rails',
+      retentionMethodSpeakerCourse: 'screw-only (no glue, field-replaceable)',
+      speakerCourseScrewOnlyNoGlue:
+        frontPanels.filter(p => p.isSpeakerCourse).length > 0 &&
+        frontPanels.filter(p => p.isSpeakerCourse).every(p => p.attachMethod === 'screw-only (no glue, field-replaceable)' && !/glued/.test(p.attachMethod)),
+      hbRetRetired: true,                                                    // no HB-RET / RTF-IB / SKR-IB geometry anywhere
+      panels: frontPanels.map(p => ({ id: p.id, col: p.col, row: p.row, isSpeakerCourse: p.isSpeakerCourse, attachMethod: p.attachMethod }))
+    },
+    frame: {
+      construction: 'built-up L-section',
+      faceBoardThickness: SPEC.frameFaceTh,                                  // 0.875
+      returnWebDepth: SPEC.frameWebDepth,                                    // 7.125
+      overallDepth: SPEC.D,                                                  // 8 (0.875 face + 7.125 web)
+      proudFacePlaneZ: 0,                                                    // skins recess 3/16 behind this
+      members: ['top cap one-piece (LED crown; Phase-3 segment)', '3 per-module bottom rails (built-up L)', '2 side stiles (built-up L)']
+    },
+    mullion: {
+      construction: 'hollow built-up',
+      count: 2,
+      centerOwnsBothMullions: true,
+      faceThickness: SPEC.mullionFaceTh,                                     // 0.875
+      webThickness: SPEC.mullionWebTh,                                       // 0.875
+      webCount: 2,
+      faceWidth: SPEC.mullionW,                                             // 4
+      chaseClearance: mulChaseClear,                                         // 2.25 (>2 in)
+      chaseClearanceMin: 2,
+      chaseClearsMin: mulChaseClear > 2,
+      switchPocketWidth: SPEC.switchPanel.W,                                // 1.5 (fits inside the 2.25 in chase)
+      switchPocketFitsChase: SPEC.switchPanel.W < mulChaseClear
     }
   };
 }
@@ -1938,7 +1978,7 @@ window.__BF_HEADBOARD_GHOST = {
   frontPanelCount: 12,
   courseSeamsAFF: SPEC.courseSeamsAFF,
   noVisibleFrontFaceFasteners: true,
-  panelRetentionPass: true,
+  skinFieldPass: true,
   loadReceiverRailDepth: SPEC.loadReceiverRailDepth,
   uRelief: {
     profile: 'W (3 lands)',
@@ -2080,13 +2120,9 @@ const FASTENER_TYPES = Object.freeze({
     name: 'Dry loose tenon / Domino / dowel key',
     role: 'Locates the joint and carries shear/registration while bolts clamp.'
   },
-  'SKR-IB': {
-    name: 'Skin-to-retainer insert bolt',
-    role: 'Machine bolt through the back of a continuous ash retainer (HB-RET) into a threaded insert in the skin back; one datum + clearance/slip per skin for seasonal movement; clean front face.'
-  },
-  'RTF-IB': {
-    name: 'Retainer-to-frame insert bolt',
-    role: 'Machine bolt fixing a continuous ash skin retainer (HB-RET) to the stile / mullion / cross-rail / cap.'
+  'SKF': {
+    name: 'Field-skin screw (HB-RET retired)',
+    role: 'Rear-driven wood screw fixing a recessed field skin DIRECT to the frame/rails: standard courses glued+screwed; the speaker-height course (C3) screw-only / no glue (field-replaceable). Replaces the retired HB-RET retainer + RTF-IB/SKR-IB (D-092 superseded, Lee-call Phase 2).'
   },
   KS: {
     name: 'Keeper screw / pin',
@@ -2264,8 +2300,11 @@ function fastenerLabel(id, type, x, y, z, labelSection) {
 
 // Headboard geometry now lives in bf-geometry.js -> buildHeadboard() (single source, shared with Headboard).
 // (retired) addClampLine..addMullionSwitchPanel + housedRail + the full headboard build were moved there.
-const { frontPanels, headboardModules } = buildHeadboard({ box, cyl, line3, addEdges, label, pieceLabel, registerFastener, fastenerLabel, mats, groups, FASTENER_TYPES, woodPieces, fastenerAssemblies, switchPanelAssemblies, switchRearExitAssemblies, bedBoltCutouts });
+const { frontPanels, headboardModules, skinField: _hbSkinField, frame: _hbFrame, mullion: _hbMullion } = buildHeadboard({ box, cyl, line3, addEdges, label, pieceLabel, registerFastener, fastenerLabel, mats, groups, FASTENER_TYPES, woodPieces, fastenerAssemblies, switchPanelAssemblies, switchRearExitAssemblies, bedBoltCutouts });
 window.__BF_HB_MODULES_META = headboardModules;   // Lee-call Phase 1: 3 bolt-together boxes (consumed by __BF_HEADBOARD_MODULES below)
+window.__BF_HB_SKINFIELD_META = _hbSkinField;     // Lee-call Phase 2: recessed field skins / attachment / courses
+window.__BF_HB_FRAME_META = _hbFrame;             // Lee-call Phase 2: built-up L-section frame members
+window.__BF_HB_MULLION_META = _hbMullion;         // Lee-call Phase 2: hollow built-up mullions
 
 // Full-bed ghost geometry imported/rebuilt from Full-Bed dimensions.
 const ZB = SPEC.fullBedZ;
@@ -2360,9 +2399,9 @@ line3(groups.dimensions, 'depth dimension line', [[-71, 0, 0], [-71, 0, -8]], 0x
 label('130 in overall width', 0, -5.5, 1.5, 'gold', 'dim');
 label('72 in overall height', 72, 36, -8.7, 'gold', 'dim');
 label('8 in open-back depth', -72, 1.2, -4, 'gold', 'dim');
-label('twelve 7/8 in removable flush front skins; no visible face screws', 0, 39, 1.6, 'gold');
-label('4-sided HB-RET ash retainers: seated skins, SKR-IB bolts, fixed datum + clearance', 0, 31, -2.15, 'steel');
-label('RTF-IB fixes the retainers to the stiles / mullions / rails; clean front face', 0, 28.5, -2.15, 'steel');
+label('twelve 7/8 in recessed field skins (3/16 in reveal); rear screws, no visible face fasteners', 0, 39, 1.6, 'gold');
+label('proud face-frame + recessed 3/16 in field skins (HB-RET retired): skins screwed direct to the frame/rails', 0, 31, -2.15, 'steel');
+label('standard courses glued+screwed; the speaker-height course screw-only / no glue (field-replaceable)', 0, 28.5, -2.15, 'steel');
 label('2 recessed mullion switch panels: 4x FILN FLM12 per side, 0.5 in rear chase', 0, 41.5, 1.8, 'blue');
 label('top cap: 2x LED channel (35 mm cuts) centered in the gaps between THREE 1.5 in lands; extruded heatsinks into the open cavity; 124 in run, ~3 in solid ends', 0, 73.5, -3.5, 'gold');
 label('3-land W-relief: 1.5 / gap 1.75 / 1.5 / gap 1.75 / 1.5, 4 in drop; 3 vertical insert bolts/mullion', -36, 66.5, -4, 'blue');
@@ -2378,8 +2417,8 @@ pieceLabel('HB-TC-01', 'top cap', 0, 71.7, 1.2, '130 x 2 x 8');
 pieceLabel('HB-BC-01', 'bottom cap', 0, 1.2, 1.2, '130 x 2 x 8');
 pieceLabel('HB-ST-L', 'left side stile', -64, 36, 1.1, '2 x 68 x 8');
 pieceLabel('HB-ST-R', 'right side stile', 64, 36, 1.1, '2 x 68 x 8');
-// Twelve removable front skins: four horizontal COURSES (C1-C4) x three bays (L/C/R), 7/8 in (0.875)
-// thick (was six 28x34x1.0 LOW/UP panels). Generated from the modeled frontPanels so the manifest can
+// Twelve recessed field skins: four horizontal COURSES (C1-C4) x three bays (L/C/R), 7/8 in (0.875)
+// thick, recessed 3/16 in behind the proud face-frame (was six 28x34x1.0 LOW/UP panels). Generated from the modeled frontPanels so the manifest can
 // never drift from the geometry again - IDs, bay widths (25 L/R, 68 C), course heights (C1 18 / C2 20 /
 // C3 20 speaker / C4 10), positions, and the speaker course all come straight from buildHeadboard
 // (D-060/D-008, owner 2026-06-07). Thickness = SPEC.panelTh.
@@ -2389,8 +2428,8 @@ frontPanels.forEach(p => {
   pieceLabel(p.id, `${colName} course-${courseNo} front skin${p.isSpeakerPanel ? ' (speaker)' : ''}`,
     p.cx, p.cy, 1.0, `${p.width} x ${p.height} x ${SPEC.panelTh}`);
 });
-pieceLabel('HB-MUL-L', 'left U-relieved mullion', -36, 52, 1.1, '4 x 68 x 8');
-pieceLabel('HB-MUL-R', 'right U-relieved mullion', 36, 52, 1.1, '4 x 68 x 8');
+pieceLabel('HB-MUL-L', 'left hollow built-up mullion (7/8 face + 2 webs)', -36, 52, 1.1, '4 x 68 x 8');
+pieceLabel('HB-MUL-R', 'right hollow built-up mullion (7/8 face + 2 webs)', 36, 52, 1.1, '4 x 68 x 8');
 
 [
   ['HB-RR24-L', 'rear rail 24 left', -49, 24, -9.15, '28 x 3.5 x 1.4'],
@@ -2439,8 +2478,14 @@ pieceLabel('HB-CD-R', 'center receiver block R', 4, 9.5, -9.1, '2.6 x 15 x 7', '
 window.__BF_WOOD_PIECES = woodPieces;
 window.__BF_FASTENER_TYPES = FASTENER_TYPES;
 window.__BF_FASTENERS = fastenerAssemblies;
-const skinRetainerBoltCount = fastenerAssemblies.filter(f => f.type === 'SKR-IB').length;
-const retainerToFrameBoltCount = fastenerAssemblies.filter(f => f.type === 'RTF-IB').length;
+// Lee-call Phase 2: HB-RET retired -> field skins fixed by SKF screws (standard glued+screwed / speaker course screw-only).
+const skinFieldScrews = fastenerAssemblies.filter(f => f.type === 'SKF');
+const skinFieldScrewCount = skinFieldScrews.length;
+const speakerCourseScrews = skinFieldScrews.filter(f => /HB-FP-[LCR]-C3/.test(f.joint || ''));
+const standardCourseScrews = skinFieldScrews.filter(f => !/HB-FP-[LCR]-C3/.test(f.joint || ''));
+const speakerCourseScrewOnlyNoGlue = speakerCourseScrews.length > 0 && speakerCourseScrews.every(f => /screw-only/.test(f.joint || '') && !/glued/.test(f.joint || ''));
+const standardCourseGluedScrewed = standardCourseScrews.length > 0 && standardCourseScrews.every(f => /glued\+screwed/.test(f.joint || ''));
+const noActiveHbRetFasteners = fastenerAssemblies.filter(f => f.type === 'SKR-IB' || f.type === 'RTF-IB').length === 0;
 const bedBoltAssemblyCount = fastenerAssemblies.filter(f => f.type === 'BB-CD').length;
 const barrelConnectorCutoutPass = bedBoltCutouts.length === bedBoltAssemblyCount;
 window.__BF_SWITCH_PANELS = {
@@ -2463,27 +2508,39 @@ window.__BF_BED_BOLT_CUTOUTS = {
   bedBoltAssemblyCount,
   cutouts: bedBoltCutouts
 };
-window.__BF_PANEL_RETENTION = {
-  pass: frontPanels.length === 12 && skinRetainerBoltCount > 0 && retainerToFrameBoltCount > 0,
+// Lee-call Phase 2 — recessed field skins + direct screw attachment (HB-RET RETIRED). Canonical validator.
+const _sf = window.__BF_HB_SKINFIELD_META || {};
+window.__BF_SKIN_FIELD = {
   conceptOnly: true,
-  frontPanelCount: frontPanels.length,
-  panelThickness: SPEC.panelTh,
-  courseSeamsAFF: SPEC.courseSeamsAFF,
-  noVisibleFrontFaceFasteners: true,
-  retentionMethod: '4-sided continuous ash retainer (HB-RET); RTF-IB to frame + SKR-IB skin-to-retainer',
-  skinToRetainerBolts: skinRetainerBoltCount,
-  retainerToFrameBolts: retainerToFrameBoltCount,
-  supportStrategy: 'Skins are seated on wood shoulders/ledges; SKR-IB bolts draw each skin to the 4-sided HB-RET retainer and stop pull-away; RTF-IB fixes the retainers to the frame.',
-  datumStrategy: 'one fixed datum SKR-IB per skin; remaining points are clearance/slot for seasonal cross-grain movement',
-  serviceSide: 'open rear while headboard is assembled/disassembled',
-  panels: frontPanels.map(panel => ({
-    id: panel.id,
-    size: { W: panel.width, H: panel.height, D: SPEC.panelTh },
-    bounds: { x0: panel.x0, x1: panel.x1, y0: panel.y0, y1: panel.y1 },
-    speakerDirectMount: panel.isSpeakerPanel
-  })),
-  notes: 'HB-RET retainer system is [TBD-CONFIRM Lee]: retainer section, insert family/pull-out, bolt spacing, datum + slot length not yet locked (D-092).'
+  frontPanelCount: frontPanels.length,                                       // 12
+  skinThickness: SPEC.skinTh,                                                // 0.875
+  skinReveal: SPEC.skinReveal,                                               // 0.1875 — recessed 3/16 behind the proud face-frame
+  proudFaceFrame: true,
+  courseSeamsAFF: SPEC.courseSeamsAFF,                                        // [19, 38, 57]
+  courseHeights: _sf.courseHeights,                                          // [17, 19, 19, 13]
+  courseMaxHeight: _sf.courseMaxHeight,                                      // 19
+  courseHeightCap: SPEC.courseMaxHeight,                                     // 19
+  allCoursesWithinCap: _sf.allCoursesWithinCap === true,
+  noSeamCrossesSpeakerCutout: _sf.noSeamCrossesSpeakerCutout === true,
+  speakerCutout: _sf.speakerCutout,
+  retentionMethodStandard: 'glued+screwed direct to frame/rails',
+  retentionMethodSpeakerCourse: 'screw-only / no glue (field-replaceable)',
+  skinFieldScrews: skinFieldScrewCount,
+  standardCourseGluedScrewed,
+  speakerCourseScrewOnlyNoGlue,
+  hbRetRetired: noActiveHbRetFasteners && _sf.hbRetRetired === true,
+  panels: frontPanels.map(panel => ({ id: panel.id, col: panel.col, row: panel.row, isSpeakerCourse: panel.isSpeakerCourse, attachMethod: panel.attachMethod, speakerCutout: panel.isSpeakerPanel })),
+  notes: 'HB-RET retired (D-092 superseded): recessed 7/8 in field skins glued+screwed direct to the frame/rails; the speaker course (C3) screw-only / no glue (field-replaceable). Screw pattern [TBD-CONFIRM Lee].'
 };
+window.__BF_SKIN_FIELD.pass =
+     frontPanels.length === 12
+  && SPEC.skinReveal === 0.1875
+  && JSON.stringify(SPEC.courseSeamsAFF) === JSON.stringify([19, 38, 57])
+  && window.__BF_SKIN_FIELD.allCoursesWithinCap === true
+  && window.__BF_SKIN_FIELD.noSeamCrossesSpeakerCutout === true
+  && standardCourseGluedScrewed === true
+  && speakerCourseScrewOnlyNoGlue === true
+  && window.__BF_SKIN_FIELD.hbRetRetired === true;
 const fullBedOutsideLength = SPEC.fullBedZ.footFront - SPEC.fullBedZ.headBack;
 const subsystemTogglesPass = ['headboardAssembly', 'bedBaseAssembly', 'footboardAssembly', 'nightstandAssembly', 'liftAssembly', 'speakerAssembly', 'wiringAssembly']
   .every(key => !!document.querySelector(`[data-assembly="${key}"]`));
@@ -2669,7 +2726,7 @@ Object.assign(window.__BF_FULL_BED_GHOST, {
 
 Object.assign(window.__BF_HEADBOARD_GHOST, {
   pass: frontPanels.length === 12
-    && skinRetainerBoltCount > 0 && retainerToFrameBoltCount > 0
+    && window.__BF_SKIN_FIELD.pass                       // Lee-call Phase 2: recessed skins + direct screw attach (HB-RET retired)
     && window.__BF_SWITCH_PANELS.pass
     && barrelConnectorCutoutPass
     && window.__BF_FULL_BED_GHOST.pass,
@@ -2677,10 +2734,11 @@ Object.assign(window.__BF_HEADBOARD_GHOST, {
   woodPieceCount: woodPieces.length,
   fastenerSchedulePass: true,
   fastenerAssemblies: fastenerAssemblies.length,
-  skinToRetainerBolts: skinRetainerBoltCount,
-  retainerToFrameBolts: retainerToFrameBoltCount,
-  unsupportedSkinBolts: false,
-  frontPanelSupportPass: skinRetainerBoltCount > 0 && retainerToFrameBoltCount > 0,
+  skinFieldScrews: skinFieldScrewCount,
+  standardCourseGluedScrewed,
+  speakerCourseScrewOnlyNoGlue,
+  hbRetRetired: window.__BF_SKIN_FIELD.hbRetRetired,
+  frontPanelSupportPass: window.__BF_SKIN_FIELD.pass,
   switchPanelPass: window.__BF_SWITCH_PANELS.pass,
   switchPanelCount: window.__BF_SWITCH_PANELS.switchPanelCount,
   switchButtonCount: window.__BF_SWITCH_PANELS.switchButtonCount,
@@ -2908,13 +2966,40 @@ addEventListener('resize', () => {
   window.__BF_VISUAL_LOCK = { woodSpecies: 'natural ash', finishIntent: 'clear / natural ash', visualMode: 'ghost-review', naturalAshLocked: true, ghostSolidMaster: true, defaultGhost: true };
   window.__BF_PERF_MODE = { engineeringReview: true, ghostReview: true, shadows: renderer.shadowMap.enabled, pixelRatio: renderer.getPixelRatio(), labels: 'CSS2D' };
   window.__BF_VIEW_MODES = { ghost: true, solid: true, structureForcePath: !!groups.forcePath, emphasisPresets: ['structure', 'fastener', 'service'], dimensions: true, defaultMode: 'ghost' };
-  window.__BF_BOARD_OUTLINES = { present: true, note: 'edge outlines on boards; one-piece mullion is a single-mesh silhouette' };
+  window.__BF_BOARD_OUTLINES = { present: true, note: 'edge outlines on boards; hollow built-up mullion reads as face board + two webs (Lee-call Phase 2)' };
 
   // ---- 11 canonical validators (re-created, measured from the V1 scene) ----
   window.__BF_CASE_KEEPOUT = { pass: cnt(/BF-BASE drawer face /) === 6, drawers: cnt(/BF-BASE drawer face /), note: '6 drawers in side face-frame openings; structure routes around the bays (5-sided pockets)' };
   window.__BF_OPEN_BACK = { pass: !has(/headboard rear (slab|panel|skin)/i), note: 'open-back headboard: front removable panels only; rear cavity open (LED heatsink air volume)' };
   window.__BF_EDGE_STILES = { pass: has(/left side stile/) && has(/right side stile/), note: '2 full-depth 2x68x8 side stiles at x +-64' };
-  window.__BF_HEADBOARD_PHYSICAL_FRAME = { pass: cnt(/mullion one-piece/) === 2 && has(/lower receiver/) && has(/top cap/) && has(/bottom cap/), mullions: cnt(/mullion one-piece/), note: '2 full-depth one-piece mullions + lower receiver ladder + top/bottom caps + 2 side stiles' };
+  window.__BF_HEADBOARD_PHYSICAL_FRAME = { pass: cnt(/HB-MUL-[LR] hollow built-up mullion FACE board/) === 2 && has(/lower receiver/) && has(/top cap/) && has(/bottom cap/), mullions: cnt(/HB-MUL-[LR] hollow built-up mullion FACE board/), note: '2 hollow built-up mullions (face board + 2 webs) + lower receiver ladder + top/bottom caps + 2 built-up L side stiles' };
+  // ---- Lee-call Phase 2: BUILT-UP L-section frame members + HOLLOW built-up mullions (measured from the scene) ----
+  const _hbFrameMeta = window.__BF_HB_FRAME_META || {}, _hbMulMeta = window.__BF_HB_MULLION_META || {};
+  window.__BF_BUILT_UP_FRAME = {
+    builtUpLShowFaces: cnt(/built-up L show-FACE board/),                    // 5 (2 side stiles + 3 per-module bottom rails)
+    builtUpLReturnWebs: cnt(/built-up L return web/),                        // 5
+    frameFaceThickness: _hbFrameMeta.faceBoardThickness,                     // 0.875
+    frameReturnWebDepth: _hbFrameMeta.returnWebDepth,                        // 7.125
+    mullionFaceBoards: cnt(/hollow built-up mullion FACE board/),            // 2
+    mullionWebs: cnt(/hollow built-up mullion WEB/),                         // 4 (2 per mullion)
+    mullionConstruction: _hbMulMeta.construction,                           // 'hollow built-up'
+    mullionChaseClearance: _hbMulMeta.chaseClearance,                       // 2.25
+    mullionChaseClearsMin: _hbMulMeta.chaseClearsMin === true,             // clear chase > 2 in
+    switchPocketFitsChase: _hbMulMeta.switchPocketFitsChase === true,
+    noOnePieceExtrudedMullion: !has(/mullion one-piece/) && !has(/single extruded W-profile/),
+    noHbRetGeometry: !has(/HB-RET|retainer lip|skin retainer/i) && noActiveHbRetFasteners,
+    note: 'built-up L-section stiles+rails (5 show faces + 5 return webs, 7/8 face + 7.125 web) + 2 hollow built-up mullions (2 face boards + 4 webs, 2.25 in clear chase); no one-piece extruded mullion; no HB-RET geometry'
+  };
+  window.__BF_BUILT_UP_FRAME.pass =
+       window.__BF_BUILT_UP_FRAME.builtUpLShowFaces === 5
+    && window.__BF_BUILT_UP_FRAME.builtUpLReturnWebs === 5
+    && window.__BF_BUILT_UP_FRAME.mullionFaceBoards === 2
+    && window.__BF_BUILT_UP_FRAME.mullionWebs === 4
+    && _hbMulMeta.construction === 'hollow built-up'
+    && window.__BF_BUILT_UP_FRAME.mullionChaseClearsMin === true
+    && window.__BF_BUILT_UP_FRAME.switchPocketFitsChase === true
+    && window.__BF_BUILT_UP_FRAME.noOnePieceExtrudedMullion === true
+    && window.__BF_BUILT_UP_FRAME.noHbRetGeometry === true;
   // ---- Lee-call Phase 1 (2026-07-03): headboard = THREE bolt-together finished boxes (HB-MOD-L / HB-MOD-C / HB-MOD-R) ----
   const _HBM = window.__BF_HB_MODULES_META || {};
   window.__BF_HEADBOARD_MODULES = {
@@ -2959,7 +3044,7 @@ addEventListener('resize', () => {
     headboardConstructionPass: FB.pass === true,
     mullionsAt36: JSON.stringify(FB.mullionCenterXs) === JSON.stringify([-36, 36]),
     baseBoltLines36: JSON.stringify(FB.baseBoltLines) === JSON.stringify([-36, -4, 4, 36]),
-    twelveFrontSkins: (cnt(/flush removable panel/) + cnt(/skin head rail/)) === 12,   // 12 front-skin bays: 10 solid panels + 2 speaker-window frames (each a jamb/jamb/sill/head wood frame around the speaker cutout; counted once via its head rail)
+    twelveFrontSkins: (cnt(/recessed field skin/) + cnt(/recessed speaker-course skin assembly head-rail/)) === 12,   // 12 recessed field-skin bays: 10 solid recessed skins + 2 recessed speaker-course assemblies (jamb/jamb/sill/head around the cutout; counted once via the head-rail)
     noVisibleFrontFasteners: !has(/front[- ]face (screw|fastener)/i),
     switchRearExitsVisible: (SW.switchRearExitCount || 0) === 2,
     noSpeakerPocketFrames: !has(/speaker pocket frame/i),
@@ -2973,7 +3058,7 @@ addEventListener('resize', () => {
   };
 
   // ---- aggregate ----
-  const _canon = ['__BF_CASE_KEEPOUT', '__BF_OPEN_BACK', '__BF_EDGE_STILES', '__BF_HEADBOARD_PHYSICAL_FRAME', '__BF_HEADBOARD_MODULES', '__BF_CONTINUOUS_SIDE_CHORDS', '__BF_FLAT_LIFT_DECK', '__BF_FOOTBOARD_DEPTH_GATE', '__BF_LIFT_POSITION_GATE', '__BF_LENGTH_GATE', '__BF_CUBBY_CABLE_PORTS', '__BF_LIFT_GEOMETRY'];
+  const _canon = ['__BF_CASE_KEEPOUT', '__BF_OPEN_BACK', '__BF_EDGE_STILES', '__BF_HEADBOARD_PHYSICAL_FRAME', '__BF_HEADBOARD_MODULES', '__BF_SKIN_FIELD', '__BF_BUILT_UP_FRAME', '__BF_CONTINUOUS_SIDE_CHORDS', '__BF_FLAT_LIFT_DECK', '__BF_FOOTBOARD_DEPTH_GATE', '__BF_LIFT_POSITION_GATE', '__BF_LENGTH_GATE', '__BF_CUBBY_CABLE_PORTS', '__BF_LIFT_GEOMETRY'];
   const _canonFails = _canon.filter(k => !(window[k] && window[k].pass === true));
   const _v1Fails = Object.keys(window.__BF_V1).filter(k => window.__BF_V1[k] !== true);
   // Drawer-lip recess + aluminum micro-channel validators (D-012/D-013/D-034/D-093): front-wall-anchored datum
