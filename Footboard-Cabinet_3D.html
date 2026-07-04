@@ -484,8 +484,13 @@ const SPEC = Object.freeze({
     wireChaseDia: 0.5
   },
   // Lee-call Phase 5: NO toe kick — toeH/toeInset 2.0/1.5 -> 0 (grounded flush bottom rail; no recessed toe space under the drawers).
-  // slat: DENSE field (~1.5 in gaps, was ~5 in) bolted via nutserts at both ends. centerBeam: mattress-support beam on floor legs + levelers (concept; parts [TBD-CONFIRM Lee]).
-  base: { W: 74, L: 85, top: 17, bayW: 67, bayL: 81, shoulder: 3.5, toeH: 0, toeInset: 0, caseBottom: 2.0, slat: { width: 2.75, gap: 1.5, mount: 'bolt-in nutsert ends' }, centerBeam: { present: true, legs: 3, levelers: 3 } },
+  // slat: DENSE field (~1.5 in gaps, was ~5 in) bolted via nutserts at both ends.
+  // Lee drawer-base translation (2026-07-04, plan 17): centerBeam is a NARROW under-slat beam (slat/mattress support ONLY;
+  //   NOT a full-height wall / NOT a headboard moment beam) resting on 2 head/foot end SUPPORT BLOCKS + dropping EXACTLY 2
+  //   intermediate legs (+ 2 levelers) through the center slot at the two between-drawer gaps (was a full-height 3-leg slab).
+  //   drawerStructure = the Dawna/Donna PDF method: side-frame ledges, 4 boundary stiles/side + hidden 2-in inside strips,
+  //   3 open-ladder drawer-pair modules, side-to-side glide boards landing on the strips, module-to-side-frame connector bolts.
+  base: { W: 74, L: 85, top: 17, bayW: 67, bayL: 81, shoulder: 3.5, toeH: 0, toeInset: 0, caseBottom: 2.0, slat: { width: 2.75, gap: 1.5, mount: 'bolt-in nutsert ends' }, centerBeam: { present: true, role: 'slat/mattress support only', form: 'narrow under-slat beam', legs: 2, levelers: 2, endSupportBlocks: 2, beamW: 2.5, beamTh: 0.875 }, drawerStructure: { modules: 3, boundaryStiles: 4, insideStripWidth: 2, stileWidth: 4, ledges: true } },
   drawer: { perSide: 3, intH: 10.75, intW: 19, intD: 33, faceRecess: 0.638, frontWall: 0.5, revealGap: 0.375, channelRout: 0.276, channelH: 0.276, lipCarrierH: 1.0, faceThickness: 1.0, faceH: 12.0, faceGap: 0.25, faceReveal: 0.1875, faceOverlap: true },  // D-093/D-012/D-013: face FRONT recessed 0.638 in (centered under the aluminum micro-channel); 0.5 in front wall to the channel front edge; 7 mm routed groove; 1.0 in lip carrier (0.724 in wood above the 0.276 in channel); 3/8 in reveal; Dawna Option A bottom-edge pull. Lee-call Phase 7: faces OVERLAP the 4-in face-frame verticals with a thin 3/16 (0.1875) reveal, edge-to-edge read (faceReveal / faceOverlap)
   footboard: { W: 74, H: 41, D: 16, sideTh: 2.0, faceTh: 1.0, deckTh: 1.0, rearTh: 0.75, reveal: 0.125, relocatable: true, regularFootboardVariant: { W: 74, H: 14, D: 16 }, dock: { boltCenterX: 33, boltRowsAFF: [5, 14.5], wireHoleDia: 0.75, wireHoleCenterAFF: 3 } },  // Lee-call Phase 8: cabinet set back ~1/8 in (reveal) never proud of the bed side/top cap; relocatable standalone; regular-footboard (no-TV) variant is a stored-part SKU (~74x14x16)
   lift: { travel: 36, retractBody: 31, raised: 68.5, baseW: 28.375, basePlateW: 9.875, basePlateD: 5.125, bodyD: 7.0, deckTopY: 8.0 },
@@ -614,8 +619,11 @@ function buildBedBase(ctx) {
   const B = SPEC.base;
   const DWR = SPEC.drawer;
   const group = groups.bedBase;
-  // ── Lee-call Phase 5 (2026-07-04): base = explicit FACE-FRAME long sides, NO toe kick (grounded flush bottom
-  //    rail), a mattress-support CENTER BEAM on floor legs + adjustable levelers, and a DENSE bolt-in slat field. ──
+  // ── Lee-call Phase 5 (2026-07-04) + drawer-base translation (2026-07-04, plan 17): base = explicit FACE-FRAME long
+  //    sides, NO toe kick (grounded flush bottom rail), a NARROW under-slat mattress-support CENTER BEAM (slat support
+  //    only) on 2 intermediate legs + head/foot end blocks, the Dawna/Donna drawer-base structure (side-frame ledges +
+  //    2-in inside strips + 3 open-ladder drawer-pair modules + glide boards + connector bolts), a STATIONARY drawer-bay
+  //    top/security cover, and a DENSE bolt-in slat field. ──
   // (5.3) NO toe kick — the recessed toe plinth is DELETED (B.toeH/toeInset = 0); the base sits FLUSH on the floor
   //       (grounded, D-002); no free space under the drawers.
   // (5.1) Long sides are an explicit FACE FRAME: a continuous TOP rail + a solid FLUSH BOTTOM rail (to the floor)
@@ -629,13 +637,26 @@ function buildBedBase(ctx) {
   });
   box(group, 'BF-BASE head rail receiver face', B.W, B.top, 2.4, 0, B.top / 2, 1.2, mats.baseStructure);
   box(group, 'BF-BASE foot rail receiver face', B.W, B.top, 2.4, 0, B.top / 2, B.L - 1.2, mats.baseStructure);
-  // (5.2) mattress-support CENTER BEAM (head-to-foot; carries the slat midspan) on FLOOR LEGS with adjustable LEVELERS.
-  box(group, 'BF-BASE mattress-support CENTER BEAM (head-to-foot; carries the slat midspan)', 3.0, B.top, B.L, 0, B.top / 2, baseMidZ, mats.baseStructure);
-  [14, 42.5, 71].forEach((lz, i) => {
-    box(group, `BF-BASE center-beam floor LEG ${i + 1} (drops the center beam load to the floor)`, 2.6, B.top - 1.2, 3.0, 0, (B.top - 1.2) / 2, lz, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false });
-    cyl(group, `BF-BASE center-beam floor LEVELER ${i + 1} (adjustable threaded foot; sets bed height + level) [TBD-CONFIRM part]`, 0.7, 1.2, 0, 0.6, lz, mats.steel, 'y', { segments: 20, cast: false });
+  // (5.2 / Lee drawer-base translation 2026-07-04, plan 17 §8.6) mattress-support CENTER BEAM — a Lee-faithful NARROW
+  //   UNDER-SLAT beam (slat/mattress support ONLY; NOT a full-height wall and NOT a headboard moment-arm beam). It rests
+  //   on HEAD + FOOT end SUPPORT BLOCKS/seats (not floor legs) and drops EXACTLY TWO intermediate floor LEGS through the
+  //   center slot at the two between-drawer gaps (between drawer 1/2 and 2/3 — the only valid drop zones for 3 drawer rows).
+  //   Replaces the retired full-height '3 x 17 x 85' 3-leg center-slab abstraction.
+  const cb = B.centerBeam;                                  // { legs:2, levelers:2, endSupportBlocks:2, beamW:2.5, beamTh:0.875 }
+  const slatUnderside = 16.25 - 0.75 / 2;                   // slats centered Y 16.25, 0.75 thick -> underside 15.875
+  const beamTopY = slatUnderside, beamCenterY = beamTopY - cb.beamTh / 2, beamBotY = beamTopY - cb.beamTh;
+  const beamZ0 = 3.5, beamZ1 = B.L - 3.5, beamLen = beamZ1 - beamZ0, beamZc = (beamZ0 + beamZ1) / 2;
+  box(group, 'BF-BASE mattress-support CENTER BEAM (narrow under-slat beam; slat/mattress support ONLY; NOT a full-height wall / NOT a headboard moment beam)', cb.beamW, cb.beamTh, beamLen, 0, beamCenterY, beamZc, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false });
+  // HEAD + FOOT end SUPPORT BLOCKS / seats — seat the beam ends on the bed-end structure (NOT floor legs, NOT intermediate legs).
+  [['HEAD', beamZ0 + 0.5], ['FOOT', beamZ1 - 0.5]].forEach(([e, ez]) => box(group, `BF-BASE center-beam ${e}-end support block / seat (seats the beam end on the bed-end structure; NOT a floor leg)`, cb.beamW + 0.5, 3.0, 2.2, 0, beamBotY - 1.5, ez, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false }));
+  // TWO intermediate floor LEGS through the center slot at the between-drawer gaps (~Z 30.65 / ~56.35), each with a leveler.
+  const cbLegZ = [30.65, 56.35], legTopY = beamBotY, legBotY = 1.2, legH = legTopY - legBotY, legCenterY = (legTopY + legBotY) / 2;
+  cbLegZ.forEach((lz, i) => {
+    box(group, `BF-BASE center-beam intermediate floor LEG ${i + 1} (between drawer ${i + 1}/${i + 2}; drops the beam load to the floor through the center slot between the side-to-side glide boards)`, cb.beamW, legH, cb.beamTh, 0, legCenterY, lz, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false });
+    cyl(group, `BF-BASE center-beam LEG ${i + 1} floor LEVELER (adjustable threaded foot; sets bed height + level) [TBD-CONFIRM part]`, 0.7, 1.2, 0, 0.6, lz, mats.steel, 'y', { segments: 20, cast: false });
   });
-  [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sz], i) => cyl(group, `BF-BASE corner floor LEVELER ${i + 1} (adjustable threaded foot; grounded base)`, 0.6, 1.2, sx * (B.W / 2 - 3), 0.6, sz < 0 ? 4 : B.L - 4, mats.steel, 'y', { segments: 18, cast: false }));
+  // grounded-base corner levelers (SEPARATE from the 2 center-beam leg levelers).
+  [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sz], i) => cyl(group, `BF-BASE corner floor LEVELER ${i + 1} (adjustable threaded foot; grounded base; separate from the center-beam leg levelers)`, 0.6, 1.2, sx * (B.W / 2 - 3), 0.6, sz < 0 ? 4 : B.L - 4, mats.steel, 'y', { segments: 18, cast: false }));
   box(group, 'BF-BASE left mattress shoulder rail', 2.0, 0.8, B.bayL, -B.bayW / 2 - 0.9, B.top + 0.15, 2 + B.bayL / 2, mats.baseWood);
   box(group, 'BF-BASE right mattress shoulder rail', 2.0, 0.8, B.bayL, B.bayW / 2 + 0.9, B.top + 0.15, 2 + B.bayL / 2, mats.baseWood);
   box(group, 'BF-BASE head mattress shoulder rail', B.bayW, 0.8, 1.6, 0, B.top + 0.15, 2.8, mats.baseWood);
@@ -657,30 +678,50 @@ function buildBedBase(ctx) {
     [-1, 1].forEach(s => cyl(groups.slats, `BF-BASE slat ${i + 1} nutsert bolt ${s < 0 ? 'L' : 'R'} (bolts the slat end into a nutsert in the shoulder ledger)`, 0.16, 1.0, s * (B.bayW / 2 - 1), 15.9, z, mats.steel, 'y', { segments: 12, cast: false }));
   }
 
+  // ── Lee drawer-base translation (2026-07-04, plan 17): the Dawna/Donna PDF construction method ──
+  //   side-frame internal LEDGES receive the drawer-structure ends; each side has 4 boundary stiles (the face-frame
+  //   verticals above) with a hidden 2-in INSIDE STRIP behind each; side-to-side GLIDE BOARDS land on those strips and
+  //   carry the slides; a STATIONARY drawer-bay top/security cover sits above the drawers + below the slats; and 3
+  //   open-ladder drawer-pair MODULES (built after this loop) are captured on the ledges + connector-bolted (one side
+  //   per window). Replaces the old generic 'drawer divider wall' + moving-drawer TOP + fixed 'plywood DECK' abstraction.
   const drawerSpan = (B.L - 5 - 3) / 3;
   const drawerDepth = 32.6;
+  const DS = B.drawerStructure;                               // { modules:3, boundaryStiles:4, insideStripWidth:2, stileWidth:4, ledges:true }
+  const ffStileZ = [3.0, 30.65, 56.35, 82.0];                // the 4 boundary-stile Z positions (mirror the face-frame verticals)
+  const rowBoundZ = [5, 5 + drawerSpan, 5 + 2 * drawerSpan, 81];   // the 4 drawer-row glide-board boundaries
   [-1, 1].forEach(side => {
+    const sAbbr = side < 0 ? 'L' : 'R', sName = side < 0 ? 'left' : 'right';
     const faceX = side * (B.W / 2 - DWR.faceRecess - DWR.faceThickness / 2); // face FRONT recessed DWR.faceRecess (0.638) behind the +-37 outer plane, centered under the channel (D-093); centre +-35.862
     const boxXc = side * (B.W / 2 - 0.9 - drawerDepth / 2);
     const wallXc = side * (B.W / 2 - 0.9 - (drawerDepth + 1) / 2);
-    [0, 1, 2].forEach(w => box(group, `BF-BASE drawer divider wall ${side < 0 ? 'L' : 'R'} ${w}`, drawerDepth + 1, DWR.intH + 1.6, 1.0, wallXc, 8.7, 5 + w * drawerSpan, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false }));
-    box(group, `BF-BASE foot drawer-rail support wall (L) slide leg ${side < 0 ? 'L' : 'R'}`, drawerDepth + 1, DWR.intH + 1.6, 1.0, wallXc, 8.7, 81, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false });
-    box(group, `BF-BASE foot drawer-rail support wall (L) gap-cover return ${side < 0 ? 'L' : 'R'}`, drawerDepth + 1, 1.0, 2.6, wallXc, 14.4, 82.3, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false });
-    box(group, `BF-BASE drawer-bay hidden plywood DECK ${side < 0 ? 'L' : 'R'} (over the drawer bay, under the slats/mattress; closes the top of the bay)`, drawerDepth, 0.6, 77, boxXc, 14.7, 43.5, mats.baseWood, { edgeColor: 0x5f411a, edgeOpacity: 0.4, cast: false });
-    box(group, `BF-BASE drawer-bay BACK wall (walls off the centre wiring chase) ${side < 0 ? 'L' : 'R'}`, 0.5, DWR.intH + 1.6, 77, side * 2.9, 8.7, 43.5, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false });
+    const stripXc = side * (B.W / 2 - 2.4 - 1.0);            // 2-in inside strip inboard of the side frame, behind the 4-in stile
+    // (17 §3.1/§8.3) side-frame INTERNAL LEDGE — the Dawna/Donna PDF ledge the drawer-structure ends are lifted onto.
+    box(group, `BF-BASE ${sName} side-frame internal ledge (Dawna/Donna PDF ledge; the drawer-structure ends are lifted onto this ledge, then connector-bolted) [stock TBD-CONFIRM Lee]`, 1.6, 1.0, B.L - 6, side * (B.W / 2 - 2.4 - 0.8), 3.0, baseMidZ, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false });
+    // (17 §2.2A/§8.4) hidden 2-in INSIDE STRIPS behind each 4-in boundary stile — the glide boards land on their sides.
+    ffStileZ.forEach((sz, k) => box(group, `BF-BASE ${sName} inside strip (${DS.insideStripWidth} in; hidden behind the 4-in boundary stile ${k}; the side-to-side glide boards land on its sides, behind the 4-in board) [TBD-CONFIRM Lee]`, 1.0, 11.0, DS.insideStripWidth, stripXc, 8.7, sz, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.4, cast: false }));
+    // (17 §3.2/§8.5) side-to-side GLIDE BOARDS at each drawer-row boundary — land on the 2-in inside strips; carry the slides.
+    rowBoundZ.forEach((bz, k) => box(group, `BF-BASE ${sName} drawer-row glide board ${k} (side-to-side; lands on the 2-in inside strip behind the 4-in stile; the cabinet drawer slide mounts to its vertical face)`, drawerDepth + 1, DWR.intH + 1.6, 1.0, wallXc, 8.7, bz, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false }));
+    // (17 §4.4/§8.7) STATIONARY drawer-bay TOP / SECURITY COVER — fixed to the base, over the drawer bay + under the
+    //   slats/mattress; blocks top access into the LOCKED drawer cavity when the mattress/slats are lifted. NOT a moving
+    //   drawer lid. Attachment (loose-on-ledges vs screwed vs security-bolted/captured) [TBD-CONFIRM Lee]. (Refines the
+    //   former fixed 'drawer-bay hidden plywood DECK'.)
+    box(group, `BF-BASE ${sName} stationary drawer-bay TOP / security cover (fixed to the base; over the drawer bay, under the slats/mattress; blocks top access into the locked drawer cavity — NOT a moving drawer lid) [attachment TBD-CONFIRM Lee]`, drawerDepth, 0.6, 77, boxXc, 14.7, 43.5, mats.baseWood, { edgeColor: 0x5f411a, edgeOpacity: 0.4, cast: false });
+    box(group, `BF-BASE ${sName} security-cover support ledge / capture rail (bed-base ledge the stationary security cover rests on) [TBD-CONFIRM Lee]`, 0.9, 0.9, 77, side * (B.W / 2 - 2.7), 14.15, 43.5, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.4, cast: false });
+    box(group, `BF-BASE drawer-bay BACK wall (walls off the centre wiring chase; keeps the center slot open for the beam legs) ${sAbbr}`, 0.5, DWR.intH + 1.6, 77, side * 2.9, 8.7, 43.5, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false });
     for (let i = 0; i < DWR.perSide; i += 1) {
       const z = 5 + drawerSpan / 2 + i * drawerSpan;
-      const sName = side < 0 ? 'left' : 'right', sAbbr = side < 0 ? 'L' : 'R';
       const isFoot = i === DWR.perSide - 1, gap = isFoot ? 1.0 : 0;
-      [z - drawerSpan / 2 + 0.6, z + drawerSpan / 2 - 0.6 - gap].forEach((sz, s) => box(group, `BF-BASE full-extension slide rail (cabinet) ${sAbbr} ${i + 1}-${s}`, drawerDepth, 0.5, 0.32, boxXc, 11.6, sz, mats.steel, { edgeColor: 0x60a5fa, edgeOpacity: 0.45, cast: false }));
+      [z - drawerSpan / 2 + 0.6, z + drawerSpan / 2 - 0.6 - gap].forEach((sz, s) => box(group, `BF-BASE full-extension slide rail (cabinet; mounted to the drawer-pair module glide board) ${sAbbr} ${i + 1}-${s}`, drawerDepth, 0.5, 0.32, boxXc, 11.6, sz, mats.steel, { edgeColor: 0x60a5fa, edgeOpacity: 0.45, cast: false }));
       const dg = new THREE.Group(); group.add(dg); drawerGroups.push({ g: dg, axis: 'x', dir: side, ext: drawerDepth - 2 });
       // Lee-call Phase 7 (rpt 42): the drawer face OVERLAPS the 4-in face-frame verticals with a THIN 3/16 (faceReveal)
       // reveal to the adjacent faces -> an edge-to-edge face-frame read (was a 0.5 in reveal). Face top sits ~0.5 in of the top rail.
       box(dg, `BF-BASE drawer face ${sName} ${i + 1} (OVERLAPS the 4-in verticals; thin 3/16 reveal; edge-to-edge)`, DWR.faceThickness, DWR.faceH, drawerSpan - DWR.faceReveal, faceX, 8.6, z, mats.baseWood, { edgeColor: 0x604618, edgeOpacity: 0.52 });
       const dW = drawerDepth, dH = DWR.intH, dL = drawerSpan - 2.0 - gap, tw = 0.5, dyc = 8.8, bz = z - gap / 2;
       box(dg, `BF-BASE drawer ${sName} ${i + 1} floor`, dW, tw, dL, boxXc, dyc - dH / 2 + tw / 2, bz, mats.baseWood, { edgeColor: 0x8a6a32, edgeOpacity: 0.42, cast: false });
-      // Lee-call Phase 7 (rpt 43/44): under-bed drawers get a TOP (5th surface, security). Fixed-vs-lift-off is DEFERRED — concept-level.
-      box(dg, `BF-BASE drawer ${sName} ${i + 1} TOP (5th surface, security lid over the drawer box) [TBD-CONFIRM Lee fixed-vs-removable]`, dW, tw, dL, boxXc, dyc + dH / 2 - tw / 2, bz, mats.baseWood, { edgeColor: 0x8a6a32, edgeOpacity: 0.42, cast: false });
+      // Lee drawer-base translation (2026-07-04): the moving drawer box is OPEN-TOP (a normal drawer). The former
+      //   moving-drawer 'TOP (5th surface, security lid)' is REMOVED — a cover that moves with the drawer cannot solve
+      //   the mattress-lift security problem; that job belongs to the STATIONARY drawer-bay security cover above (built
+      //   per side outside this loop). See drawer.securityTop.* facts + plan 17 §4.4/§8.7.
       box(dg, `BF-BASE drawer ${sName} ${i + 1} inner wall`, tw, dH, dL, boxXc - side * (dW / 2 - tw / 2), dyc, bz, mats.baseWood, { edgeColor: 0x8a6a32, edgeOpacity: 0.42, cast: false });
       box(dg, `BF-BASE drawer ${sName} ${i + 1} front wall`, tw, dH, dL, boxXc + side * (dW / 2 - tw / 2), dyc, bz, mats.baseWood, { edgeColor: 0x8a6a32, edgeOpacity: 0.42, cast: false });
       box(dg, `BF-BASE drawer ${sName} ${i + 1} side wall A`, dW, dH, tw, boxXc, dyc, bz - dL / 2 + tw / 2, mats.baseWood, { edgeColor: 0x8a6a32, edgeOpacity: 0.42, cast: false });
@@ -691,6 +732,26 @@ function buildBedBase(ctx) {
       dg.add(bbev);
       [z - drawerSpan / 2 + 0.6, z + drawerSpan / 2 - 0.6 - gap].forEach((sz, s) => box(dg, `BF-BASE full-extension slide (drawer) ${sAbbr} ${i + 1}-${s}`, drawerDepth - 1, 0.34, 0.2, boxXc, 11.6, sz, mats.darkSteel, { edgeOpacity: 0.22, cast: false }));
     }
+  });
+
+  // ── (17 §3.2/§4.2) THREE drawer-pair STRUCTURE MODULES — one per left/right drawer row (head/middle/foot). Each is an
+  //   OPEN LADDER frame captured on the side-frame ledges (Dawna/Donna PDF method), NOT a solid partition slab: split L+R
+  //   rails that keep the center slot open, end blocks landing on the ledges, an open ladder window, and a module-to-side-
+  //   frame CONNECTOR BOLT on ONLY ONE side of each window (PDF page-21 rule) — a SEPARATE bolt family from the
+  //   side-frame/corner bolts and the ±36 head-to-base tie bolts.
+  const rowZc = [17.833, 43.5, 69.167], rowName = ['head', 'middle', 'foot'];
+  rowZc.forEach((rz, r) => {
+    // canonical MODULE identity — exactly one per drawer row (3 total)
+    box(group, `BF-BASE drawer-pair structure MODULE ${r + 1}/3 (${rowName[r]} row; OPEN LADDER captured on the side-frame ledges; one left/right drawer pair; Dawna/Donna PDF method)`, 0.6, DWR.intH, 0.6, 0, 8.5, rz, mats.void, { edgeColor: 0x22d3ee, edgeOpacity: 0.35, cast: false });
+    [-1, 1].forEach(s => {
+      const sAb = s < 0 ? 'L' : 'R';
+      const segLen = (B.W / 2 - 2.4) - 3.2, segXc = s * (3.2 + segLen / 2);   // side-frame ledge -> center-slot edge (slot stays open)
+      [['top', 13.8], ['bottom', 3.6]].forEach(([e, ry]) => box(group, `BF-BASE drawer-row ${rowName[r]} module ${e} rail ${sAb} (open ladder frame member; center slot stays open)`, segLen, 1.0, 1.2, segXc, ry, rz, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false }));
+      box(group, `BF-BASE drawer-row ${rowName[r]} module end block ${sAb} (lands on the side-frame internal ledge)`, 1.6, DWR.intH, 1.2, s * (B.W / 2 - 2.4), 8.5, rz, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.4, cast: false });
+      box(group, `BF-BASE drawer-row ${rowName[r]} module open ladder window ${sAb} (weight/access opening; open frame, NOT a solid slab)`, segLen - 3, DWR.intH - 3, 0.4, segXc, 8.5, rz, mats.void, { edgeColor: 0x22d3ee, edgeOpacity: 0.28, cast: false });
+    });
+    const cbSide = r % 2 === 0 ? -1 : 1;   // ONE side per window (alternated per module); still one side only
+    [3.6, 13.8].forEach(by => cyl(group, `BF-BASE module-to-side-frame CONNECTOR BOLT ${rowName[r]} row ${cbSide < 0 ? 'L' : 'R'} (ONLY one side of the structure in each window is connected — Dawna/Donna PDF rule; a SEPARATE bolt family from the side-frame-to-bed-end/corner bolts and the ±36 head-to-base tie bolts)`, 0.18, 2.4, cbSide * (B.W / 2 - 1.3), by, rz, mats.steel, 'x', { segments: 16, cast: false }));
   });
 
   // ---- Drawer-lip LED down-wash (D-013 / D-034 / D-093): a FIXED 1.0 in lip/overhang carrier rail per side;
@@ -732,11 +793,11 @@ function buildBedBase(ctx) {
   line3(groups.wiring, '24V + lighting-control: base hub -> centre bore -> rear cable bore (continues up the headboard cavity)', [
     [-2, 7, 6], [-2, 7, 2.5], [-2, 1, 2.5], [-2, 1, -1.8]
   ], 0x38bdf8, 0.8);
-  label('74 x 85 grounded base (NO toe kick, flush bottom rail); side FACE FRAMES + mattress-support CENTER BEAM on floor legs + levelers; dense bolt-in slats', 0, 19.5, 43, 'blue', 'base');
+  label('74 x 85 grounded base (NO toe kick, flush bottom rail); side FACE FRAMES + NARROW under-slat CENTER BEAM (slat support only) on 2 legs + head/foot end blocks; Lee/Dawna drawer-pair modules + side-frame ledges + 2-in inside strips; dense bolt-in slats', 0, 19.5, 43, 'blue', 'base');
   label('base/headboard bolts align to x=-36,+36 at AFF 5 and 14.5 (D0-3: ±36 mullions ONLY; ±4 pair dropped)', 0, 17.5, 2.8, 'steel', 'base');
   pieceLabel('BF-BASE-L-FF', 'left side FACE FRAME (top+bottom rails, 4-in verticals framing the drawer openings)', -36.5, 15.7, 42.5, 'face frame x 85', 'base');
   pieceLabel('BF-BASE-R-FF', 'right side FACE FRAME (top+bottom rails, 4-in verticals framing the drawer openings)', 36.5, 15.7, 42.5, 'face frame x 85', 'base');
-  pieceLabel('BF-BASE-BEAM', 'mattress-support center beam (on floor legs + levelers)', 0, 10, 42.5, '3 x 17 x 85', 'base');
+  pieceLabel('BF-BASE-BEAM', 'narrow under-slat center beam (slat support only; 2 legs + head/foot end blocks)', 0, 14.5, 42.5, '2.5 x 0.875 under-slat', 'base');
 }
 
 // ----------------------------------------------------------------------------
