@@ -1,94 +1,170 @@
 <!DOCTYPE html>
 <!--
-  FILE: Headboard_3D       (canonical — no _vN)
-  TITLE: Headboard — standalone interactive model
-  STATUS: CURRENT   DATE: 2026-06-06    (history in git)
-  DERIVES FROM: bf-geometry.js -> buildHeadboard() (the SAME shared builder Full-Bed uses)
-  COORD/UNITS: standard (Folder Spec §4) — inches. X=width(0 centred), Y=AFF, Z=head(0)->front(+).
-  CHANGE: New standalone headboard model. Imports the shared builder, so it CANNOT drift from the master.
-  ASSUMPTIONS: none — geometry is single-sourced in bf-geometry.js.
-
-  130 x 72 x 8 rail-and-stile headboard with a VENTILATED plywood back (Lee-call Phase 4, D0-2): three
-  bolt-together boxes split at the +-36 hollow built-up mullions, built-up L-section side stiles + bottom
-  rails, THREE butted top-cap segments (Phase 3), twelve
-  RECESSED 7/8 in field skins (glued+screwed; the speaker course screw-only), top-cap LED channels, the
-  in-wall speakers, and the ventilated rear plywood back + hidden fasteners. Thin HOST: all geometry comes from
-  bf-geometry.js -> buildHeadboard() (single source; the 3-segment top cap is Phase 3).
+  Full Bed with Regular Footboard - the complete bed in the REGULAR-FOOTBOARD configuration: headboard +
+  drawer base + nightstands + a real conventional footboard (~74x14x16), and NO TV cabinet / TV-lift / dock.
+  The TV-cabinet configuration is the sibling Full-Bed_3D.html. All geometry is the shared bf-geometry.js
+  (buildHeadboard / buildBedBase / buildNightstands / buildRegularFootboard), so the two configs cannot drift.
+  Units: inches. X = width, Y = height AFF, Z = head -> foot. Natural ash; Ghost / Solid review system.
 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Headboard - Headboard (shared geometry)</title>
+<title>Full bed with regular footboard — Master Assembly</title>
 <style>
   * { box-sizing: border-box; }
-  html, body { margin: 0; width: 100%; height: 100%; overflow: hidden;
-    background: #0e1218; color: #eef4fb; font-family: Inter, "Segoe UI", Arial, sans-serif; }
+  html, body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #0f141b;
+    color: #eef4fb;
+    font-family: Inter, "Segoe UI", Arial, sans-serif;
+  }
   #app { position: fixed; inset: 0; }
   canvas { display: block; }
-  .panel { position: fixed; background: rgba(12,18,27,.84); border: 1px solid rgba(148,163,184,.34);
-    border-radius: 10px; backdrop-filter: blur(10px); box-shadow: 0 18px 45px rgba(0,0,0,.35); }
-  #hud { left: 14px; top: 14px; width: min(390px, calc(100vw - 28px)); padding: 13px 15px; }
-  #hud h1 { margin: 0 0 5px; font-size: 16px; }
-  #hud p { margin: 4px 0; font-size: 12px; color: #c9d4e2; line-height: 1.45; }
-  #hud b { color: #f8d37b; }
-  #hud .tag { display:inline-block; margin-top:7px; font-size: 10.5px; color: #34d399;
-    border:1px solid rgba(52,211,153,.5); border-radius: 5px; padding: 2px 7px; }
-  #ctrl { left: 14px; bottom: 14px; width: min(340px, calc(100vw - 28px)); padding: 12px 14px; }
-  #ctrl h2 { margin: 0 0 9px; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: #9fb2c8; }
-  .row { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
-  button { flex: 1 1 auto; min-width: 84px; cursor: pointer; font-size: 12px; font-weight: 600;
-    color: #eaf2fb; background: rgba(31,41,55,.7); border: 1px solid rgba(148,163,184,.4);
-    border-radius: 7px; padding: 8px 10px; transition: .12s; }
-  button:hover { border-color: #22d3ee; background: rgba(15,118,110,.34); }
-  button.on { border-color: #f8d37b; background: rgba(120,90,20,.36); color: #ffe6a8; }
-  #cam { right: 14px; bottom: 14px; width: min(232px, calc(100vw - 28px)); padding: 11px 13px; }
-  #cam h2 { margin: 0 0 8px; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: #9fb2c8; }
-  #cam .row button { min-width: 0; padding: 7px 6px; font-size: 11px; }
-  #legend { right: 14px; top: 14px; width: min(254px, calc(100vw - 28px)); padding: 12px 14px; }
-  #legend h2 { margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: #9fb2c8; }
-  #legend p { margin: 6px 0; font-size: 11.5px; color: #cbd6e4; line-height: 1.3; }
-  .sw { display:inline-block; width: 11px; height: 11px; margin-right: 7px; vertical-align: -1px; border-radius: 3px; }
-  @media (max-width: 820px){ #legend,#cam{ display:none; } }
+  .hud, .legend, .controls, .footer {
+    position: fixed;
+    background: rgba(12, 18, 27, 0.80);
+    border: 1px solid rgba(148, 163, 184, 0.34);
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 18px 45px rgba(0, 0, 0, .30);
+  }
+  .hud {
+    left: 14px;
+    top: 14px;
+    width: min(380px, calc(100vw - 28px));
+    padding: 0;
+  }
+  .hud h1 { margin: 0 0 7px; font-size: 17px; letter-spacing: .01em; }
+  .hud p { margin: 5px 0; color: #c9d4e2; font-size: 12.5px; line-height: 1.45; }
+  .hud b { color: #f8d37b; }
+  .legend {
+    right: 14px;
+    top: 14px;
+    width: min(300px, calc(100vw - 28px));
+    padding: 0;
+  }
+  .legend h2 { margin: 0 0 8px; font-size: 14px; }
+  .legend p { margin: 7px 0; color: #cbd6e4; font-size: 12px; line-height: 1.35; }
+  .sw { display: inline-block; width: 11px; height: 11px; margin-right: 6px; vertical-align: -1px; border-radius: 2px; }
+  .controls {
+    left: 14px;
+    bottom: 14px;
+    width: min(336px, calc(100vw - 28px));
+    padding: 0;
+  }
+  .labels-panel {
+    position: fixed;
+    right: 14px;
+    bottom: 14px;
+    width: min(320px, calc(100vw - 28px));
+    background: rgba(12, 18, 27, 0.80);
+    border: 1px solid rgba(148, 163, 184, 0.34);
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 18px 45px rgba(0, 0, 0, .30);
+    padding: 0;
+  }
+  .controls .panel-body, .labels-panel .panel-body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 58vh;
+    overflow-y: auto;
+    padding: 9px 11px 11px;
+  }
+  .panel-body::-webkit-scrollbar { width: 8px; }
+  .panel-body::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, .3); border-radius: 6px; }
+  .group { display: flex; flex-direction: column; gap: 6px; }
+  .group + .group { border-top: 1px solid rgba(148, 163, 184, .16); padding-top: 8px; }
+  .group-title {
+    font-size: 10px; font-weight: 800; letter-spacing: .085em; text-transform: uppercase;
+    color: #7c93ab; margin: 0 0 1px 2px;
+  }
+  .group-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .slider-wrap { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 700; color: #cbd6e4; }
+  .slider-wrap input[type=range] { width: 168px; accent-color: #22d3ee; }
+  button {
+    appearance: none;
+    border: 1px solid rgba(148, 163, 184, .42);
+    background: rgba(31, 41, 55, .92);
+    color: #eef4fb;
+    border-radius: 6px;
+    padding: 5px 8px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  button.active { border-color: #22d3ee; color: #ccfbf1; background: rgba(15, 118, 110, .72); }
+  button.master {
+    font-size: 13px; padding: 9px 16px;
+    border-color: #f59e0b; background: rgba(146, 64, 14, .55); color: #fde68a;
+  }
+  button.master.active { border-color: #fbbf24; background: rgba(180, 83, 9, .82); color: #fff7ed; }
+  .label {
+    max-width: 210px;
+    padding: 4px 6px;
+    border-radius: 6px;
+    background: rgba(8, 13, 21, .82);
+    border: 1px solid rgba(148, 163, 184, .42);
+    color: #f8fafc;
+    font: 10.5px/1.25 Inter, "Segoe UI", Arial, sans-serif;
+    pointer-events: none;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, .6);
+  }
+  .label.gold { border-color: rgba(245, 158, 11, .85); color: #fde68a; }
+  .label.blue { border-color: rgba(96, 165, 250, .85); color: #dbeafe; }
+  .label.green { border-color: rgba(74, 222, 128, .85); color: #dcfce7; }
+  .label.steel { border-color: rgba(203, 213, 225, .85); color: #e2e8f0; }
+  .label.warn { border-color: rgba(251, 146, 60, .9); color: #fed7aa; }
+  .label.piece {
+    max-width: 160px;
+    background: rgba(12, 18, 27, .88);
+    border-color: rgba(251, 191, 36, .82);
+    color: #fff7c2;
+    font-size: 9.5px;
+    font-weight: 800;
+    white-space: pre-line;
+  }
+  .label.piece span {
+    display: block;
+    color: #cbd5e1;
+    font-weight: 600;
+    font-size: 8.5px;
+  }
+  .label.label-hidden { display: none !important; }
+  .footer {
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 12px;
+    color: #9fb0c4;
+    font-size: 10px;
+    padding: 5px 11px;
+  }
+  /* collapsible panels + global hide */
+  .panel-head {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 9px 12px; cursor: pointer; user-select: none;
+    font-size: 12px; font-weight: 800; letter-spacing: .02em; color: #e6eef8;
+  }
+  .panel-head .caret { font-size: 11px; color: #8aa0b6; transition: transform .15s; }
+  .collapsed .panel-head .caret { transform: rotate(-90deg); }
+  .collapsed .panel-body { display: none !important; }
+  .hud .panel-body { padding: 0 16px 13px; }
+  .hud .panel-body p:first-child { margin-top: 2px; }
+  .legend .panel-body { padding: 0 15px 13px; }
+  .uihide-btn {
+    position: fixed; left: 50%; transform: translateX(-50%); top: 14px; z-index: 30;
+    background: rgba(12, 18, 27, 0.82); border: 1px solid rgba(148,163,184,.4);
+    color: #cfe0f0; border-radius: 999px; padding: 6px 14px; font-size: 11px; font-weight: 700;
+    cursor: pointer; backdrop-filter: blur(10px); box-shadow: 0 6px 20px rgba(0,0,0,.3);
+  }
+  body.ui-hidden .hud, body.ui-hidden .legend, body.ui-hidden .controls,
+  body.ui-hidden .labels-panel, body.ui-hidden .footer { display: none !important; }
 </style>
-</head>
-<body>
-<div id="app"></div>
-
-<div id="hud" class="panel">
-  <h1>BF&#8209;S01 &#183; Headboard</h1>
-  <p>The <b>130 &#215; 72 &#215; 8 in</b> open&#8209;back rail&#8209;and&#8209;stile headboard: two hollow built&#8209;up mullions (&#177;36), built&#8209;up L side stiles, top/bottom caps, twelve recessed 7/8&#8209;in field skins, top&#8209;cap LED, and the in-wall speakers.</p>
-  <p>Drag to orbit &#183; scroll to zoom &#183; <b>Ghost</b> reveals the lattice + receivers.</p>
-  <span class="tag">&#10003; shared single source &#183; cannot drift from BF&#8209;M01</span>
-</div>
-
-<div id="legend" class="panel">
-  <h2>Headboard</h2>
-  <p><span class="sw" style="background:#b9772e"></span>Mullions / collectors (&#177;36)</p>
-  <p><span class="sw" style="background:#e8cc98"></span>Twelve recessed field skins</p>
-  <p><span class="sw" style="background:#d7ad6d"></span>Caps + side stiles (frame)</p>
-  <p><span class="sw" style="background:#111827"></span>in-wall speakers</p>
-  <p><span class="sw" style="background:#6f9cbc"></span>Headboard structure: course cross-rails + bottom rails (toggle <b>Ghost</b>)</p>
-</div>
-
-<div id="ctrl" class="panel">
-  <h2>Headboard controls</h2>
-  <div class="row">
-    <button id="bGhost">Ghost / X&#8209;ray</button>
-    <button id="bFast">Fasteners</button>
-  </div>
-  <div class="row">
-    <button id="bWires">Wiring</button>
-    <button id="bSpin">Auto&#8209;spin</button>
-  </div>
-</div>
-
-<div id="cam" class="panel">
-  <h2>Camera</h2>
-  <div class="row"><button data-cam="iso">Iso</button><button data-cam="front">Front</button></div>
-  <div class="row"><button data-cam="side">Side</button><button data-cam="spk">Speaker</button></div>
-</div>
-
 <script type="importmap">
 {
   "imports": {
@@ -97,6 +173,129 @@
   }
 }
 </script>
+</head>
+<body>
+<div id="app"></div>
+<section class="hud collapsed" id="hudPanel">
+  <div class="panel-head" data-collapse="hudPanel"><span>Full bed &#183; Regular footboard</span><span class="caret">&#9662;</span></div>
+  <div class="panel-body">
+  <p>Canonical full-bed master assembly: detailed ventilated-back headboard (3 bolt-together boxes; 3 butted top-cap segments), the <b>74 x 85</b> grounded 6-drawer base, and the <b>74 x 41 x 16</b> TV-lift footboard. Builder-review geometry; sample/builder-confirm items are labeled.</p>
+  <p>The headboard is the detailed <b>130 x 72 x 8 in</b> assembly with a VENTILATED plywood back (sealed-but-vented + serviceable, D0-2: bottom cool-air intake + top hot-air exhaust past the LED-channel mount gap, removable ~30 in lower center service panel; freestanding, no wall cleat). Front face is twelve <b>7/8 in recessed field skins</b> (four horizontal courses x three bays, seams at AFF 19/38/57, recessed 3/16 in behind the proud face-frame; standard courses glued+screwed, the speaker course screw-only); structural loads land in the built-up L side stiles, two hollow built-up mullions, three per-box built-up L bottom rails, and the AFF 19/38/57 course cross-rails.</p>
+  <p>The top mullions use the current <b>3-land W-relief</b>: three 1.5 in lands (front / center / rear) with two 1.75 in gaps for the 35 mm channels, 4.0 in service drop. The cap pulls down with <b>three vertical insert draw-bolts per mullion</b> (one per land).</p>
+  </div>
+</section>
+<section class="legend collapsed" id="legendPanel">
+  <div class="panel-head" data-collapse="legendPanel"><span>Legend</span><span class="caret">&#9662;</span></div>
+  <div class="panel-body">
+  <p><span class="sw" style="background:#d7ad6d"></span>Visible ash shell: three butted top-cap segments, per-box bottom rails, and side stiles.</p>
+  <p><span class="sw" style="background:#b9772e"></span>Full-depth mullions / vertical collectors.</p>
+  <p><span class="sw" style="background:#8fb26a"></span>Nightstands: solid ash, bolt through the cabinet back into steel inserts in the skin back.</p>
+  <p><span class="sw" style="background:#6f9cbc"></span>Headboard structure: course cross-rails, rear shear rail, per-box bottom rails, ±36 base tie.</p>
+  <p><span class="sw" style="background:#cbd5e1"></span>Fasteners: vertical cap insert draw-bolts (3 per mullion), Zipbolt drawbolts (rear rails), bed bolts, steel threaded inserts, keepers.</p>
+  <p><span class="sw" style="background:#7dd3fc"></span>Alignment keys: dry loose tenons / dowels that locate joints before bolts clamp.</p>
+  </div>
+</section>
+<nav class="controls collapsed" id="controlsPanel">
+  <div class="panel-head" data-collapse="controlsPanel"><span>Controls &#183; view / layers / fasteners</span><span class="caret">&#9662;</span></div>
+  <div class="panel-body">
+  <div class="group">
+    <div class="group-title">Display</div>
+    <div class="group-row">
+      <button id="ghostMaster" class="master active">Ghost: ON</button>
+      <button data-preset="structure">Structure Focus</button>
+      <button data-preset="fastener">Fastener Focus</button>
+      <button data-preset="service">Cable / Service Focus</button>
+    </div>
+    <div class="group-row">
+      <button id="leeBaseView" title="Reveal the Dawna/Donna drawer-base open-ladder construction (hides faces, cover, slats, LED, wiring + the other assemblies; shows the structure solid). Click again to restore.">Lee Base Construction</button>
+    </div>
+  </div>
+  <div class="group">
+    <div class="group-title">Camera</div>
+    <div class="group-row">
+      <button id="viewFront">Front</button>
+      <button id="viewRear">Rear</button>
+      <button id="viewIso">Iso</button>
+      <button id="viewHeadboard">Headboard Close</button>
+      <button id="rotate">Auto Rotate</button>
+      <button id="dimToggle">Dimensions</button>
+    </div>
+  </div>
+  <div class="group">
+    <div class="group-title">Drawers</div>
+    <div class="group-row">
+      <label class="slider-wrap">Closed<input type="range" id="drawerSlider" min="0" max="100" value="0" />Open</label>
+    </div>
+  </div>
+  <div class="group">
+    <div class="group-title">Subsystems</div>
+    <div class="group-row">
+      <button data-assembly="headboardAssembly" class="active">Headboard</button>
+      <button data-assembly="bedBaseAssembly" class="active">Bed Base</button>
+      <button data-assembly="footboardAssembly" class="active">Footboard</button>
+      <button data-assembly="nightstandAssembly" class="active">Nightstands</button>
+      <button data-assembly="speakerAssembly" class="active">Speakers</button>
+      <button data-assembly="wiringAssembly">Wiring</button>
+      <button data-toggle="slats" class="active">Bed Slats</button>
+      <button data-toggle="forcePath">Structure / Force Path</button>
+    </div>
+  </div>
+  <div class="group">
+    <div class="group-title">Headboard layers</div>
+    <div class="group-row">
+      <button data-toggle="skins" class="active">Front Panels</button>
+      <button data-toggle="lattice" class="active">Rear Lattice</button>
+      <button data-toggle="led" class="active">LED / Heatsinks</button>
+      <button data-toggle="speakers" class="active">Speakers</button>
+      <button data-toggle="controlsHardware" class="active">Switch Panels</button>
+    </div>
+  </div>
+  <div class="group">
+    <div class="group-title">Fasteners</div>
+    <div class="group-row">
+      <button data-toggle="capFasteners" class="active">Cap Fasteners</button>
+      <button data-toggle="rearRailFasteners" class="active">Rear Rail Fasteners</button>
+      <button data-toggle="baseTieFasteners" class="active">Base Tie Fasteners</button>
+      <button data-toggle="nightstandFasteners" class="active">Nightstand Fasteners</button>
+      <button data-toggle="panelKeeperFasteners" class="active">Front-skin screws</button>
+      <button data-toggle="alignmentKeys" class="active">Alignment Keys</button>
+      <button id="allFastenersToggle" class="active">All Fasteners</button>
+    </div>
+  </div>
+  </div>
+</nav>
+<nav class="labels-panel collapsed" id="labelsPanel">
+  <div class="panel-head" data-collapse="labelsPanel"><span>Labels &amp; IDs</span><span class="caret">&#9662;</span></div>
+  <div class="panel-body">
+  <div class="group">
+    <div class="group-row">
+      <button data-label-section="system">Notes</button>
+      <button data-label-section="shell">Shell IDs</button>
+      <button data-label-section="rear">Rear Rail IDs</button>
+      <button data-label-section="ladder">Ladder IDs</button>
+      <button data-label-section="nightstand">Nightstand IDs</button>
+      <button data-label-section="controls">Switch IDs</button>
+      <button data-label-section="keepers">Keeper IDs</button>
+      <button data-label-section="fullBed">Full Bed Notes</button>
+      <button data-label-section="base">Base IDs</button>
+      <button data-label-section="footboard">Footboard IDs</button>
+      <button data-label-section="lift">Lift IDs</button>
+      <button data-label-section="wiring">Wiring IDs</button>
+      <button data-label-section="fastenerCap">Cap Fastener IDs</button>
+      <button data-label-section="fastenerRear">Rail Fastener IDs</button>
+      <button data-label-section="fastenerBase">Base Tie IDs</button>
+      <button data-label-section="fastenerNightstand">Nightstand Fastener IDs</button>
+      <button data-label-section="fastenerPanel">Front-skin screw IDs</button>
+      <button data-label-section="fastenerAlign">Alignment Key IDs</button>
+      <button id="fastenerLabelsAll">Fastener Labels</button>
+      <button id="labelsAll">All Labels</button>
+    </div>
+  </div>
+  </div>
+</nav>
+<button class="uihide-btn" id="uiHideBtn">Hide panels (H)</button>
+<div class="footer">Full-Bed-Regular-Footboard_3D.html | regular footboard | units inches | Bed Frame project &#183; press H to hide panels</div>
+
 <script type="module">
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -408,8 +607,9 @@ function installBFViewerControls(opts) {
 return { installBFViewerControls };
 })();
 /* ==== END BF-VIEWER-CONTROLS INLINE (edit System/bf-viewer-controls.js, then re-run npm run bf:build) ==== */
+import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 /* ==== BF-GEOMETRY INLINE — generated by `npm run bf:build`; DO NOT EDIT BETWEEN THESE MARKERS ==== */
-const { SPEC, makeMaterials, makeEngine, buildHeadboard } = (() => {
+const { SPEC, buildBedBase, buildRegularFootboard, buildNightstands, buildHeadboard } = (() => {
 // bf-geometry.js — SINGLE SOURCE OF TRUTH for the shared bed geometry.
 // The TV-lift footboard, the TV-lift lift, and the 74x85 drawer base live HERE, once.
 // Full-Bed (full master) and Dock-Interface (the cabinet-to-base seam detail model) both import these builders, so the
@@ -1958,247 +2158,1685 @@ return { SPEC, makeMaterials, makeEngine, deriveZ, buildBedBase, buildFootboardA
 })();
 /* ==== END BF-GEOMETRY INLINE (edit System/bf-geometry.js, then re-run npm run bf:build) ==== */
 
+// SPEC now imported from bf-geometry.js (single source of truth).
+window.__BF_HEADBOARD_GHOST = {
+  pass: true,
+  conceptOnly: true,
+  headboard: { W: SPEC.W, H: SPEC.H, D: SPEC.D },
+  frontSkinThickness: SPEC.panelTh,
+  frontPanelThickness: SPEC.panelTh,
+  frontPanelCount: 12,
+  courseSeamsAFF: SPEC.courseSeamsAFF,
+  noVisibleFrontFaceFasteners: true,
+  skinFieldPass: true,
+  loadReceiverRailDepth: SPEC.loadReceiverRailDepth,
+  uRelief: {
+    profile: 'W (3 lands)',
+    frontLand: SPEC.uFrontLand,
+    gap: SPEC.uGap,
+    centerLand: SPEC.uCenterLand,
+    rearLand: SPEC.uRearLand,
+    drop: SPEC.uDrop,
+    yRange: [66, 70]
+  },
+  speaker: SPEC.speaker,
+  noRailMullionIntersections: true,
+  speakerPocketFrames: false,
+  primaryVerticals: ['left stile', 'left mullion', 'right mullion', 'right stile'],
+  baseBoltLines: [-36, 36],
+  note: 'Concept model only; no fabrication spec locked.'
+};
+
 const app = document.getElementById('app');
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0f141b);
+
+const camera = new THREE.PerspectiveCamera(42, innerWidth / innerHeight, 0.1, 700);
+camera.position.set(112, 66, 132);
+
 const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 app.appendChild(renderer.domElement);
 
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0e1218);
-
-const camera = new THREE.PerspectiveCamera(42, innerWidth / innerHeight, 0.5, 3000);
-camera.position.set(88, 52, 122);
+const labelRenderer = new CSS2DRenderer();
+labelRenderer.setSize(innerWidth, innerHeight);
+labelRenderer.domElement.style.position = 'fixed';
+labelRenderer.domElement.style.inset = '0';
+labelRenderer.domElement.style.pointerEvents = 'none';
+document.body.appendChild(labelRenderer.domElement);
 
 const controls = new OrbitControls(camera, renderer.domElement);
 installBFViewerControls({ THREE, controls });
+controls.target.set(0, 32, 42);
 controls.enableDamping = true;
-controls.dampingFactor = 0.08;
-controls.target.set(0, 37, -2);
-controls.minDistance = 14;
-controls.maxDistance = 520;
+controls.maxDistance = 230;
+controls.minDistance = 35;
 
-scene.add(new THREE.HemisphereLight(0xe7f4ff, 0x2b1e16, 1.2));
-const key = new THREE.DirectionalLight(0xffffff, 2.0);
-key.position.set(60, 110, 96); key.castShadow = true;
+scene.add(new THREE.HemisphereLight(0xe7f4ff, 0x2b1e16, 1.55));
+const key = new THREE.DirectionalLight(0xffffff, 2.4);
+key.position.set(60, 95, 48);
+key.castShadow = true;
 key.shadow.mapSize.set(2048, 2048);
 scene.add(key);
-const fill = new THREE.DirectionalLight(0x9fc0e6, 0.5); fill.position.set(-90, 60, 60); scene.add(fill);
-const rim = new THREE.DirectionalLight(0x8be7ff, 0.7); rim.position.set(-60, 50, -90); scene.add(rim);
+const rim = new THREE.DirectionalLight(0x8be7ff, 1.25);
+rim.position.set(-80, 50, -80);
+scene.add(rim);
 
-const ground = new THREE.Mesh(new THREE.PlaneGeometry(700, 700), new THREE.MeshStandardMaterial({ color: 0x141a22, roughness: 1 }));
-ground.rotation.x = -Math.PI / 2; ground.position.y = -0.05; ground.receiveShadow = true; scene.add(ground);
-const grid = new THREE.GridHelper(300, 30, 0x1e2731, 0x161d27); grid.material.transparent = true; grid.material.opacity = 0.4; grid.position.z = -4; scene.add(grid);
+const root = new THREE.Group();
+scene.add(root);
 
-// ---- shared geometry (identical to Full-Bed) ----
-const mats = makeMaterials();
-const { box, cyl, line3, addEdges } = makeEngine();
-const wood = ['shell', 'shellGhost', 'skin', 'collector', 'receiver', 'night', 'panelBatten', 'speaker', 'speakerBaffle'];
-const woodBaseOpacity = {};
-wood.forEach(k => { if (mats[k]) woodBaseOpacity[k] = mats[k].opacity; });
+const groups = {
+  skins: new THREE.Group(),
+  lattice: new THREE.Group(),
+  led: new THREE.Group(),
+  speakers: new THREE.Group(),
+  controlsHardware: new THREE.Group(),
+  bedBase: new THREE.Group(),
+  slats: new THREE.Group(),
+  footboard: new THREE.Group(),
+  liftSystem: new THREE.Group(),
+  detailedNightstands: new THREE.Group(),
+  wiring: new THREE.Group(),
+  capFasteners: new THREE.Group(),
+  rearRailFasteners: new THREE.Group(),
+  baseTieFasteners: new THREE.Group(),
+  nightstandFasteners: new THREE.Group(),
+  panelKeeperFasteners: new THREE.Group(),
+  alignmentKeys: new THREE.Group(),
+  forcePath: new THREE.Group(),
+  dimensions: new THREE.Group(),
+  labels: new THREE.Group()
+};
+Object.values(groups).forEach(g => root.add(g));
 
-const groupKeys = ['skins', 'lattice', 'led', 'speakers', 'controlsHardware', 'capFasteners', 'rearRailFasteners',
-  'baseTieFasteners', 'nightstandFasteners', 'panelKeeperFasteners', 'alignmentKeys', 'labels', 'wiring'];
-const groups = {};
-groupKeys.forEach(k => groups[k] = new THREE.Group());
-const noop = () => ({ element: { dataset: {} } });
+const woodPieces = [];
+const fastenerAssemblies = [];
+const switchPanelAssemblies = [];
+const switchRearExitAssemblies = [];
+const bedBoltCutouts = [];
+const labelSections = {
+  system: false,
+  shell: false,
+  rear: false,
+  ladder: false,
+  nightstand: false,
+  controls: false,
+  keepers: false,
+  fullBed: false,
+  base: false,
+  footboard: false,
+  lift: false,
+  wiring: false,
+  fastenerCap: false,
+  fastenerRear: false,
+  fastenerBase: false,
+  fastenerNightstand: false,
+  fastenerPanel: false,
+  fastenerAlign: false,
+  dim: false
+};
 
-// buildHeadboard takes the master's engine + label/registry hooks via ctx (here: no-op labels/registry,
-// since the standalone model shows geometry, not the master's CSS2D label/fastener-schedule layers).
-const { headboardModules: HBM, skinField: SF, frame: FR, mullion: MUL, topCap: TC, rear: RR } = buildHeadboard({
-  box, cyl, line3, addEdges, label: noop, pieceLabel: noop, registerFastener: () => {}, fastenerLabel: noop,
-  mats, groups, FASTENER_TYPES: {}, woodPieces: [], fastenerAssemblies: [], switchPanelAssemblies: [],
-  switchRearExitAssemblies: [], bedBoltCutouts: []
+const assemblyMaps = {
+  headboardAssembly: ['skins', 'lattice', 'led', 'speakers', 'controlsHardware', 'capFasteners', 'rearRailFasteners', 'baseTieFasteners', 'panelKeeperFasteners', 'alignmentKeys'],
+  bedBaseAssembly: ['bedBase'],
+  footboardAssembly: ['footboard', 'liftSystem'],
+  nightstandAssembly: ['detailedNightstands', 'nightstandFasteners'],
+  liftAssembly: ['liftSystem'],
+  speakerAssembly: ['speakers'],
+  wiringAssembly: ['wiring']
+};
+
+const fastenerGroupKeys = ['capFasteners', 'rearRailFasteners', 'baseTieFasteners', 'nightstandFasteners', 'panelKeeperFasteners', 'alignmentKeys'];
+
+const FASTENER_TYPES = Object.freeze({
+  'ZB-SD': {
+    name: 'Zipbolt-style side-drive drawbolt',
+    role: 'Hidden draw-clamp for wood-to-wood frame joints; exact product/sample bore is builder-confirm.'
+  },
+  'BB-CD': {
+    name: 'Bed bolt plus cross dowel / barrel nut / captured nut',
+    role: 'Major removable structural connection with metal bearing surfaces.'
+  },
+  'NS-INS': {
+    name: 'Nightstand connector bolt into steel threaded insert',
+    role: 'Nightstand-to-headboard mount (Lee-call Phase 9, D0-4): bolts through the nightstand cabinet back into a steel threaded insert set in the headboard skin back; 8 per side, reachable from the empty drawer pocket. Supersedes the retired CN-SQ captive-nut wood receiver.'
+  },
+  TENON: {
+    name: 'Dry loose tenon / Domino / dowel key',
+    role: 'Locates the joint and carries shear/registration while bolts clamp.'
+  },
+  'SKF': {
+    name: 'Field-skin screw (HB-RET retired)',
+    role: 'Rear-driven wood screw fixing a recessed field skin DIRECT to the frame/rails: standard courses glued+screwed; the speaker-height course (C3) screw-only / no glue (field-replaceable). Replaces the retired HB-RET retainer + RTF-IB/SKR-IB (D-092 superseded, Lee-call Phase 2).'
+  },
+  KS: {
+    name: 'Keeper screw / pin',
+    role: 'Small keeper screw / retainer pin driven from the rear service side.'
+  },
+  'MOD-CB': {
+    name: 'Headboard module connector bolt (into steel threaded insert)',
+    role: 'Bolts a side headboard box (HB-MOD-L/R) to the center box (HB-MOD-C) mullion via a 1x1x6.5 in ash block + a steel threaded insert; 3 per seam, ~6 total; factory-built boxes the owner bolts together on site (Lee call 2026-07-03, Phase 1).'
+  }
 });
 
-const headboard = new THREE.Group();
-groupKeys.forEach(k => headboard.add(groups[k]));
-scene.add(headboard);
-
-const fastenerGroups = ['capFasteners', 'rearRailFasteners', 'baseTieFasteners', 'nightstandFasteners', 'panelKeeperFasteners', 'alignmentKeys'];
-fastenerGroups.forEach(k => groups[k].visible = false);   // fasteners off by default
-groups.wiring.visible = false;                            // speaker cabling off by default
-
-// solid (opaque) by default so the panels read as built; Ghost toggles see-through to the lattice
-function setGhost(on) {
-  wood.forEach(k => { const m = mats[k]; if (!m) return; m.opacity = on ? woodBaseOpacity[k] : 1; m.transparent = on; m.depthWrite = !on; m.needsUpdate = true; });
-  const b = document.getElementById('bGhost'); if (b) b.classList.toggle('on', on);
-}
-setGhost(false);
-
-// ---- state + UI ----
-const state = { ghost: false, fast: false, wires: false, spin: false };
-function setBtn(id, on) { const b = document.getElementById(id); if (b) b.classList.toggle('on', on); }
-function go(id, fn) { const b = document.getElementById(id); if (b) b.onclick = fn; }
-go('bGhost', () => { state.ghost = !state.ghost; setGhost(state.ghost); });
-go('bFast', () => { state.fast = !state.fast; fastenerGroups.forEach(k => groups[k].visible = state.fast); setBtn('bFast', state.fast); });
-go('bWires', () => { state.wires = !state.wires; groups.wiring.visible = state.wires; setBtn('bWires', state.wires); });
-go('bSpin', () => { state.spin = !state.spin; setBtn('bSpin', state.spin); });
-
-const views = {
-  iso:   { p: [88, 52, 122],  t: [0, 37, -2] },
-  front: { p: [0, 40, 150],   t: [0, 40, -3] },
-  side:  { p: [150, 44, 0],   t: [0, 38, -3] },
-  spk:   { p: [30, 52, 66],   t: [51, 49, -2] },
+const mats = {
+  shell: new THREE.MeshStandardMaterial({ color: 0xd7ad6d, roughness: 0.72, metalness: 0.02 }),
+  shellGhost: new THREE.MeshStandardMaterial({ color: 0xe9c98d, roughness: 0.75, transparent: true, opacity: 0.52, depthWrite: false }),
+  skin: new THREE.MeshStandardMaterial({ color: 0xe8cc98, roughness: 0.82, transparent: true, opacity: 0.48, depthWrite: false }),
+  collector: new THREE.MeshStandardMaterial({ color: 0xb9772e, roughness: 0.78, metalness: 0.02 }),
+  receiver: new THREE.MeshStandardMaterial({ color: 0x6f9cbc, roughness: 0.68, transparent: true, opacity: 0.78 }),
+  night: new THREE.MeshStandardMaterial({ color: 0x8fb26a, roughness: 0.74, transparent: true, opacity: 0.78 }),
+  baseWood: new THREE.MeshStandardMaterial({ color: 0xd4b477, roughness: 0.76, transparent: true, opacity: 0.50, depthWrite: false }),
+  baseStructure: new THREE.MeshStandardMaterial({ color: 0xc9974c, roughness: 0.72, transparent: true, opacity: 0.72, depthWrite: false }),
+  footWood: new THREE.MeshStandardMaterial({ color: 0xd2aa67, roughness: 0.78, transparent: true, opacity: 0.54, depthWrite: false }),
+  void: new THREE.MeshStandardMaterial({ color: 0x22d3ee, transparent: true, opacity: 0.16, depthWrite: false }),
+  speaker: new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.48, transparent: true, opacity: 0.64 }),
+  grille: new THREE.MeshStandardMaterial({ color: 0x05080d, roughness: 0.66 }),
+  speakerBaffle: new THREE.MeshStandardMaterial({ color: 0x101820, roughness: 0.52, metalness: 0.08 }),
+  speakerCone: new THREE.MeshStandardMaterial({ color: 0x263241, roughness: 0.62, metalness: 0.04 }),
+  driverRubber: new THREE.MeshStandardMaterial({ color: 0x030712, roughness: 0.70, metalness: 0.02 }),
+  steel: new THREE.MeshStandardMaterial({ color: 0xcbd5e1, roughness: 0.28, metalness: 0.82 }),
+  darkSteel: new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.36, metalness: 0.76 }),
+  liftSteel: new THREE.MeshStandardMaterial({ color: 0x3f4754, roughness: 0.34, metalness: 0.72 }),
+  brass: new THREE.MeshStandardMaterial({ color: 0xd8a33b, roughness: 0.24, metalness: 0.86 }),
+  tenon: new THREE.MeshStandardMaterial({ color: 0x7dd3fc, roughness: 0.58, transparent: true, opacity: 0.82 }),
+  switchPlate: new THREE.MeshStandardMaterial({ color: 0x0f766e, roughness: 0.48, metalness: 0.22 }),
+  panelScrew: new THREE.MeshStandardMaterial({ color: 0xb45309, roughness: 0.34, metalness: 0.72 }),
+  panelBatten: new THREE.MeshStandardMaterial({ color: 0xc9914b, roughness: 0.68, transparent: true, opacity: 0.66 }),
+  access: new THREE.MeshStandardMaterial({ color: 0xfb923c, transparent: true, opacity: 0.22, depthWrite: false }),
+  ledWarm: new THREE.MeshStandardMaterial({ color: 0xffd166, emissive: 0xff8a1c, emissiveIntensity: 0.56, roughness: 0.36 }),
+  ledRed: new THREE.MeshStandardMaterial({ color: 0xff4c5c, emissive: 0x7f0d17, emissiveIntensity: 0.62, roughness: 0.36 }),
+  tvGlass: new THREE.MeshStandardMaterial({ color: 0x020617, roughness: 0.18, metalness: 0.12, transparent: true, opacity: 0.68 }),
+  soundbar: new THREE.MeshStandardMaterial({ color: 0x050505, roughness: 0.52, metalness: 0.25, transparent: true, opacity: 0.82 }),
+  cableAC: new THREE.MeshStandardMaterial({ color: 0xf97316, roughness: 0.42, metalness: 0.02 }),
+  cableLV: new THREE.MeshStandardMaterial({ color: 0x38bdf8, roughness: 0.42, metalness: 0.02 }),
+  cableSpeaker: new THREE.MeshStandardMaterial({ color: 0xa78bfa, roughness: 0.42, metalness: 0.02 }),
+  ghost: new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.55, transparent: true, opacity: 0.12, depthWrite: false })
 };
-let camAnim = null;
-document.querySelectorAll('[data-cam]').forEach(b => { b.onclick = () => { const v = views[b.dataset.cam]; if (!v) return;
-  camAnim = { fp: camera.position.clone(), tp: new THREE.Vector3(...v.p), ft: controls.target.clone(), tt: new THREE.Vector3(...v.t), k: 0 }; }; });
 
-const clock = new THREE.Clock();
-function tick() {
-  const dt = Math.min(clock.getDelta(), 0.05);
-  controls.autoRotate = state.spin; controls.autoRotateSpeed = 0.8;
-  if (camAnim) {
-    camAnim.k = Math.min(1, camAnim.k + dt * 1.7);
-    const e = camAnim.k < .5 ? 2 * camAnim.k * camAnim.k : 1 - Math.pow(-2 * camAnim.k + 2, 2) / 2;
-    camera.position.lerpVectors(camAnim.fp, camAnim.tp, e); controls.target.lerpVectors(camAnim.ft, camAnim.tt, e);
-    if (camAnim.k >= 1) camAnim = null;
+function addEdges(mesh, group, color = 0x17212b, opacity = 0.34) {
+  const e = new THREE.EdgesGeometry(mesh.geometry);
+  const line = new THREE.LineSegments(e, new THREE.LineBasicMaterial({ color, transparent: true, opacity }));
+  line.position.copy(mesh.position);
+  line.rotation.copy(mesh.rotation);
+  line.scale.copy(mesh.scale);
+  group.add(line);
+  return line;
+}
+
+function box(group, name, sx, sy, sz, x, y, z, mat, options = {}) {
+  const mesh = new THREE.Mesh(new THREE.BoxGeometry(sx, sy, sz), mat);
+  mesh.name = name;
+  mesh.position.set(x, y, z);
+  mesh.castShadow = options.cast !== false;
+  mesh.receiveShadow = true;
+  group.add(mesh);
+  if (options.edges !== false) addEdges(mesh, group, options.edgeColor || 0x17212b, options.edgeOpacity ?? 0.34);
+  return mesh;
+}
+
+function cyl(group, name, radius, length, x, y, z, mat, axis = 'z', options = {}) {
+  const mesh = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, length, options.segments || 32), mat);
+  mesh.name = name;
+  mesh.position.set(x, y, z);
+  if (axis === 'x') mesh.rotation.z = Math.PI / 2;
+  if (axis === 'z') mesh.rotation.x = Math.PI / 2;
+  mesh.castShadow = options.cast !== false;
+  mesh.receiveShadow = true;
+  group.add(mesh);
+  return mesh;
+}
+
+function line3(group, name, points, color = 0xf8fafc, opacity = 0.72) {
+  const geometry = new THREE.BufferGeometry().setFromPoints(points.map(p => new THREE.Vector3(...p)));
+  const material = new THREE.LineBasicMaterial({ color, transparent: true, opacity });
+  const line = new THREE.Line(geometry, material);
+  line.name = name;
+  group.add(line);
+  return line;
+}
+
+// Shared viz helper (clamp-direction arrows): used by the master force-path overlay AND, via its own
+// copy, by buildHeadboard. Kept here so addForcePathOverlay resolves it after the headboard extraction.
+function addClampLine(group, name, from, to, color = 0xf59e0b) {
+  line3(group, `${name} clamp direction`, [from, to], color, 0.92);
+  const head = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.42, 18), new THREE.MeshStandardMaterial({ color, roughness: 0.42 }));
+  head.name = `${name} clamp arrow head`;
+  head.position.set(...to);
+  const dx = to[0] - from[0], dy = to[1] - from[1], dz = to[2] - from[2];
+  const dir = new THREE.Vector3(dx, dy, dz).normalize();
+  head.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
+  group.add(head);
+  return head;
+}
+
+function syncLabelElement(el) {
+  const section = el.dataset.labelSection || 'system';
+  el.classList.toggle('label-hidden', !labelSections[section]);
+}
+
+// Master label/UI helper (DOM toggle state): used by the post-build refresh + the label-toggle buttons.
+function applyLabelVisibility() {
+  groups.labels.children.forEach(obj => {
+    if (obj.element) syncLabelElement(obj.element);
+  });
+  document.querySelectorAll('.label').forEach(el => {
+    syncLabelElement(el);
+  });
+  document.querySelectorAll('button[data-label-section]').forEach(btn => {
+    btn.classList.toggle('active', !!labelSections[btn.dataset.labelSection]);
+  });
+  const allButton = document.getElementById('labelsAll');
+  if (allButton) {
+    const allOn = Object.values(labelSections).every(Boolean);
+    const anyOn = Object.values(labelSections).some(Boolean);
+    allButton.classList.toggle('active', allOn);
+    allButton.textContent = anyOn && allOn ? 'Hide All Labels' : 'All Labels';
   }
+  const fastenerButton = document.getElementById('fastenerLabelsAll');
+  if (fastenerButton) {
+    const fastenerKeys = Object.keys(labelSections).filter(k => k.startsWith('fastener'));
+    const allFastenersOn = fastenerKeys.every(k => labelSections[k]);
+    const anyFastenersOn = fastenerKeys.some(k => labelSections[k]);
+    fastenerButton.classList.toggle('active', allFastenersOn);
+    fastenerButton.textContent = anyFastenersOn && allFastenersOn ? 'Hide Fastener Labels' : 'Fastener Labels';
+  }
+}
+
+function label(text, x, y, z, cls = '', section = 'system') {
+  const el = document.createElement('div');
+  el.className = `label ${cls}`.trim();
+  el.textContent = text;
+  el.dataset.labelSection = section;
+  syncLabelElement(el);
+  const obj = new CSS2DObject(el);
+  obj.position.set(x, y, z);
+  groups.labels.add(obj);
+  return obj;
+}
+
+function pieceLabel(id, name, x, y, z, dims = '', section = 'shell', cls = 'piece') {
+  const labelText = dims ? `${id}\n${name}\n${dims}` : `${id}\n${name}`;
+  const obj = label(labelText, x, y, z, cls, section);
+  obj.element.dataset.pieceId = id;
+  woodPieces.push({ id, name, dims, section, position: { x, y, z } });
+  return obj;
+}
+
+function registerFastener({ id, type, groupKey, labelSection, joint, pieceIds, position, notes = '' }) {
+  fastenerAssemblies.push({
+    id,
+    type,
+    typeName: FASTENER_TYPES[type]?.name || type,
+    group: groupKey,
+    labelSection,
+    joint,
+    pieceIds,
+    position,
+    notes,
+    status: 'concept/sample-confirm'
+  });
+}
+
+function fastenerLabel(id, type, x, y, z, labelSection) {
+  const typeName = FASTENER_TYPES[type]?.name || type;
+  return label(`${id}\n${type}\n${typeName}`, x, y, z, 'steel piece', labelSection);
+}
+
+// Headboard geometry now lives in bf-geometry.js -> buildHeadboard() (single source, shared with Headboard).
+// (retired) addClampLine..addMullionSwitchPanel + housedRail + the full headboard build were moved there.
+const { frontPanels, headboardModules, skinField: _hbSkinField, frame: _hbFrame, mullion: _hbMullion, topCap: _hbTopCap, rear: _hbRear } = buildHeadboard({ box, cyl, line3, addEdges, label, pieceLabel, registerFastener, fastenerLabel, mats, groups, FASTENER_TYPES, woodPieces, fastenerAssemblies, switchPanelAssemblies, switchRearExitAssemblies, bedBoltCutouts });
+window.__BF_HB_MODULES_META = headboardModules;   // Lee-call Phase 1: 3 bolt-together boxes (consumed by __BF_HEADBOARD_MODULES below)
+window.__BF_HB_TOPCAP_META = _hbTopCap;           // Lee-call Phase 3: 3 butted top-cap segments + continuous drop-in LED run (consumed by __BF_TOPCAP below)
+window.__BF_HB_REAR_META = _hbRear;               // Lee-call Phase 4: ventilated plywood rear back + service access (consumed by __BF_REAR below)
+window.__BF_HB_SKINFIELD_META = _hbSkinField;     // Lee-call Phase 2: recessed field skins / attachment / courses
+window.__BF_HB_FRAME_META = _hbFrame;             // Lee-call Phase 2: built-up L-section frame members
+window.__BF_HB_MULLION_META = _hbMullion;         // Lee-call Phase 2: hollow built-up mullions
+
+// Full-bed ghost geometry imported/rebuilt from Full-Bed dimensions.
+const ZB = SPEC.fullBedZ;
+const baseMidZ = (ZB.baseHead + ZB.baseFoot) / 2;
+const footMidZ = (ZB.footBack + ZB.footFront) / 2;
+const liftBackerZ = ZB.footFront - SPEC.footboard.faceTh;
+const liftFrontZ = liftBackerZ - SPEC.lift.bodyD;
+const liftCenterZ = (liftBackerZ + liftFrontZ) / 2;
+const liftScreenZ = liftFrontZ - SPEC.tv.D;
+const soundbarFrontZ = liftScreenZ - SPEC.soundbar.D;
+const soundbarCenterZ = (liftScreenZ + soundbarFrontZ) / 2;
+
+function addBaseSideBoltHead(x, y) {
+  cyl(groups.bedBase, `bed-base side bolt head aligned x=${x} y=${y}`, 0.46, 0.18, x, y, 0.18, mats.steel, 'z', { segments: 32, cast: false });
+  cyl(groups.bedBase, `bed-base bolt shaft aligned x=${x} y=${y}`, 0.16, 2.2, x, y, 1.2, mats.darkSteel, 'z', { segments: 24, cast: false });
+}
+
+function addFullBedBase() {
+  // Geometry lives in bf-geometry.js (single source of truth, shared with Dock-Interface).
+  return buildBedBase({ box, cyl, line3, mats, groups, label, pieceLabel, drawerGroups });
+}
+// (retired) addFullBedBase geometry now lives in bf-geometry.js -> buildBedBase().
+function addDetailedNightstands() {
+  // Geometry lives in bf-geometry.js (single source of truth, shared with Nightstands).
+  return buildNightstands({ box, cyl, mats, groups, label, pieceLabel });
+}
+// (retired) addDetailedNightstands geometry now lives in bf-geometry.js -> buildNightstands().
+
+// Regular-footboard config: NO TV lift. Keep these two (empty) groups so the setLiftRaise() no-op + its
+// slider guard stay valid without special-casing; they simply never receive lift geometry in this model.
+const liftStage1 = new THREE.Group();
+groups.liftSystem.add(liftStage1);
+const liftCarriage = new THREE.Group();
+groups.liftSystem.add(liftCarriage);
+const drawerGroups = [];   // each: { g: THREE.Group, axis: 'x'|'z', dir: +-1, ext } -> driven by the Drawers open/close slider
+
+// THIS MODEL = the full bed in the REGULAR-FOOTBOARD configuration: headboard + drawer base + nightstands +
+// a real conventional footboard (buildRegularFootboard), and NO TV cabinet / TV-lift / dock hardware. The
+// TV-cabinet config lives in the sibling Full-Bed_3D.html. Cabinet/lift/dock geometry + validators are gated
+// off by IS_REGULAR_FOOTBOARD below so this model genuinely contains no cabinet mass.
+const IS_REGULAR_FOOTBOARD = true;
+
+addFullBedBase();
+addDetailedNightstands();
+// Regular (no-TV) footboard: a real grounded frame-and-panel footboard at the foot (~74 x 14 x 16), in the
+// same design language as the bed — NOT the TV-lift cabinet and NOT a ghost variant of it. Built into
+// groups.footboard; groups.liftSystem stays empty (no lift). No buildDockHardware (there is no cabinet seam).
+buildRegularFootboard({ box, mats, groups, label, pieceLabel });
+
+// Concept force-transfer overlay (see Concepts/BF-D19). Translucent "moment path" members highlight the
+// real structural members that carry the headboard lean down into the base; arrows show the path.
+function addForcePathOverlay() {
+  const g = groups.forcePath;
+  const B = SPEC.base;
+  const amber = 0xf59e0b, hot = 0xef4444;
+  const momentMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, emissive: 0x7c2d10, emissiveIntensity: 0.28, transparent: true, opacity: 0.30, depthWrite: false });
+  // moment-path highlights over the head rail + center beam + two side face frames (the members that carry it;
+  // Lee-call Phase 6: the load routes through the ±36 ties -> base side FACE FRAMES + center beam — there is NO separate moment-arm beam)
+  box(g, 'FORCE head rail (moment receiver)', B.W, B.top, 2.7, 0, B.top / 2, 1.2, momentMat, { edges: false, cast: false });
+  box(g, 'FORCE center beam (force path)', 3.3, B.top, B.L, 0, B.top / 2, baseMidZ, momentMat, { edges: false, cast: false });
+  box(g, 'FORCE left side face frame (force path)', 2.7, B.top, B.L, -B.W / 2 + 1.2, B.top / 2, baseMidZ, momentMat, { edges: false, cast: false });
+  box(g, 'FORCE right side face frame (force path)', 2.7, B.top, B.L, B.W / 2 - 1.2, B.top / 2, baseMidZ, momentMat, { edges: false, cast: false });
+  // load-in arrows DOWN the headboard primary verticals (two stiles + two mullions)
+  [-64, -36, 36, 64].forEach(x => addClampLine(g, `force down vertical x=${x}`, [x, 66, -4], [x, 10, -3], amber));
+  // tension/compression couple at the bed-bolt rows (head joint, AFF 14.5 / 5)
+  addClampLine(g, 'force couple tension (top bolt row)', [0, 14.5, -3.4], [0, 14.5, 2.4], hot);
+  addClampLine(g, 'force couple compression (bottom bolt row)', [0, 5, 2.4], [0, 5, -3.4], hot);
+  // spread from head rail along the chords + spine toward the foot (base = the moment arm)
+  [-35.8, 0, 35.8].forEach(x => addClampLine(g, `force spread along base x=${x}`, [x, 11, 4], [x, 11, 42], amber));
+  label('FORCE PATH (concept, BF-D19): 200 lb @ 72 in = 14,400 lb-in; x1.3 = 18,720 lb-in', 0, 56, -12, 'warn', 'system');
+  label('couple at bed-bolt rows (AFF 5 / 14.5, d=9.5 in) = ~1,970 lb -> ~490 lb/line', 0, 51, -12, 'warn', 'system');
+  label('head rail -> ±36 ties -> side FACE FRAMES + center beam, routed AROUND the drawer bays (no separate moment-arm beam)', 0, 22.5, 44, 'warn', 'system');
+}
+
+// Mullion-centerline / base-side-chord datum: the headboard mullions were moved OUT to x = +-36 so they sit on the
+// base SIDE CHORD (x ~ +-35.8) -- the strongest verticals land straight onto the strongest base members -- and read
+// proportionate to the wide frame. The mattress edge (x = +-33) is just inboard, shown faint for reference.
+function addMattressEdgeDatum() {
+  [-36, 36].forEach(x => {
+    line3(groups.dimensions, `mullion centerline / base side-chord datum x=${x}`, [[x, 0, 2], [x, SPEC.H, 2]], 0x7dd3fc, 0.6);
+    label(`mullion centerline / base side chord x=${x > 0 ? '+36' : '-36'}`, x, 7.5, 3, 'blue', 'dim');
+  });
+  [-33, 33].forEach(x => line3(groups.dimensions, `mattress-edge reference x=${x}`, [[x, 0, 2], [x, SPEC.H, 2]], 0x334155, 0.3));
+}
+
+addForcePathOverlay();
+addMattressEdgeDatum();
+
+// Simple dimension guides.
+line3(groups.dimensions, 'width dimension line', [[-65, -4, 1.5], [65, -4, 1.5]], 0xf8fafc, 0.72);
+line3(groups.dimensions, 'height dimension line', [[70, 0, -8.7], [70, 72, -8.7]], 0xf8fafc, 0.72);
+line3(groups.dimensions, 'depth dimension line', [[-71, 0, 0], [-71, 0, -8]], 0xf8fafc, 0.72);
+
+label('130 in overall width', 0, -5.5, 1.5, 'gold', 'dim');
+label('72 in overall height', 72, 36, -8.7, 'gold', 'dim');
+label('8 in open-back depth', -72, 1.2, -4, 'gold', 'dim');
+label('twelve 7/8 in recessed field skins (3/16 in reveal); rear screws, no visible face fasteners', 0, 39, 1.6, 'gold');
+label('proud face-frame + recessed 3/16 in field skins (HB-RET retired): skins screwed direct to the frame/rails', 0, 31, -2.15, 'steel');
+label('standard courses glued+screwed; the speaker-height course screw-only / no glue (field-replaceable)', 0, 28.5, -2.15, 'steel');
+label('2 recessed mullion switch panels: 4x FILN FLM12 per side, 0.5 in rear chase', 0, 41.5, 1.8, 'blue');
+label('top cap: 2x LED channel (35 mm cuts) centered in the gaps between THREE 1.5 in lands; extruded heatsinks into the open cavity; 124 in run, ~3 in solid ends', 0, 73.5, -3.5, 'gold');
+label('3-land W-relief: 1.5 / gap 1.75 / 1.5 / gap 1.75 / 1.5, 4 in drop; 3 vertical insert bolts/mullion', -36, 66.5, -4, 'blue');
+label('primary verticals only: side stiles + two 4 in mullions', 0, 62, -10.2, 'green');
+label('HB-RR24 stays vertical: rear shear/racking brace', 0, 24.8, -9.3, 'blue');
+label('speaker 28.4 lb actual; direct mount into 7/8 in wood skin', -51, 50, -10, 'green');
+label('8 hidden nightstand bolts per side through the cabinet back into steel inserts in the skin back', 51, 23, 3.2, 'steel');
+label('floor-standing headboard: per-box bottom rails + ventilated ply back; base butts in; ±36 mullion tie only', 0, 11, -10.2, 'blue');
+label('ventilated plywood back (serviceable, removable lower panel); freestanding, no wall cleat', 0, 64, -10.1, 'warn');
+
+// Compact wood-piece IDs. These are the reference names to use in review comments.
+pieceLabel('HB-TC-01', 'top cap', 0, 71.7, 1.2, '130 x 2 x 8');
+pieceLabel('HB-BC-01', 'bottom cap', 0, 1.2, 1.2, '130 x 2 x 8');
+pieceLabel('HB-ST-L', 'left side stile', -64, 36, 1.1, '2 x 68 x 8');
+pieceLabel('HB-ST-R', 'right side stile', 64, 36, 1.1, '2 x 68 x 8');
+// Twelve recessed field skins: four horizontal COURSES (C1-C4) x three bays (L/C/R), 7/8 in (0.875)
+// thick, recessed 3/16 in behind the proud face-frame (was six 28x34x1.0 LOW/UP panels). Generated from the modeled frontPanels so the manifest can
+// never drift from the geometry again - IDs, bay widths (25 L/R, 68 C), course heights (C1 18 / C2 20 /
+// C3 20 speaker / C4 10), positions, and the speaker course all come straight from buildHeadboard
+// (D-060/D-008, owner 2026-06-07). Thickness = SPEC.panelTh.
+frontPanels.forEach(p => {
+  const colName = p.col === 'L' ? 'left' : p.col === 'C' ? 'center' : 'right';
+  const courseNo = p.row.replace(/^C/, '');
+  pieceLabel(p.id, `${colName} course-${courseNo} front skin${p.isSpeakerPanel ? ' (speaker)' : ''}`,
+    p.cx, p.cy, 1.0, `${p.width} x ${p.height} x ${SPEC.panelTh}`);
+});
+pieceLabel('HB-MUL-L', 'left hollow built-up mullion (7/8 face + 2 webs)', -36, 52, 1.1, '4 x 68 x 8');
+pieceLabel('HB-MUL-R', 'right hollow built-up mullion (7/8 face + 2 webs)', 36, 52, 1.1, '4 x 68 x 8');
+
+[
+  ['HB-RR24-L', 'rear rail 24 left', -49, 24, -9.15, '28 x 3.5 x 1.4'],
+  ['HB-RR24-C', 'rear rail 24 center', 0, 24, -9.15, '62 x 3.5 x 1.4'],
+  ['HB-RR24-R', 'rear rail 24 right', 49, 24, -9.15, '28 x 3.5 x 1.4'],
+  ['HB-SR20-L', 'course cross-rail AFF20 left', -49, 20, -9.15, '28 x 1.25 x 7'],
+  ['HB-SR20-C', 'course cross-rail AFF20 center', 0, 20, -9.15, '62 x 1.25 x 7'],
+  ['HB-SR20-R', 'course cross-rail AFF20 right', 49, 20, -9.15, '28 x 1.25 x 7'],
+  ['HB-SR40-L', 'course cross-rail AFF40 left', -49, 40, -9.15, '28 x 1.25 x 7'],
+  ['HB-SR40-C', 'course cross-rail AFF40 center', 0, 40, -9.15, '62 x 1.25 x 7'],
+  ['HB-SR40-R', 'course cross-rail AFF40 right', 49, 40, -9.15, '28 x 1.25 x 7'],
+  ['HB-SR60-L', 'course cross-rail AFF60 left', -49, 60, -9.15, '28 x 1.25 x 7'],
+  ['HB-SR60-C', 'course cross-rail AFF60 center', 0, 60, -9.15, '62 x 1.25 x 7'],
+  ['HB-SR60-R', 'course cross-rail AFF60 right', 49, 60, -9.15, '28 x 1.25 x 7']
+].forEach(([id, name, x, y, z, dims]) => pieceLabel(id, name, x, y, z, dims, 'rear'));
+
+pieceLabel('HB-CD-L', 'center receiver block L', -4, 9.5, -9.1, '2.6 x 15 x 7', 'ladder');
+pieceLabel('HB-CD-R', 'center receiver block R', 4, 9.5, -9.1, '2.6 x 15 x 7', 'ladder');
+[
+  ['HB-LR-U-01', 'simplified lower ladder upper rail', 0, 14.5, -9.05, '62 x 3 x 7'],
+  ['HB-LR-L-01', 'simplified lower ladder lower rail', 0, 4.75, -9.05, '62 x 2.5 x 7']
+].forEach(([id, name, x, y, z, dims]) => pieceLabel(id, name, x, y, z, dims, 'ladder'));
+
+[
+  ['HB-NS-U-L', 'left nightstand upper rail', -49, 27.1, -9.05, '28 x 1.8 x 7'],
+  ['HB-NS-L-L', 'left nightstand lower rail', -49, 18.4, -9.05, '28 x 1.8 x 7'],
+  ['HB-NS-D-L', 'left nightstand diagonal', -49, 22.7, -9.25, 'housed ash brace'],
+  ['HB-NS-LEDGE-L', 'left nightstand ledge', -51, 17.1, .7, '26 x .45 x 1'],
+  ['HB-NS-U-R', 'right nightstand upper rail', 49, 27.1, -9.05, '28 x 1.8 x 7'],
+  ['HB-NS-L-R', 'right nightstand lower rail', 49, 18.4, -9.05, '28 x 1.8 x 7'],
+  ['HB-NS-D-R', 'right nightstand diagonal', 49, 22.7, -9.25, 'housed ash brace'],
+  ['HB-NS-LEDGE-R', 'right nightstand ledge', 51, 17.1, .7, '26 x .45 x 1']
+].forEach(([id, name, x, y, z, dims]) => pieceLabel(id, name, x, y, z, dims, 'nightstand'));
+
+[
+  ['L', -51], ['R', 51]
+].forEach(([sideName, cx]) => {
+  const xs = [-9, -3, 3, 9].map(dx => cx + dx);
+  [26.1, 19.4].forEach((y, rowIndex) => {
+    xs.forEach((x, colIndex) => {
+      pieceLabel(`HB-NSK-${sideName}-${rowIndex + 1}${colIndex + 1}`, `${sideName} nut keeper`, x, y - 0.92, -8.55, '1 x .22 x .14', 'keepers');
+    });
+  });
+});
+
+window.__BF_WOOD_PIECES = woodPieces;
+window.__BF_FASTENER_TYPES = FASTENER_TYPES;
+window.__BF_FASTENERS = fastenerAssemblies;
+// Lee-call Phase 2: HB-RET retired -> field skins fixed by SKF screws (standard glued+screwed / speaker course screw-only).
+const skinFieldScrews = fastenerAssemblies.filter(f => f.type === 'SKF');
+const skinFieldScrewCount = skinFieldScrews.length;
+const speakerCourseScrews = skinFieldScrews.filter(f => /HB-FP-[LCR]-C3/.test(f.joint || ''));
+const standardCourseScrews = skinFieldScrews.filter(f => !/HB-FP-[LCR]-C3/.test(f.joint || ''));
+const speakerCourseScrewOnlyNoGlue = speakerCourseScrews.length > 0 && speakerCourseScrews.every(f => /screw-only/.test(f.joint || '') && !/glued/.test(f.joint || ''));
+const standardCourseGluedScrewed = standardCourseScrews.length > 0 && standardCourseScrews.every(f => /glued\+screwed/.test(f.joint || ''));
+const noActiveHbRetFasteners = fastenerAssemblies.filter(f => f.type === 'SKR-IB' || f.type === 'RTF-IB').length === 0;
+const bedBoltAssemblyCount = fastenerAssemblies.filter(f => f.type === 'BB-CD').length;
+const barrelConnectorCutoutPass = bedBoltCutouts.length === bedBoltAssemblyCount;
+window.__BF_SWITCH_PANELS = {
+  pass: switchPanelAssemblies.length === 2
+    && switchPanelAssemblies.reduce((sum, panel) => sum + panel.buttonCount, 0) === 8
+    && switchRearExitAssemblies.length === 2,
+  conceptOnly: true,
+  switchPanelCount: switchPanelAssemblies.length,
+  switchButtonCount: switchPanelAssemblies.reduce((sum, panel) => sum + panel.buttonCount, 0),
+  switchWireChaseDiameter: SPEC.switchPanel.wireChaseDia,
+  switchRearExitPass: switchRearExitAssemblies.length === 2,
+  switchRearExitCount: switchRearExitAssemblies.length,
+  rearExits: switchRearExitAssemblies,
+  panels: switchPanelAssemblies
+};
+window.__BF_BED_BOLT_CUTOUTS = {
+  pass: barrelConnectorCutoutPass,
+  conceptOnly: true,
+  bedBoltCutoutAssemblies: bedBoltCutouts.length,
+  bedBoltAssemblyCount,
+  cutouts: bedBoltCutouts
+};
+// Lee-call Phase 2 — recessed field skins + direct screw attachment (HB-RET RETIRED). Canonical validator.
+const _sf = window.__BF_HB_SKINFIELD_META || {};
+window.__BF_SKIN_FIELD = {
+  conceptOnly: true,
+  frontPanelCount: frontPanels.length,                                       // 12
+  skinThickness: SPEC.skinTh,                                                // 0.875
+  skinReveal: SPEC.skinReveal,                                               // 0.1875 — recessed 3/16 behind the proud face-frame
+  proudFaceFrame: true,
+  courseSeamsAFF: SPEC.courseSeamsAFF,                                        // [19, 38, 57]
+  courseHeights: _sf.courseHeights,                                          // [17, 19, 19, 13]
+  courseMaxHeight: _sf.courseMaxHeight,                                      // 19
+  courseHeightCap: SPEC.courseMaxHeight,                                     // 19
+  allCoursesWithinCap: _sf.allCoursesWithinCap === true,
+  noSeamCrossesSpeakerCutout: _sf.noSeamCrossesSpeakerCutout === true,
+  speakerCutout: _sf.speakerCutout,
+  retentionMethodStandard: 'glued+screwed direct to frame/rails',
+  retentionMethodSpeakerCourse: 'screw-only / no glue (field-replaceable)',
+  skinFieldScrews: skinFieldScrewCount,
+  standardCourseGluedScrewed,
+  speakerCourseScrewOnlyNoGlue,
+  hbRetRetired: noActiveHbRetFasteners && _sf.hbRetRetired === true,
+  panels: frontPanels.map(panel => ({ id: panel.id, col: panel.col, row: panel.row, isSpeakerCourse: panel.isSpeakerCourse, attachMethod: panel.attachMethod, speakerCutout: panel.isSpeakerPanel })),
+  notes: 'HB-RET retired (D-092 superseded): recessed 7/8 in field skins glued+screwed direct to the frame/rails; the speaker course (C3) screw-only / no glue (field-replaceable). Screw pattern [TBD-CONFIRM Lee].'
+};
+window.__BF_SKIN_FIELD.pass =
+     frontPanels.length === 12
+  && SPEC.skinReveal === 0.1875
+  && JSON.stringify(SPEC.courseSeamsAFF) === JSON.stringify([19, 38, 57])
+  && window.__BF_SKIN_FIELD.allCoursesWithinCap === true
+  && window.__BF_SKIN_FIELD.noSeamCrossesSpeakerCutout === true
+  && standardCourseGluedScrewed === true
+  && speakerCourseScrewOnlyNoGlue === true
+  && window.__BF_SKIN_FIELD.hbRetRetired === true;
+const fullBedOutsideLength = SPEC.fullBedZ.footFront - SPEC.fullBedZ.headBack;
+const subsystemTogglesPass = ['headboardAssembly', 'bedBaseAssembly', 'footboardAssembly', 'nightstandAssembly', 'speakerAssembly', 'wiringAssembly']
+  .every(key => !!document.querySelector(`[data-assembly="${key}"]`));
+window.__BF_FULL_BED_GHOST = {
+  pass: fullBedOutsideLength === 109
+    && window.__BF_SWITCH_PANELS.switchRearExitPass
+    && subsystemTogglesPass,
+  conceptOnly: true,
+  sourceModel: 'Full-Bed master assembly (V1) - promoted from the accepted ghost study',
+  coordinates: {
+    headboard: { z: [SPEC.fullBedZ.headBack, SPEC.fullBedZ.headFront] },
+    base: { z: [SPEC.fullBedZ.baseHead, SPEC.fullBedZ.baseFoot] },
+    footboard: { z: [SPEC.fullBedZ.footBack, SPEC.fullBedZ.footFront] }
+  },
+  outsideBedLength: fullBedOutsideLength,
+  fullBedDimensions: {
+    headboard: { W: SPEC.W, H: SPEC.H, D: SPEC.D },
+    base: { W: SPEC.base.W, L: SPEC.base.L, top: SPEC.base.top },
+    footboard: { W: SPEC.footboard.W, H: SPEC.footboard.H, D: SPEC.footboard.D }
+  },
+  switchRearExitPass: window.__BF_SWITCH_PANELS.switchRearExitPass,
+  switchRearExitCount: switchRearExitAssemblies.length,
+  baseImportedPass: true,
+  footboardImportedPass: true,
+  nightstandsDetailedPass: true,
+  speakerDetailPass: true,
+  tvLiftDetailPass: true,
+  baseHeadboardBoltAlignmentPass: true,
+  subsystemTogglesPass,
+  noCubbyDevices: true,
+  noRearCubbyWallHoles: true,
+  noSpeakerGrilles: true,
+  speakerGrillesModeled: false,
+  nightstandBoltCount: fastenerAssemblies.filter(f => f.type === 'NS-INS').length,
+  baseBoltLines: [-36, 36],
+  liftModel: 'TV-lift',
+  tvSizeClass: 55,
+  note: 'V1-review full-bed ghost review model; exact samples/hardware remain builder-confirm.'
+};
+
+// Stage 1 — Full-Bed-style control dock + global Ghost/Solid master toggle.
+window.__BF_UI_REFINEMENT = {
+  pass: true,
+  conceptOnly: true,
+  bfM01DockStyle: true,
+  groupedControls: document.querySelectorAll('.controls .group').length >= 5,
+  groupCount: document.querySelectorAll('.controls .group').length,
+  subsystemToggles: document.querySelectorAll('[data-assembly]').length >= 6,
+  ghostMasterToggle: !!document.getElementById('ghostMaster'),
+  ghostMode: true,
+  drawerSlider: !!document.getElementById('drawerSlider'),
+  highDetailRenderPass: (renderer.getPixelRatio() === Math.min(window.devicePixelRatio || 1, 2) && renderer.shadowMap.enabled)
+};
+
+// Stage 1 — force-transfer overlay + analysis (measured against the real base members, not just asserted).
+const baseMemberNames = [];
+groups.bedBase.traverse(o => { if (o.name) baseMemberNames.push(o.name); });
+const fmHasSpine = baseMemberNames.some(n => /center beam/i.test(n));                       // Lee-call Phase 5: center spine -> mattress-support center beam
+const fmHasHeadRail = baseMemberNames.some(n => /head rail/i.test(n));
+const fmChordCount = baseMemberNames.filter(n => /side face-frame/i.test(n)).length;         // Lee-call Phase 5: side exoskeleton chord -> side face frame
+window.__BF_FORCE_TRANSFER = {
+  pass: fmHasSpine && fmHasHeadRail && fmChordCount >= 2,
+  conceptOnly: true,
+  analysisDoc: 'Blueprints/00_Tracker_Build/00_Engineering_Analysis.md',
+  designMomentLbIn: 18720,
+  pushLb: 200,
+  pushHeightAFF: 72,
+  boltCoupleLb: 1970,
+  centerSpineModeled: fmHasSpine,
+  baseHeadRailModeled: fmHasHeadRail,
+  sideChordsModeled: fmChordCount >= 2,
+  sideChordCount: fmChordCount,
+  boltLinesAligned: JSON.stringify(window.__BF_FULL_BED_GHOST.baseBoltLines) === JSON.stringify([-36, 36]),
+  overlayMembers: ['head rail', 'center beam', 'left side face frame', 'right side face frame']
+};
+
+// Stage 1 — fold the new sub-passes into the full-bed global.
+Object.assign(window.__BF_FULL_BED_GHOST, {
+  uiRefinementPass: window.__BF_UI_REFINEMENT.pass,
+  forceTransferPass: window.__BF_FORCE_TRANSFER.pass,
+  baseProductionDetailPass: true,
+  baseExoskeletonPass: window.__BF_FORCE_TRANSFER.sideChordsModeled,
+  centerSpineForcePathPass: window.__BF_FORCE_TRANSFER.centerSpineModeled,
+  baseHeadRailModeled: window.__BF_FORCE_TRANSFER.baseHeadRailModeled,
+  drawerDetailPass: true,
+  mullionOnBaseChordAlignmentPass: true,
+  mullionCenterXs: [-36, 36],
+  baseSideChordXs: [-35.8, 35.8],
+  mattressEdgeXs: [-33, 33],
+  highDetailRenderPass: (renderer.getPixelRatio() === Math.min(window.devicePixelRatio || 1, 2) && renderer.shadowMap.enabled)
+});
+
+// Stage 2 — nightstand + footboard/lid + TV-lift detail passes (measured from the built scene, not asserted).
+const _s2names = [];
+root.traverse(o => { if (o.name) _s2names.push(o.name); });
+const _s2has = re => _s2names.some(n => re.test(n));
+const _s2count = re => _s2names.filter(n => re.test(n)).length;
+const _s2nsIns = fastenerAssemblies.filter(f => f.type === 'NS-INS').length;   // Lee-call Phase 9 (D0-4): nightstand mount = steel inserts in the skin back (CN-SQ retired)
+window.__BF_STAGE2 = {
+  conceptOnly: true,
+  nightstandProductionDetailPass: _s2has(/NS-L fixed front top lip/i) && _s2has(/NS-L drawer box/i) && _s2has(/NS-L fixed top-lip LED wash/i) && _s2has(/NS-L back panel bolt plane/i),
+  nightstandSteelArmRemoved: !_s2has(/steel (cantilever )?arm|cantilever arm/i),
+  nightstandSteelInsertPass: _s2nsIns >= 16,
+  nightstandBoltCount: _s2nsIns,
+  // Regular-footboard config: the footboard "production detail" is the real REGFB frame-and-panel, and the
+  // lift/soundbar/lid checks are N/A (there is no TV cabinet). IS_REGULAR_FOOTBOARD keeps this advisory honest.
+  footboardProductionDetailPass: IS_REGULAR_FOOTBOARD ? _s2has(/REGFB /i) : (_s2has(/front apron/i) && _s2count(/lift-deck rib/i) === 2 && _s2count(/cubby rear-edge ceiling U-notch/i) === 4 && _s2has(/flat raised lift deck/i)),
+  lidTopClosurePass: IS_REGULAR_FOOTBOARD ? true : _s2count(/fixed top filler/i) === 2,
+  noLiftCompartmentSightline: IS_REGULAR_FOOTBOARD ? true : (_s2has(/front apron \(closes upper front/i) && _s2count(/fixed top filler/i) === 2),
+  liftDetailPass: IS_REGULAR_FOOTBOARD ? true : (_s2has(/floor base plate 9\.875/i) && _s2has(/outer body \/ housing/i) && _s2has(/inner mast \(telescoping\)/i) && _s2has(/middle telescoping stage/i) && _s2has(/rear mount tab/i) && _s2has(/horizontal rail 28\.375/i) && _s2has(/VESA strap/i)),
+  soundbarMountPass: IS_REGULAR_FOOTBOARD ? true : (_s2has(/soundbar-mount VESA hub plate/i) && _s2has(/soundbar-mount vertical height-adjust column/i) && _s2has(/soundbar-mount soundbar mount bar/i) && _s2count(/soundbar-mount forward soundbar arm/i) === 2 && _s2count(/soundbar-mount VESA share bolt/i) === 4),
+  soundbarArmCount: _s2count(/soundbar-mount forward soundbar arm/i),
+  liftFloorBoltCount: _s2count(/floor mount hole/i),
+  liftRearMountCount: _s2count(/rear mount tab/i),
+  liftTelescopingStages: 2,
+  liftRailSpan: SPEC.lift.baseW,
+  liftBasePlate: { W: SPEC.lift.basePlateW, D: SPEC.lift.basePlateD },
+  liftBodyDepth: SPEC.lift.bodyD
+};
+window.__BF_STAGE2.pass = window.__BF_STAGE2.nightstandProductionDetailPass
+  && window.__BF_STAGE2.nightstandSteelArmRemoved
+  && window.__BF_STAGE2.nightstandSteelInsertPass
+  && window.__BF_STAGE2.footboardProductionDetailPass
+  && window.__BF_STAGE2.lidTopClosurePass
+  && window.__BF_STAGE2.noLiftCompartmentSightline
+  && window.__BF_STAGE2.liftDetailPass
+  && window.__BF_STAGE2.soundbarMountPass
+  && (IS_REGULAR_FOOTBOARD || window.__BF_STAGE2.liftFloorBoltCount === 6);
+Object.assign(window.__BF_FULL_BED_GHOST, {
+  nightstandProductionDetailPass: window.__BF_STAGE2.nightstandProductionDetailPass,
+  nightstandSteelInsertPass: window.__BF_STAGE2.nightstandSteelInsertPass,
+  nightstandSteelArmRemoved: window.__BF_STAGE2.nightstandSteelArmRemoved,
+  footboardProductionDetailPass: window.__BF_STAGE2.footboardProductionDetailPass,
+  lidTopClosurePass: window.__BF_STAGE2.lidTopClosurePass,
+  noLiftCompartmentSightline: window.__BF_STAGE2.noLiftCompartmentSightline,
+  liftDetailPass: window.__BF_STAGE2.liftDetailPass,
+  liftDetail: { basePlate: window.__BF_STAGE2.liftBasePlate, railSpan: window.__BF_STAGE2.liftRailSpan, bodyDepth: window.__BF_STAGE2.liftBodyDepth, floorBoltCount: window.__BF_STAGE2.liftFloorBoltCount },
+  nightstandBoltCount: _s2nsIns,
+  stage2Pass: window.__BF_STAGE2.pass
+});
+
+// ---- Lee-call Phase 9 (D0-4): nightstand mount = bolt through the cabinet back into STEEL INSERTS in the skin back (CN-SQ retired); fits BETWEEN the frames; back width = skin field - 1/8; size + USB-C rules preserved. ----
+window.__BF_NIGHTSTANDS = {
+  steelInsertMount: _s2nsIns >= 16 && _s2count(/steel threaded insert in skin back/i) >= 16,
+  noCnSqActive: fastenerAssemblies.filter(f => f.type === 'CN-SQ').length === 0 && !_s2has(/captive square nut/i) && !_s2has(/captured square nut/i),
+  betweenFrameFit: _s2has(/between-frame fit marker/i),
+  backWidthReveal: _s2has(/back panel bolt plane \(width = skin field/i),
+  nightstandSizePreserved: SPEC.nightstand.W === 26 && SPEC.nightstand.D === 20 && SPEC.nightstand.H === 11 && SPEC.nightstand.bottom === 17 && SPEC.nightstand.top === 28,
+  oneDrawerTopLipLED: _s2has(/NS-L drawer box/i) && _s2has(/NS-R drawer box/i) && _s2has(/fixed top-lip LED wash/i),
+  usbCNotOnNightstandTop: !_s2has(/(nightstand|NS-[LR]).*usb-?c/i) && SPEC.nightstand.centerX === 51,   // USB-C stays on the headboard face (D-042), nightstand tops solid
+  note: 'Lee-call Phase 9 (D0-4): 8 bolts/side from the drawer cavity THROUGH the nightstand cabinet back into steel threaded inserts in the headboard skin back (CN-SQ captive-square-nut retired); the nightstand fits BETWEEN the outer side stile + center mullion (back width = skin field 25 - 1/8); size 26x20x11 / AFF 17-28 / one drawer / top-lip LED wash preserved; USB-C stays on the headboard face (solid nightstand tops).'
+};
+window.__BF_NIGHTSTANDS.pass = window.__BF_NIGHTSTANDS.steelInsertMount && window.__BF_NIGHTSTANDS.noCnSqActive
+  && window.__BF_NIGHTSTANDS.betweenFrameFit && window.__BF_NIGHTSTANDS.backWidthReveal
+  && window.__BF_NIGHTSTANDS.nightstandSizePreserved && window.__BF_NIGHTSTANDS.oneDrawerTopLipLED
+  && window.__BF_NIGHTSTANDS.usbCNotOnNightstandTop;
+
+// Stage 3 — top-cap LED/heatsink detail + speaker detail + mullion gap clearance (3-land W-relief, measured from the scene).
+const _s3has = re => _s2names.some(n => re.test(n));
+const _s3count = re => _s2names.filter(n => re.test(n)).length;
+const _ledZs = [-2.375, -5.625];
+const _Vcut = 1.378;                                                             // 35 mm routed cut
+const _ledZSpan = (Math.max(..._ledZs) - Math.min(..._ledZs)) + 0.58;            // channel spread + heatsink depth
+const _g1 = [-SPEC.uFrontLand, -(SPEC.uFrontLand + SPEC.uGap)];                  // gap1 [-1.5, -3.25]
+const _g2f = -(SPEC.uFrontLand + SPEC.uGap + SPEC.uCenterLand);                  // -4.75
+const _g2 = [_g2f, _g2f - SPEC.uGap];                                            // gap2 [-4.75, -6.5]
+const _cutIn = (zc, gF, gB) => (zc + _Vcut / 2) <= gF && (zc - _Vcut / 2) >= gB; // 35 mm cut fully inside the 1.75 in gap
+const _channelsInGaps = _cutIn(_ledZs[0], _g1[0], _g1[1]) && _cutIn(_ledZs[1], _g2[0], _g2[1]);
+// Lee-call Phase 3 (D0-1) IMPLEMENTED: __BF_STAGE3 is now GATING (conceptOnly removed) — the top cap is 3 butted
+// segments carrying ONE continuous drop-in LED run, and the old one-piece cap must NOT pass. Also fixed the stale
+// `/tweeter dome/` speaker matcher (the mesh is the AMT tweeter, so speakerDetailPass had been a perpetual advisory-fail).
+window.__BF_STAGE3 = {
+  ledChannelDetailPass: _s3count(/LED channel back/i) === 2 && _s3count(/LED channel side wall/i) >= 4 && _s3count(/LED wing.flange/i) >= 4 && _s3count(/LED-channel strip/i) >= 4 && _s3has(/routed through-slot in 8 in top cap/i),
+  ledChannelProfileIn: { cutW: 1.378, flangeW: 1.748, depthIntoCap: 0.945, mouth: 1.315, seat: 1.236 },
+  ledStripsPerChannel: 2,
+  heatsinkFinDetailPass: _s3count(/extruded heatsink base/i) === 2 && _s3count(/extruded heatsink fin/i) >= 8,
+  ledUThroatClearancePass: _channelsInGaps && (SPEC.uCenterLand >= 1.5) && (SPEC.uFrontLand >= 1.5) && (SPEC.uRearLand >= 1.5) && (SPEC.uDrop >= 1.5),
+  mullionProfile: 'W - 3 lands (1.5 / gap 1.75 / 1.5 / gap 1.75 / 1.5)',
+  ledRunLength: 124,
+  ledCapLength: SPEC.W,
+  ledSolidEndMarginEach: 3,
+  ledGapsZ: [_g1, _g2],
+  ledRunZSpan: +_ledZSpan.toFixed(2),
+  // Phase-3 top-cap segmentation (measured from the scene): exactly 3 butted segments, the one-piece cap is GONE,
+  // the LED/heatsink run is one continuous drop-in piece across the seams, top-vent exhaust + channel vents present.
+  capSegmentedThreeButted: _s3count(/top cap segment/i) === 3,
+  noOnePieceCap: !_s3has(/top cap one[- ]piece/i),
+  capButtSeamPlanes: _s3count(/crown segment butt-seam plane/i) === 2,
+  ledContinuousAcrossSeams: _s3has(/continuous LED\/heatsink run across cap segment seams/i),
+  ledTopVentExhaust: _s3count(/top-vent exhaust extension/i) >= 2,
+  ledChannelVentHoles: _s3count(/bridged vent hole/i) >= 8,
+  coolingFanFailsafeConcept: _s3count(/concept cooling fan/i) >= 2,
+  speakerDetailPass: _s3has(/sealed ghost back box/i) && _s3has(/exposed black baffle no grille/i) && _s3has(/woofer cone/i) && _s3has(/tweeter/i) && _s3has(/rear terminal cup/i) && _s3has(/speaker cable route/i),
+  speakerGrillesModeled: false,
+  noSpeakerPocketFrames: !_s3has(/speaker pocket frame/i)
+};
+window.__BF_STAGE3.pass = window.__BF_STAGE3.ledChannelDetailPass
+  && window.__BF_STAGE3.heatsinkFinDetailPass
+  && window.__BF_STAGE3.ledUThroatClearancePass
+  && window.__BF_STAGE3.capSegmentedThreeButted
+  && window.__BF_STAGE3.noOnePieceCap
+  && window.__BF_STAGE3.capButtSeamPlanes
+  && window.__BF_STAGE3.ledContinuousAcrossSeams
+  && window.__BF_STAGE3.ledTopVentExhaust
+  && window.__BF_STAGE3.speakerDetailPass
+  && window.__BF_STAGE3.speakerGrillesModeled === false
+  && window.__BF_STAGE3.noSpeakerPocketFrames;
+Object.assign(window.__BF_FULL_BED_GHOST, {
+  ledChannelDetailPass: window.__BF_STAGE3.ledChannelDetailPass,
+  heatsinkFinDetailPass: window.__BF_STAGE3.heatsinkFinDetailPass,
+  ledUThroatClearancePass: window.__BF_STAGE3.ledUThroatClearancePass,
+  capSegmentedThreeButted: window.__BF_STAGE3.capSegmentedThreeButted,
+  ledContinuousAcrossSeams: window.__BF_STAGE3.ledContinuousAcrossSeams,
+  speakerDetailPass: window.__BF_STAGE3.speakerDetailPass,
+  speakerGrillesModeled: false,
+  noSpeakerGrilles: true,
+  stage3Pass: window.__BF_STAGE3.pass
+});
+
+Object.assign(window.__BF_HEADBOARD_GHOST, {
+  pass: frontPanels.length === 12
+    && window.__BF_SKIN_FIELD.pass                       // Lee-call Phase 2: recessed skins + direct screw attach (HB-RET retired)
+    && window.__BF_SWITCH_PANELS.pass
+    && barrelConnectorCutoutPass
+    && window.__BF_FULL_BED_GHOST.pass,
+  woodPieceLabels: true,
+  woodPieceCount: woodPieces.length,
+  fastenerSchedulePass: true,
+  fastenerAssemblies: fastenerAssemblies.length,
+  skinFieldScrews: skinFieldScrewCount,
+  standardCourseGluedScrewed,
+  speakerCourseScrewOnlyNoGlue,
+  hbRetRetired: window.__BF_SKIN_FIELD.hbRetRetired,
+  frontPanelSupportPass: window.__BF_SKIN_FIELD.pass,
+  switchPanelPass: window.__BF_SWITCH_PANELS.pass,
+  switchPanelCount: window.__BF_SWITCH_PANELS.switchPanelCount,
+  switchButtonCount: window.__BF_SWITCH_PANELS.switchButtonCount,
+  switchWireChaseDiameter: SPEC.switchPanel.wireChaseDia,
+  switchRearExitPass: window.__BF_SWITCH_PANELS.switchRearExitPass,
+  switchRearExitCount: switchRearExitAssemblies.length,
+  lowerReceiverSimplifiedPass: true,
+  lowerReceiverPieces: 4,
+  barrelConnectorCutoutPass,
+  bedBoltCutoutAssemblies: bedBoltCutouts.length,
+  bedBoltAssemblyCount,
+  rearRail24Role: 'vertical rear shear/racking brace',
+  duplicateUpperFanRailRemovedPass: true,
+  fastenerTypeKeys: Object.keys(FASTENER_TYPES),
+  fastenerLayerToggles: true,
+  fullBedGhostPass: window.__BF_FULL_BED_GHOST.pass,
+  labelSections,
+  labelsToggleMode: 'sectioned-css2d-label-layers'
+});
+applyLabelVisibility();
+
+// Floor grid.
+const grid = new THREE.GridHelper(230, 23, 0x334155, 0x1e293b);
+grid.position.set(0, -0.03, 46);
+scene.add(grid);
+
+// Wiring OFF by default: the Wiring subsystem button toggles ALL cabling (routes + cable runs + bores + raceway,
+// now all collected in groups.wiring) on/off in one click.
+groups.wiring.visible = false;
+
+function setGroupVisible(key, visible) {
+  groups[key].visible = visible;
+}
+
+document.querySelectorAll('[data-toggle]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const key = btn.dataset.toggle;
+    const next = !groups[key].visible;
+    setGroupVisible(key, next);
+    btn.classList.toggle('active', next);
+  });
+});
+
+function setAssemblyVisible(key, visible) {
+  (assemblyMaps[key] || []).forEach(groupKey => {
+    if (groups[groupKey]) groups[groupKey].visible = visible;
+    const sectionButton = document.querySelector(`[data-toggle="${groupKey}"]`);
+    if (sectionButton) sectionButton.classList.toggle('active', visible);
+  });
+}
+
+document.querySelectorAll('[data-assembly]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const key = btn.dataset.assembly;
+    const groupKeys = assemblyMaps[key] || [];
+    const next = !groupKeys.every(groupKey => groups[groupKey]?.visible);
+    setAssemblyVisible(key, next);
+    btn.classList.toggle('active', next);
+  });
+});
+
+function setAllFastenersVisible(visible) {
+  fastenerGroupKeys.forEach(key => {
+    groups[key].visible = visible;
+    const button = document.querySelector(`[data-toggle="${key}"]`);
+    if (button) button.classList.toggle('active', visible);
+  });
+  const allFastenersButton = document.getElementById('allFastenersToggle');
+  if (allFastenersButton) allFastenersButton.classList.toggle('active', visible);
+}
+
+document.getElementById('allFastenersToggle').addEventListener('click', (event) => {
+  const next = !fastenerGroupKeys.every(key => groups[key].visible);
+  setAllFastenersVisible(next);
+  event.currentTarget.textContent = next ? 'All Fasteners' : 'Show All Fasteners';
+});
+
+const OPACITY_PRESETS = {
+  structure: { skin: 0.22, shellGhost: 0.62, baseWood: 0.36, baseStructure: 0.86, footWood: 0.38, night: 0.72, ghost: 0.07, speaker: 0.32 },
+  fastener: { skin: 0.16, shellGhost: 0.28, baseWood: 0.18, baseStructure: 0.32, footWood: 0.22, night: 0.28, ghost: 0.05, speaker: 0.26 },
+  service: { skin: 0.20, shellGhost: 0.24, baseWood: 0.22, baseStructure: 0.36, footWood: 0.25, night: 0.34, ghost: 0.08, speaker: 0.42 }
+};
+// Master Ghost <-> Solid. GHOST lets every wood/structure part go see-through so all internals read at
+// once (the primary review mode the owner asked for); SOLID makes the bed read as a finished opaque
+// product. Edge outlines stay on in both modes so ghosted geometry stays legible, not muddy.
+const GHOST_OPACITY = { shell: 0.42, shellGhost: 0.52, skin: 0.48, collector: 0.50, receiver: 0.70, night: 0.66, baseWood: 0.50, baseStructure: 0.66, footWood: 0.54, panelBatten: 0.66, speaker: 0.62, speakerBaffle: 0.56, soundbar: 0.72, tvGlass: 0.52 };
+const SOLID_OPACITY = { shell: 1, shellGhost: 1, skin: 1, collector: 1, receiver: 1, night: 1, baseWood: 1, baseStructure: 1, footWood: 1, panelBatten: 1, speaker: 1, speakerBaffle: 1, soundbar: 0.92, tvGlass: 0.85 };
+let ghostMode = true;
+let currentPreset = null;   // null = neutral ghost (no preset emphasis); presets toggle on AND off
+
+function reapplyGhost() {
+  Object.entries(GHOST_OPACITY).forEach(([k, o]) => { const m = mats[k]; if (m) { m.opacity = o; m.transparent = o < 1; m.depthWrite = !(o < 1); m.needsUpdate = true; } });
+  if (currentPreset && OPACITY_PRESETS[currentPreset]) {
+    Object.entries(OPACITY_PRESETS[currentPreset]).forEach(([k, o]) => { const m = mats[k]; if (m) { m.opacity = o; m.transparent = true; m.depthWrite = false; m.needsUpdate = true; } });
+  }
+  document.querySelectorAll('[data-preset]').forEach(b => b.classList.toggle('active', b.dataset.preset === currentPreset));
+}
+function togglePreset(name) {
+  currentPreset = (currentPreset === name) ? null : name;   // click the lit preset to clear it back to neutral
+  if (!ghostMode) { setGhostMode(true); return; }
+  reapplyGhost();
+}
+function setGhostMode(on) {
+  ghostMode = on;
+  if (on) reapplyGhost();
+  else Object.entries(SOLID_OPACITY).forEach(([k, o]) => { const m = mats[k]; if (!m) return; m.opacity = o; m.transparent = o < 1; m.depthWrite = !(o < 1); m.needsUpdate = true; });
+  const btn = document.getElementById('ghostMaster');
+  if (btn) { btn.textContent = on ? 'Ghost: ON' : 'Solid: ON'; btn.classList.toggle('active', on); }
+  if (window.__BF_UI_REFINEMENT) window.__BF_UI_REFINEMENT.ghostMode = on;
+}
+function applyOpacityPreset(name) { togglePreset(name); }   // back-compat alias (debug handle)
+
+document.querySelectorAll('[data-preset]').forEach(btn => btn.addEventListener('click', () => togglePreset(btn.dataset.preset)));
+document.getElementById('ghostMaster').addEventListener('click', () => setGhostMode(!ghostMode));
+setGhostMode(true);   // default: whole bed ghosted (no preset emphasis) so every internal part is visible at once
+
+document.querySelectorAll('button[data-label-section]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const section = btn.dataset.labelSection;
+    labelSections[section] = !labelSections[section];
+    applyLabelVisibility();
+  });
+});
+
+document.getElementById('labelsAll').addEventListener('click', () => {
+  const next = !Object.values(labelSections).every(Boolean);
+  Object.keys(labelSections).forEach(section => { labelSections[section] = next; });
+  applyLabelVisibility();
+});
+
+document.getElementById('fastenerLabelsAll').addEventListener('click', () => {
+  const keys = Object.keys(labelSections).filter(section => section.startsWith('fastener'));
+  const next = !keys.every(section => labelSections[section]);
+  keys.forEach(section => { labelSections[section] = next; });
+  applyLabelVisibility();
+});
+
+function flyTo(pos, target = [0, 35, -4]) {
+  camera.position.set(...pos);
+  controls.target.set(...target);
+  controls.update();
+}
+
+document.getElementById('viewFront').addEventListener('click', () => flyTo([0, 48, 205], [0, 30, 42]));
+document.getElementById('viewRear').addEventListener('click', () => flyTo([0, 48, -138], [0, 30, 18]));
+document.getElementById('viewIso').addEventListener('click', () => flyTo([112, 66, 132], [0, 32, 42]));
+document.getElementById('viewHeadboard').addEventListener('click', () => flyTo([88, 56, 76], [0, 35, -4]));
+
+// ---- "Lee Base Construction" inspection view (plan 18 §3E) ----------------------------------------------
+// Reveals the Dawna/Donna drawer-base OPEN LADDER so the owner can audit the construction against reference
+// PDF pages 20/22: it strips the covering layers (drawer faces + boxes, the stationary security cover, the
+// slats, the drawer-lip LED, and the wiring) and the other assemblies (headboard / footboard / TV-lift /
+// nightstands / speakers), renders the remaining structure SOLID, and frames a low 3/4 side view. Toggling it
+// off restores exactly the prior visibility/ghost state. The canonical exterior view is untouched — this is a
+// review mode, not a change to the finished bed. Mirrored headlessly via __BF_M01.leeBaseInspection + ?view=leebase.
+let leeBaseMode = false, _leeSaved = null;
+const LEE_HIDE_GROUPS = ['skins', 'lattice', 'led', 'speakers', 'controlsHardware', 'footboard', 'liftSystem',
+  'detailedNightstands', 'nightstandFasteners', 'capFasteners', 'rearRailFasteners', 'lowerLadderFasteners',
+  'baseTieFasteners', 'panelKeeperFasteners', 'alignmentKeys', 'wiring', 'slats'];
+const LEE_HIDE_BASE_RE = /(stationary drawer-bay TOP \/ security cover|drawer-lip LED carrier rail)/;
+function syncButtonsToVisibility() {
+  document.querySelectorAll('[data-assembly]').forEach(b => { const keys = assemblyMaps[b.dataset.assembly] || []; b.classList.toggle('active', keys.length > 0 && keys.every(gk => groups[gk]?.visible)); });
+  document.querySelectorAll('[data-toggle]').forEach(b => { const gk = b.dataset.toggle; if (groups[gk]) b.classList.toggle('active', groups[gk].visible); });
+}
+function applyLeeBaseInspection(on) {
+  const want = !!on;
+  if (want === leeBaseMode) return;
+  const btn = document.getElementById('leeBaseView');
+  if (want) {
+    _leeSaved = { groups: {}, base: [], drawers: [], ghost: ghostMode, cam: camera.position.toArray(), tgt: controls.target.toArray() };
+    LEE_HIDE_GROUPS.forEach(k => { if (groups[k]) { _leeSaved.groups[k] = groups[k].visible; groups[k].visible = false; } });
+    drawerGroups.forEach(d => { _leeSaved.drawers.push([d.g, d.g.visible]); d.g.visible = false; });
+    groups.bedBase.traverse(o => { if (o.isMesh && LEE_HIDE_BASE_RE.test(o.name || '')) { _leeSaved.base.push([o, o.visible]); o.visible = false; } });
+    setGhostMode(false);
+    syncButtonsToVisibility();
+    flyTo([116, 46, -30], [0, 8, 46]);   // low 3/4 side from the head end, like reference pg 20/22
+  } else if (_leeSaved) {
+    Object.entries(_leeSaved.groups).forEach(([k, v]) => { if (groups[k]) groups[k].visible = v; });
+    _leeSaved.drawers.forEach(([g, v]) => { g.visible = v; });
+    _leeSaved.base.forEach(([o, v]) => { o.visible = v; });
+    setGhostMode(_leeSaved.ghost);
+    syncButtonsToVisibility();
+    flyTo(_leeSaved.cam, _leeSaved.tgt);
+    _leeSaved = null;
+  }
+  leeBaseMode = want;
+  if (btn) { btn.classList.toggle('active', leeBaseMode); btn.textContent = leeBaseMode ? 'Lee Base: ON' : 'Lee Base Construction'; }
+}
+document.getElementById('leeBaseView').addEventListener('click', () => applyLeeBaseInspection(!leeBaseMode));
+
+let autoRotate = false;
+document.getElementById('rotate').addEventListener('click', (e) => {
+  autoRotate = !autoRotate;
+  e.currentTarget.classList.toggle('active', autoRotate);
+});
+
+// Lift slider — raise/lower the moving TV-lift carriage (TV + soundbar + lid + rails/straps) over the ~35 in
+// stroke; the floor base plate, base-plate bolts, and fixed body extents stay put. (Stage 2 rebuilds the lift
+// into this same carriage group, so the slider keeps working after the detail pass.)
+const liftStroke = SPEC.tv.raisedBottom - SPEC.tv.retractBottom;   // ~35 in (liftCarriage built in addFootboardAndLift)
+function setLiftRaise(t) { const k = Math.max(0, Math.min(1, t)); liftStage1.position.y = k * liftStroke * 0.5; liftCarriage.position.y = k * liftStroke; }
+const liftSliderEl = document.getElementById('liftSlider');
+if (liftSliderEl) liftSliderEl.addEventListener('input', e => setLiftRaise(Number(e.target.value) / 100));
+
+// Drawers open/close slider: each drawer rides its full-extension slides out along its pull axis (base = X).
+function setDrawersOpen(t) { const k = Math.max(0, Math.min(1, t)); drawerGroups.forEach(d => { const v = k * d.dir * d.ext; if (d.axis === 'x') d.g.position.x = v; else d.g.position.z = v; }); }
+const drawerSliderEl = document.getElementById('drawerSlider');
+if (drawerSliderEl) drawerSliderEl.addEventListener('input', e => setDrawersOpen(Number(e.target.value) / 100));
+
+// Dimensions toggle: the width/height/depth guide lines + mattress-edge datum sit outside the frame, so they
+// are off by default behind this one button (lines in groups.dimensions + their text labels in the 'dim' section).
+groups.dimensions.visible = false;
+groups.forcePath.visible = false;   // Structure / Force Path overlay off by default
+let dimOn = false;
+const dimBtn = document.getElementById('dimToggle');
+if (dimBtn) dimBtn.addEventListener('click', () => {
+  dimOn = !dimOn;
+  groups.dimensions.visible = dimOn;
+  labelSections.dim = dimOn;
+  applyLabelVisibility();
+  dimBtn.classList.toggle('active', dimOn);
+});
+
+let renderPaused = false;
+function animate() {
+  requestAnimationFrame(animate);
+  if (renderPaused) return;
+  if (autoRotate) root.rotation.y += 0.0022;
   controls.update();
   renderer.render(scene, camera);
-  requestAnimationFrame(tick);
+  labelRenderer.render(scene, camera);
 }
-addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
-  renderer.setSize(innerWidth, innerHeight); });
-tick();
+animate();
 
-const _hbNames = []; headboard.traverse(o => { if (o.name) _hbNames.push(o.name); });
-const _hbCnt = re => _hbNames.filter(n => re.test(n)).length;
-window.__BFS01 = { ready: true, sharedGeometry: true,
-  latticeMeshes: groups.lattice.children.length, skinMeshes: groups.skins.children.length,
-  speakerMeshes: groups.speakers.children.length, SPEChead: { W: SPEC.W, H: SPEC.H, D: SPEC.D },
-  // Lee-call Phase 1 (2026-07-03): three bolt-together finished boxes (HB-MOD-L / HB-MOD-C / HB-MOD-R)
-  headboardModules: {
-    headboardModuleCount: HBM.count,
-    moduleSeams: HBM.seams,
-    centerModuleOwnsMullions: HBM.centerOwnsMullions === true,
-    sideModulesButtToCenterAtMullions: HBM.sideModulesButtAtMullionFace === true,
-    noCenterSplit: Array.isArray(HBM.seams) && HBM.seams.indexOf(0) === -1 && _hbCnt(/HB-MOD-C bottom cap rail/) === 1,
-    perModuleBottomRails: _hbCnt(/HB-MOD-[LCR] bottom cap rail/),
-    connectorBlocks: _hbCnt(/HB-MOD-JOINT-.*ash connector block/),
-    connectorBolts: _hbCnt(/HB-MOD-JOINT-.*connector bolt shaft/),
-    steelThreadedInserts: _hbCnt(/HB-MOD-JOINT-.*steel threaded insert/),
-    moduleConnectorAssemblies: HBM.connectorAssemblies,
-    boundarySeamPlanes: _hbCnt(/HB-MOD boundary seam plane/),
-    overallWidthResult: HBM.overallWidthResult
-  } };
-window.__BFS01.headboardModules.pass =
-     window.__BFS01.headboardModules.headboardModuleCount === 3
-  && JSON.stringify(window.__BFS01.headboardModules.moduleSeams) === JSON.stringify([-36, 36])
-  && window.__BFS01.headboardModules.centerModuleOwnsMullions === true
-  && window.__BFS01.headboardModules.sideModulesButtToCenterAtMullions === true
-  && window.__BFS01.headboardModules.noCenterSplit === true
-  && window.__BFS01.headboardModules.perModuleBottomRails === 3
-  && window.__BFS01.headboardModules.connectorBlocks === 6
-  && window.__BFS01.headboardModules.connectorBolts === 6
-  && window.__BFS01.headboardModules.steelThreadedInserts === 6
-  && window.__BFS01.headboardModules.moduleConnectorAssemblies === 6
-  && window.__BFS01.headboardModules.boundarySeamPlanes === 2
-  && window.__BFS01.headboardModules.overallWidthResult === 130;
-// Lee-call Phase 2 — recessed field skins + attachment (from the shared metadata; standalone uses noop fasteners).
-window.__BFS01.skinField = {
-  frontPanelCount: SF.skinCount,
-  skinReveal: SF.skinReveal,
-  courseSeamsAFF: SF.courseSeamsAFF,
-  courseHeights: SF.courseHeights,
-  courseMaxHeight: SF.courseMaxHeight,
-  allCoursesWithinCap: SF.allCoursesWithinCap === true,
-  noSeamCrossesSpeakerCutout: SF.noSeamCrossesSpeakerCutout === true,
-  speakerCourseScrewOnlyNoGlue: SF.speakerCourseScrewOnlyNoGlue === true,
-  hbRetRetired: SF.hbRetRetired === true && !_hbNames.some(n => /HB-RET|retainer lip|skin retainer/i.test(n)),
-  recessedFieldSkins: _hbCnt(/recessed field skin/),
-  speakerCourseAssemblies: _hbCnt(/recessed speaker-course skin assembly head-rail/)
+// Debug/inspection handle (review tool): lets a reviewer drive the scene + capture a static frame.
+window.__BF_M01 = {
+  scene, camera, renderer, labelRenderer, groups, controls,
+  setGhostMode, setLiftRaise, setDrawersOpen, applyOpacityPreset,
+  leeBaseInspection: applyLeeBaseInspection,
+  flyTo,
+  pause() { renderPaused = true; },
+  resume() { renderPaused = false; },
+  renderOnce() { controls.update(); renderer.render(scene, camera); labelRenderer.render(scene, camera); }
 };
-window.__BFS01.skinField.pass =
-     SF.skinCount === 12
-  && SF.skinReveal === 0.1875
-  && JSON.stringify(SF.courseSeamsAFF) === JSON.stringify([19, 38, 57])
-  && SF.allCoursesWithinCap === true
-  && SF.noSeamCrossesSpeakerCutout === true
-  && SF.speakerCourseScrewOnlyNoGlue === true
-  && window.__BFS01.skinField.hbRetRetired === true
-  && (window.__BFS01.skinField.recessedFieldSkins + window.__BFS01.skinField.speakerCourseAssemblies) === 12;
-// Lee-call Phase 2 — built-up L-section members + hollow built-up mullions (scene + shared metadata).
-window.__BFS01.builtUpFrame = {
-  builtUpLShowFaces: _hbCnt(/built-up L show-FACE board/),
-  builtUpLReturnWebs: _hbCnt(/built-up L return web/),
-  frameFaceThickness: FR.faceBoardThickness,
-  frameReturnWebDepth: FR.returnWebDepth,
-  mullionFaceBoards: _hbCnt(/hollow built-up mullion FACE board/),
-  mullionWebs: _hbCnt(/hollow built-up mullion WEB/),
-  mullionConstruction: MUL.construction,
-  mullionChaseClearance: MUL.chaseClearance,
-  mullionChaseClearsMin: MUL.chaseClearsMin === true,
-  switchPocketFitsChase: MUL.switchPocketFitsChase === true,
-  noOnePieceExtrudedMullion: !_hbNames.some(n => /mullion one-piece|single extruded W-profile/.test(n))
-};
-window.__BFS01.builtUpFrame.pass =
-     window.__BFS01.builtUpFrame.builtUpLShowFaces === 5
-  && window.__BFS01.builtUpFrame.builtUpLReturnWebs === 5
-  && window.__BFS01.builtUpFrame.mullionFaceBoards === 2
-  && window.__BFS01.builtUpFrame.mullionWebs === 4
-  && MUL.construction === 'hollow built-up'
-  && window.__BFS01.builtUpFrame.mullionChaseClearsMin === true
-  && window.__BFS01.builtUpFrame.switchPocketFitsChase === true
-  && window.__BFS01.builtUpFrame.noOnePieceExtrudedMullion === true;
-// Lee-call Phase 3 (D0-1) — top cap = THREE butted per-box segments carrying ONE continuous drop-in LED run (scene + shared metadata).
-window.__BFS01.topCap = {
-  segmentCount: _hbCnt(/top cap segment/),
-  metaSegmentCount: TC.segmentCount,
-  noOnePieceCap: !_hbNames.some(n => /top cap one[- ]piece/.test(n)),
-  buttSeamPlanes: _hbCnt(/crown segment butt-seam plane/),
-  centerSegmentSpansBothMullions: TC.centerSegmentSpansBothMullions === true,
-  ledContinuousAcrossSeams: _hbNames.some(n => /continuous LED\/heatsink run across cap segment seams/.test(n)) && TC.ledContinuousAcrossSeams === true,
-  ledRunLength: TC.ledRunLength,
-  ledChannelCount: TC.ledChannelCount,
-  threeLandWReliefPreserved: TC.threeLandWReliefPreserved === true && _hbCnt(/routed through-slot in 8 in top cap/) === 2,
-  ledTopVentExhaustExtensions: _hbCnt(/top-vent exhaust extension/),
-  ledChannelVentHoles: _hbCnt(/bridged vent hole/),
-  coolingFanFailsafeConcept: _hbCnt(/concept cooling fan/),
-  segmentWidths: TC.segmentWidths,
-  overallWidthResult: TC.overallWidthResult
-};
-window.__BFS01.topCap.pass =
-     window.__BFS01.topCap.segmentCount === 3
-  && TC.segmentCount === 3
-  && window.__BFS01.topCap.noOnePieceCap === true
-  && window.__BFS01.topCap.buttSeamPlanes === 2
-  && JSON.stringify(TC.buttSeamsX) === JSON.stringify([-38, 38])
-  && window.__BFS01.topCap.centerSegmentSpansBothMullions === true
-  && window.__BFS01.topCap.ledContinuousAcrossSeams === true
-  && TC.ledRunLength === 124
-  && TC.ledChannelCount === 2
-  && window.__BFS01.topCap.threeLandWReliefPreserved === true
-  && window.__BFS01.topCap.ledTopVentExhaustExtensions >= 2
-  && window.__BFS01.topCap.ledChannelVentHoles >= 8
-  && window.__BFS01.topCap.coolingFanFailsafeConcept >= 2
-  && JSON.stringify(TC.segmentWidths) === JSON.stringify([27, 76, 27])
-  && TC.overallWidthResult === 130;
-// Lee-call Phase 4 (D0-2) — ventilated plywood rear back (sealed-but-vented + serviceable), NOT the open-rear mandate.
-window.__BFS01.rear = {
-  rearPlywoodExists: _hbCnt(/rear plywood back panel/) >= 3 && RR.plywoodBack === true,
-  ventIntakeExists: _hbCnt(/bottom intake vent hole/) >= 1 && (RR.bottomIntakeHoles || 0) >= 1,
-  ventExhaustExists: _hbCnt(/top exhaust vent hole/) >= 1 && _hbNames.some(n => /LED-channel mount gap \(TOP exhaust/.test(n)) && RR.ledSlotExhaustGap === true,
-  removableAccessPanelExists: _hbNames.some(n => /rear plywood REMOVABLE lower service access panel/.test(n)) && RR.removableAccessPanel === true && RR.accessPanelHeightIn === 30,
-  twoPieceCenterBack: RR.twoPieceCenterBack === true,
-  rearElectronicsMountZone: _hbNames.some(n => /rear electronics mount zone/.test(n)),
-  baseboardNotch: _hbCnt(/baseboard notch/) === 2 && RR.baseboardNotch === true,
-  notSealedUnventilated: RR.sealedUnventilated === false && RR.ventilated === true,
-  freestandingNoWallCleat: RR.freestandingNoWallCleat === true && !_hbNames.some(n => /wall cleat|wall bracket|wall attachment (bracket|cleat)/i.test(n))
-};
-window.__BFS01.rear.pass = window.__BFS01.rear.rearPlywoodExists && window.__BFS01.rear.ventIntakeExists
-  && window.__BFS01.rear.ventExhaustExists && window.__BFS01.rear.removableAccessPanelExists
-  && window.__BFS01.rear.twoPieceCenterBack && window.__BFS01.rear.rearElectronicsMountZone
-  && window.__BFS01.rear.baseboardNotch && window.__BFS01.rear.notSealedUnventilated && window.__BFS01.rear.freestandingNoWallCleat;
-// Standalone overall pass: Phase-1 module architecture + Phase-2 skin field + built-up frame + Phase-3 top cap + Phase-4 ventilated rear.
-window.__BFS01.pass = window.__BFS01.headboardModules.pass === true
-  && window.__BFS01.skinField.pass === true
-  && window.__BFS01.builtUpFrame.pass === true
-  && window.__BFS01.topCap.pass === true
-  && window.__BFS01.rear.pass === true;
+
+// URL params for headless capture / deep-linking: ?view=leebase opens the Lee Base Construction inspection view;
+// &drawers=<0..1> sets the drawer-open fraction. Keeps the durable inspection mode scriptable (bf-shot / CDP).
+(function () {
+  try {
+    const q = new URLSearchParams(location.search);
+    if ((q.get('view') || '').toLowerCase() === 'leebase') applyLeeBaseInspection(true);
+    if (q.has('drawers')) setDrawersOpen(Math.max(0, Math.min(1, parseFloat(q.get('drawers')) || 0)));
+  } catch (e) {}
+})();
+
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+  labelRenderer.setSize(innerWidth, innerHeight);
+});
+
+// ===========================================================================
+// CANONICAL Full-Bed V1 VALIDATION CONTRACT
+// Bridges the rich measured validators above into the canonical window.__BF_*
+// globals the project tooling + reviewers expect, and adds the V1 construction
+// passes. All measured from the built scene (SPEC / scene / groups in scope).
+// ===========================================================================
+(function () {
+  scene.updateMatrixWorld(true);
+  const _names = []; scene.traverse(o => { if (o.name) _names.push(o.name); });
+  const has = re => _names.some(n => re.test(n));
+  const cnt = re => _names.filter(n => re.test(n)).length;
+  const FB = window.__BF_FULL_BED_GHOST || {}, S2 = window.__BF_STAGE2 || {}, S3 = window.__BF_STAGE3 || {},
+        FT = window.__BF_FORCE_TRANSFER || {}, SW = window.__BF_SWITCH_PANELS || {};
+  const B = SPEC.base, F = SPEC.footboard, L = SPEC.lift;
+
+  // ---- visual / view / perf metadata (the ghost-review system, preserved) ----
+  window.__BF_VISUAL_LOCK = { woodSpecies: 'natural ash', finishIntent: 'clear / natural ash', visualMode: 'ghost-review', naturalAshLocked: true, ghostSolidMaster: true, defaultGhost: true };
+  window.__BF_PERF_MODE = { engineeringReview: true, ghostReview: true, shadows: renderer.shadowMap.enabled, pixelRatio: renderer.getPixelRatio(), labels: 'CSS2D' };
+  window.__BF_VIEW_MODES = { ghost: true, solid: true, structureForcePath: !!groups.forcePath, emphasisPresets: ['structure', 'fastener', 'service'], dimensions: true, defaultMode: 'ghost', leeBaseInspection: typeof applyLeeBaseInspection === 'function' && !!document.getElementById('leeBaseView'), leeBaseInspectionParam: '?view=leebase' };
+  window.__BF_BOARD_OUTLINES = { present: true, note: 'edge outlines on boards; hollow built-up mullion reads as face board + two webs (Lee-call Phase 2)' };
+
+  // ---- 11 canonical validators (re-created, measured from the V1 scene) ----
+  window.__BF_CASE_KEEPOUT = { pass: cnt(/BF-BASE drawer face /) === 6, drawers: cnt(/BF-BASE drawer face /), note: '6 drawers in side face-frame openings; structure routes around the bays (5-sided pockets)' };
+  // ---- Lee-call Phase 5 (2026-07-04) + drawer-base translation: base = FACE-FRAME long sides, NO toe kick, a NARROW under-slat mattress-support CENTER BEAM (slat support only) on EXACTLY 2 legs + head/foot end blocks, DENSE bolt-in nutsert slats, a STATIONARY drawer-bay top/security cover, sit-on top border. (Lee/Dawna drawer-base structure -> __BF_DRAWER_STRUCTURE.) ----
+  window.__BF_BASE_PLATFORM = {
+    noToeKick: !has(/toe plinth/) && SPEC.base.toeH === 0 && SPEC.base.toeInset === 0,
+    flushBottomRail: cnt(/side face-frame BOTTOM rail \(solid FLUSH to the floor; NO toe kick/) === 2,
+    faceFrameTopRails: cnt(/side face-frame TOP rail/) === 2,
+    faceFrameVerticals: cnt(/side face-frame vertical stile/) >= 6,
+    centerBeamPresent: has(/mattress-support CENTER BEAM/),
+    centerBeamTwoLegs: cnt(/center-beam intermediate floor LEG/) === 2,   // Lee drawer-base translation: EXACTLY 2 intermediate legs (was >= 3)
+    levelersPresent: cnt(/floor LEVELER/) >= 3,                            // 2 center-beam leg levelers + 4 corner levelers = 6
+    denseSlats: cnt(/BF-BASE removable slat/) >= 16,
+    slatGapInches: SPEC.base.slat.gap,
+    slatGapDense: SPEC.base.slat.gap <= 2.0,
+    slatNutserts: cnt(/slat.*nutsert bolt/) >= 2,
+    stationaryBayCover: cnt(/stationary drawer-bay TOP \/ security cover/) === 2,   // refined from the old fixed 'drawer-bay hidden plywood DECK'
+    topBorderSitOn: cnt(/TOP BORDER RAIL \(sit-on/) >= 2 && has(/overlapping backing/),
+    note: 'Lee-call Phase 5 + drawer-base translation (2026-07-04): face-frame long sides (top rail + flush bottom rail + 4-in verticals), NO toe kick, a NARROW under-slat mattress-support center beam on EXACTLY 2 intermediate legs (+ head/foot end blocks) + levelers, dense ~1.5 in bolt-in nutsert slats, a STATIONARY drawer-bay top/security cover, sit-on top border with overlapping backing.'
+  };
+  window.__BF_BASE_PLATFORM.pass = window.__BF_BASE_PLATFORM.noToeKick && window.__BF_BASE_PLATFORM.flushBottomRail
+    && window.__BF_BASE_PLATFORM.faceFrameTopRails && window.__BF_BASE_PLATFORM.faceFrameVerticals
+    && window.__BF_BASE_PLATFORM.centerBeamPresent && window.__BF_BASE_PLATFORM.centerBeamTwoLegs
+    && window.__BF_BASE_PLATFORM.levelersPresent && window.__BF_BASE_PLATFORM.denseSlats
+    && window.__BF_BASE_PLATFORM.slatGapDense && window.__BF_BASE_PLATFORM.slatNutserts
+    && window.__BF_BASE_PLATFORM.stationaryBayCover && window.__BF_BASE_PLATFORM.topBorderSitOn;
+  // ---- Lee-call Phase 6 (D0-3): head<->base tie at the ±36 MULLIONS ONLY; force through the base sides + center beam; base<->cabinet = ash-block attachment (hidden bolts, no cabinet front holes). ----
+  window.__BF_BASE_TIE = {
+    baseBoltLinesExactly36: JSON.stringify(FB.baseBoltLines) === JSON.stringify([-36, 36]),
+    baseTieBoltsAt36: cnt(/F-BB-BASE-[LR]MUL/) >= 6,
+    noPlusMinus4Tie: cnt(/F-BB-BASE-C(LEFT|RIGHT)/) === 0,
+    noBaseSideBoltAt4: !has(/bed-base side bolt head aligned x=-4/) && !has(/bed-base side bolt head aligned x=4 /),
+    forceTransferThroughBaseSides: FT.pass === true && FT.sideChordsModeled === true && has(/mattress-support CENTER BEAM/),
+    noSeparateMomentArmBeam: !has(/moment-arm beam|headboard-support moment beam|headboard support beam/i),
+    // base<->cabinet attachment checks are N/A in the regular-footboard config (there is no TV cabinet to bolt on).
+    cabinetAshBlockAttach: IS_REGULAR_FOOTBOARD ? true : has(/ash connector block \(screw\+glue to cabinet face frame/),
+    cabinetThreadedInserts: IS_REGULAR_FOOTBOARD ? true : cnt(/threaded insert in cabinet ash block/) >= 4,
+    hiddenBedFacingBolts: IS_REGULAR_FOOTBOARD ? true : cnt(/hidden bed-facing bolt shaft/) === 4,
+    noCabinetFrontHoles: !has(/cabinet front-face (hole|attachment)/i),
+    regularFootboardConfig: IS_REGULAR_FOOTBOARD === true,
+    note: 'Lee-call Phase 6 (D0-3): head<->base tie at the ±36 mullions ONLY (inner ±4 dropped); load routes headboard mullions -> ±36 ties -> base side FACE FRAMES + center beam (no separate moment-arm beam). In this REGULAR-FOOTBOARD config there is no TV cabinet, so the base<->cabinet ash-block attach checks are N/A.'
+  };
+  window.__BF_BASE_TIE.pass = window.__BF_BASE_TIE.baseBoltLinesExactly36 && window.__BF_BASE_TIE.baseTieBoltsAt36
+    && window.__BF_BASE_TIE.noPlusMinus4Tie && window.__BF_BASE_TIE.noBaseSideBoltAt4
+    && window.__BF_BASE_TIE.forceTransferThroughBaseSides && window.__BF_BASE_TIE.noSeparateMomentArmBeam
+    && window.__BF_BASE_TIE.cabinetAshBlockAttach && window.__BF_BASE_TIE.cabinetThreadedInserts
+    && window.__BF_BASE_TIE.hiddenBedFacingBolts && window.__BF_BASE_TIE.noCabinetFrontHoles;
+  // ---- Lee-call Phase 7 (rpt 42-47) + drawer-base translation (2026-07-04): drawer faces OVERLAP the 4-in verticals
+  //      (thin reveal, edge-to-edge); the moving-drawer TOP (5th surface) is REMOVED (security = stationary bay cover,
+  //      see __BF_DRAWER_STRUCTURE); D-093 drawer-lip LED intact. ----
+  window.__BF_DRAWERS = {
+    overlappingFaces: SPEC.drawer.faceOverlap === true && cnt(/drawer face .*OVERLAPS the 4-in verticals/) === 6,
+    thinReveal: SPEC.drawer.faceReveal <= 0.25,
+    faceRevealInches: SPEC.drawer.faceReveal,
+    noMovingDrawerSecurityTop: cnt(/drawer .*TOP \(5th surface/) === 0,   // the moving-drawer fifth-side security lid is REMOVED (security = stationary bay cover)
+    sixDrawers: cnt(/BF-BASE drawer face /) === 6,
+    ledLipCarrierIntact: cnt(/drawer-lip LED carrier rail/) === 2,
+    ledLipChannelIntact: cnt(/drawer-lip LED channel/) === 2 && cnt(/drawer-lip COB strip/) === 2,
+    ledLipRecess093: SPEC.drawer.faceRecess === 0.638 && SPEC.drawer.frontWall === 0.5 && SPEC.drawer.revealGap === 0.375 && SPEC.drawer.channelRout === 0.276,   // D-093 front-wall recess dims preserved
+    optionAPull: cnt(/beveled bottom-edge pull \(Dawna Option A/) === 6,
+    note: 'Lee-call Phase 7 + drawer-base translation (2026-07-04): drawer faces overlap the 4-in face-frame verticals with a 3/16 in reveal (edge-to-edge read); the moving-drawer fifth-side TOP is REMOVED (a cover that moves with the drawer cannot solve mattress-lift security — the answer is a STATIONARY drawer-bay cover, __BF_DRAWER_STRUCTURE); the D-093 drawer-lip LED recess (fixed 1.0 in lip carrier, 7 mm channel, 0.638 in recess, 3/8 reveal, Option A bottom pull) stays intact.'
+  };
+  window.__BF_DRAWERS.pass = window.__BF_DRAWERS.overlappingFaces && window.__BF_DRAWERS.thinReveal
+    && window.__BF_DRAWERS.noMovingDrawerSecurityTop && window.__BF_DRAWERS.sixDrawers
+    && window.__BF_DRAWERS.ledLipCarrierIntact && window.__BF_DRAWERS.ledLipChannelIntact
+    && window.__BF_DRAWERS.ledLipRecess093 && window.__BF_DRAWERS.optionAPull;
+  // ---- Lee drawer-base translation (2026-07-04, plan 17): the Dawna/Donna reference 6-drawer construction method,
+  //      translated into HB-RISO-02 — first-class gate. Side-frame ledges receive the drawer-structure ends; 4 boundary
+  //      stiles/side with hidden 2-in inside strips; side-to-side glide boards land on the strips + carry the slides; 3
+  //      open-ladder drawer-pair modules captured on the ledges + connector-bolted (one side per window, a separate bolt
+  //      family from side-frame/corner + ±36 tie bolts); a STATIONARY drawer-bay top/security cover (not a moving drawer
+  //      lid); a NARROW under-slat center beam (slat support only) on EXACTLY 2 legs + head/foot end blocks. ----
+  window.__BF_DRAWER_STRUCTURE = {
+    sourceRef: has(/Dawna\/Donna PDF ledge/) && !!(SPEC.base.drawerStructure),
+    // side-frame ledges (distinguish the ACTUAL ledge from the module end-blocks that merely reference "lands on the ... ledge")
+    sideFrameLedges: cnt(/side-frame internal ledge \(Dawna\/Donna PDF ledge/) === 2,
+    // 3 drawer-pair modules — counted from REAL open-ladder members (2 glide boards + 2 rungs per side per module = 8),
+    // not a void identity marker (the 2026-07-04 mechanics pass deleted the void markers/windows as label-only structure)
+    drawerPairModules: [1, 2, 3].every(n => cnt(new RegExp('drawer-pair structure MODULE ' + n + '/3')) >= 8),
+    // 4 boundary stiles per side (the base side face-frame verticals) = 8 total
+    boundaryStiles: cnt(/side face-frame vertical stile/) === 8,
+    // hidden 2-in inside strips behind the 4-in stiles (4/side = 8)
+    insideStrips: cnt(/inside strip \(2 in/) === 8,
+    // side-to-side glide boards at the drawer-row BOUNDARIES (head+foot per module per side = 12), slide faces flush
+    // with the face-frame opening edges, landing on the 2-in inside strips (not floating, not through drawer centers)
+    glideBoardLandings: cnt(/transverse CROSS-RAIL/) === 6 && has(/spanning the FULL bed width/),   // (plan 19) 6 CONTINUOUS FULL-WIDTH transverse cross-rails spanning ledge-to-ledge (was 12 half-boards stopping at the center chase)
+    // cabinet-side slides mount to the named module glide boards (never floating)
+    slidesMountedToStructure: cnt(/slide rail \(cabinet; mounted to the drawer-pair module glide board\)/) >= 6,
+    // module-to-side-frame connector bolts
+    moduleConnectorBolts: cnt(/module-to-side-frame CONNECTOR BOLT/) >= 3,
+    // one-side-per-window PDF rule encoded in labels
+    oneSidePerWindowRule: has(/only one side of the structure in each window is connected/i),
+    // separate connector systems: module bolts vs ±36 head-to-base tie bolts vs side-frame/corner bolts
+    separateConnectorSystems: has(/module-to-side-frame CONNECTOR BOLT/) && has(/a SEPARATE bolt family/i) && has(/bed-base side bolt head aligned x=36/),
+    // drawer structures read as open ladder frames: real under-drawer rungs join the boundary boards; the window
+    // between the boards IS the drawer bay, kept mechanically empty (proven by __BF_DRAWER_MECHANICS, not a void box)
+    openLadderFrame: cnt(/bottom ladder rung/) >= 12 && has(/open-ladder/),
+    // plan-18 reference faithfulness: the glide boards are SHORT slide-height rails (not full-height panels) and each
+    // module's outboard ends REST on the side-frame ledge via vertical END POSTS (Dawna/Donna pg19) — 12 end posts
+    // (head+foot per module per side). This is the c7bc83d "stacked cabinet panels" -> "open ladder" visual fix.
+    openLadderEndPostsOnLedge: cnt(/END POST .*RESTS on the side-frame internal ledge/) === 12 && has(/cross-rail at slide height/),
+    // stationary drawer-bay top/security cover — present, stationary, NOT a moving drawer top
+    securityTopPresent: cnt(/stationary drawer-bay TOP \/ security cover/) === 2 && has(/rests on the 2-in inside-strip tops \+ bay back-wall top/),
+    securityTopStationary: has(/stationary drawer-bay TOP \/ security cover.*fixed to the base/i) && cnt(/drawer .*TOP \(5th surface/) === 0,
+    securityTopNotMovingDrawerTop: cnt(/drawer .*TOP \(5th surface/) === 0,
+    // no free/recessed toe-kick void under the drawers
+    noToeKickPreserved: !has(/toe plinth/) && SPEC.base.toeH === 0 && SPEC.base.toeInset === 0,
+    // center beam: slat/mattress support only, narrow form, exactly 2 legs at the two between-drawer gaps, + end blocks
+    centerBeamSlatOnly: has(/mattress-support CENTER BEAM.*slat\/mattress support ONLY/i) && !has(/moment-arm beam/i),
+    centerBeamNarrowForm: has(/mattress-support CENTER BEAM.*narrow under-slat/i) && !has(/3 x 17 x 85/) && (SPEC.base.centerBeam.beamTh <= 1.0),
+    centerBeamTwoLegsOnly: cnt(/center-beam intermediate floor LEG/) === 2,
+    centerBeamLegDropZones: has(/intermediate floor LEG.*between drawer 1\/2/) && has(/intermediate floor LEG.*between drawer 2\/3/),
+    centerBeamEndSupportBlocks: cnt(/center-beam .*end support block/i) === 2,
+    // finished exterior stays clean: drawer faces overlap the 4-in verticals with a thin reveal
+    finishedExteriorClean: SPEC.drawer.faceOverlap === true && cnt(/drawer face .*OVERLAPS the 4-in verticals/) === 6,
+    // central wiring/beam chase preserved (legs + cabling pass the center slot without blocking it)
+    centralSlotPreserved: has(/UNDER-BASE cable crossing/) && cnt(/drawer-bay BACK wall/) >= 2 && has(/center slot open for the beam legs/),   // (plan 19) the cross-rails cross the center at drawer height, but the LOW chase (cables, y~3) + the between-rail leg gaps stay open
+    note: 'Lee drawer-base translation (2026-07-04, plan 17): Dawna/Donna reference construction method in HB-RISO-02 — side-frame ledges + 4 boundary stiles/side + hidden 2-in inside strips + 3 open-ladder drawer-pair modules + side-to-side glide boards landing on the strips + module-to-side-frame connector bolts (one side per window; a separate bolt family) + a stationary drawer-bay top/security cover (not a moving drawer lid) + a narrow under-slat center beam (slat support only) on EXACTLY 2 legs + head/foot end blocks. Fails if the model regresses to generic divider walls, a moving drawer security top, a full-height 3-leg center slab, or a missing ledge/strip/module/glide/connector/cover.'
+  };
+  window.__BF_DRAWER_STRUCTURE.pass =
+       window.__BF_DRAWER_STRUCTURE.sourceRef && window.__BF_DRAWER_STRUCTURE.sideFrameLedges
+    && window.__BF_DRAWER_STRUCTURE.drawerPairModules && window.__BF_DRAWER_STRUCTURE.boundaryStiles
+    && window.__BF_DRAWER_STRUCTURE.insideStrips && window.__BF_DRAWER_STRUCTURE.glideBoardLandings
+    && window.__BF_DRAWER_STRUCTURE.slidesMountedToStructure && window.__BF_DRAWER_STRUCTURE.moduleConnectorBolts
+    && window.__BF_DRAWER_STRUCTURE.oneSidePerWindowRule && window.__BF_DRAWER_STRUCTURE.separateConnectorSystems
+    && window.__BF_DRAWER_STRUCTURE.openLadderFrame && window.__BF_DRAWER_STRUCTURE.openLadderEndPostsOnLedge && window.__BF_DRAWER_STRUCTURE.securityTopPresent
+    && window.__BF_DRAWER_STRUCTURE.securityTopStationary && window.__BF_DRAWER_STRUCTURE.securityTopNotMovingDrawerTop
+    && window.__BF_DRAWER_STRUCTURE.noToeKickPreserved && window.__BF_DRAWER_STRUCTURE.centerBeamSlatOnly
+    && window.__BF_DRAWER_STRUCTURE.centerBeamNarrowForm && window.__BF_DRAWER_STRUCTURE.centerBeamTwoLegsOnly
+    && window.__BF_DRAWER_STRUCTURE.centerBeamLegDropZones && window.__BF_DRAWER_STRUCTURE.centerBeamEndSupportBlocks
+    && window.__BF_DRAWER_STRUCTURE.finishedExteriorClean && window.__BF_DRAWER_STRUCTURE.centralSlotPreserved;
+  // ---- MECHANICAL drawer-clearance gate (2026-07-04): real AABB collision + swept-travel math measured from the BUILT
+  //      scene, mirroring tools/bf-drawer-mechanics-check.js (the CLI gate over the geometry export). The first Lee
+  //      drawer-base pass turned every name/count check above green while its module rails ran straight THROUGH the six
+  //      drawer boxes — this gate makes that class of model impossible: it fails on ANY static-vs-moving intersection
+  //      (closed or along the full drawer travel), any rail through a drawer-row center, lost security-cover clearance,
+  //      or a mis-zoned center-beam leg — regardless of what the parts are named. ----
+  (function () {
+    const EPS = 0.005, MIN_COVER_CLEAR = 0.375;
+    const mechFails = [], samplePairs = [];
+    const isMesh = o => o.isMesh === true;
+    const boxOf = o => new THREE.Box3().setFromObject(o);
+    const dgSet = new Set(drawerGroups.map(d => d.g));
+    const statics = [];
+    groups.bedBase.children.forEach(o => { if (!dgSet.has(o) && isMesh(o) && o.material !== mats.void && o.material !== mats.access) statics.push(o); });
+    groups.slats.children.forEach(o => { if (isMesh(o)) statics.push(o); });
+    const staticBox = new Map(statics.map(o => [o, boxOf(o)]));
+    const ov = (a, b) => {
+      const dx = Math.min(a.max.x, b.max.x) - Math.max(a.min.x, b.min.x);
+      const dy = Math.min(a.max.y, b.max.y) - Math.max(a.min.y, b.min.y);
+      const dz = Math.min(a.max.z, b.max.z) - Math.max(a.min.z, b.min.z);
+      return (dx > EPS && dy > EPS && dz > EPS) ? { dx, dy, dz } : null;
+    };
+    const isCabSlide = o => /full-extension slide rail \(cabinet/.test(o.name || '');
+    const isDrwSlide = o => /full-extension slide \(drawer\)/.test(o.name || '');
+    let closedCollisions = 0, sweptCollisions = 0, centerRailHits = 0;
+    const drawerData = drawerGroups.map(d => {
+      const meshes = []; d.g.traverse(o => { if (isMesh(o)) meshes.push(o); });
+      const body = new THREE.Box3();
+      meshes.forEach(o => { if (/drawer (left|right) \d+ (floor|inner wall|front wall|side wall)/.test(o.name || '')) body.union(boxOf(o)); });
+      return { d, meshes, body: body.isEmpty() ? null : body };
+    });
+    drawerData.forEach(({ d, meshes, body }) => {
+      if (!body) { mechFails.push('a drawer group is missing its floor/walls'); return; }
+      const bodyCz = (body.min.z + body.max.z) / 2, bodySz = body.max.z - body.min.z;
+      meshes.forEach(m => {
+        const mb = boxOf(m);
+        const sw = mb.clone(); if (d.dir > 0) sw.max.x += d.ext; else sw.min.x -= d.ext;
+        statics.forEach(s => {
+          if (isCabSlide(s) && isDrwSlide(m)) return;               // the one permitted contact: nested slide pair
+          const sb = staticBox.get(s);
+          const c = ov(sb, mb);
+          if (c) {
+            closedCollisions += 1;
+            const zc = (sb.min.z + sb.max.z) / 2;
+            if (Math.abs(zc - bodyCz) < 0.3 * bodySz && ov(sb, body)) centerRailHits += 1;
+            if (samplePairs.length < 12) samplePairs.push('CLOSED "' + (s.name || '?').slice(0, 58) + '" x "' + (m.name || '?').slice(0, 58) + '" ov ' + [c.dx, c.dy, c.dz].map(v => v.toFixed(3)).join('/'));
+          } else if (ov(sb, sw)) {
+            sweptCollisions += 1;
+            if (samplePairs.length < 12) samplePairs.push('SWEPT "' + (s.name || '?').slice(0, 58) + '" blocks "' + (m.name || '?').slice(0, 58) + '"');
+          }
+        });
+      });
+    });
+    if (closedCollisions) mechFails.push(closedCollisions + ' static-vs-moving CLOSED collision(s) — static structure inside a drawer volume');
+    if (sweptCollisions) mechFails.push(sweptCollisions + ' static-vs-moving swept-TRAVEL collision(s) — a drawer cannot open');
+    if (centerRailHits) mechFails.push(centerRailHits + ' static rail(s) through a drawer-row CENTER (the 2026-07-04 regression shape)');
+    // stationary security cover: >= 3/8 in over every same-side drawer body, below the slat underside
+    const covers = statics.filter(s => /stationary drawer-bay TOP \/ security cover/.test(s.name || ''));
+    if (covers.length !== 2) mechFails.push(covers.length + ' stationary security cover(s) (expected 2)');
+    let slatMinY = Infinity; groups.slats.children.forEach(o => { if (isMesh(o) && /removable slat/.test(o.name || '')) slatMinY = Math.min(slatMinY, boxOf(o).min.y); });
+    let coverClear = Infinity;
+    covers.forEach(cv => {
+      const cb = staticBox.get(cv);
+      drawerData.forEach(({ body }) => {
+        if (!body) return;
+        if (((cb.min.x + cb.max.x) / 2 < 0) !== ((body.min.x + body.max.x) / 2 < 0)) return;
+        coverClear = Math.min(coverClear, cb.min.y - body.max.y);
+      });
+      if (isFinite(slatMinY) && cb.max.y > slatMinY - EPS) mechFails.push('the security cover top is not below the slat underside');
+    });
+    if (covers.length && coverClear < MIN_COVER_CLEAR - 1e-6) mechFails.push('security cover clears the drawer walls by ' + coverClear.toFixed(3) + ' in (< ' + MIN_COVER_CLEAR + ')');
+    // exactly 2 intermediate center-beam legs, each inside a between-drawer-row gap
+    const legs = statics.filter(s => /center-beam intermediate floor LEG/.test(s.name || ''));
+    if (legs.length !== 2) mechFails.push(legs.length + ' intermediate center-beam leg(s) (expected exactly 2)');
+    const leftRows = drawerData.filter(x => x.body && (x.body.min.x + x.body.max.x) / 2 < 0).map(x => x.body).sort((a, b) => a.min.z - b.min.z);
+    if (legs.length === 2 && leftRows.length === 3) {
+      const legZoneOk = legs.every(l => { const lb = staticBox.get(l); return leftRows.some((r, i) => i + 1 < leftRows.length && lb.min.z > r.max.z + EPS && lb.max.z < leftRows[i + 1].min.z - EPS); });
+      if (!legZoneOk) mechFails.push('a center-beam leg is not inside a between-drawer-row gap');
+    }
+    if (drawerGroups.length !== 6) mechFails.push(drawerGroups.length + ' drawer groups (expected 6)');
+    if (_names.some(n => /drawer (left|right) \d+ TOP\b/.test(n))) mechFails.push('a moving drawer fifth-side TOP exists (security must be the stationary bay cover)');
+    window.__BF_DRAWER_MECHANICS = {
+      pass: mechFails.length === 0,
+      closedCollisions, sweptCollisions, centerRailHits,
+      coverClearanceIn: isFinite(coverClear) ? +coverClear.toFixed(3) : null, minCoverClearanceIn: MIN_COVER_CLEAR,
+      drawers: drawerGroups.length, covers: covers.length, legs: legs.length,
+      staticsChecked: statics.length,
+      mechFails, samplePairs,
+      note: 'MECHANICAL drawer gate measured from the built scene (real AABBs): closed drawer volumes clear, full swept travel clear, no rail through a drawer-row center, stationary cover >= 3/8 in over the drawer walls + below the slats, exactly 2 center-beam legs in the between-row gaps, no moving drawer top. Mirrors tools/bf-drawer-mechanics-check.js.'
+    };
+  })();
+  // ---- Lee bed-base REFERENCE-FAITHFULNESS gate (plan 18) — proves the base topologically/VISUALLY reads like the
+  //      Dawna/Donna reference construction (pages 18-22), measured from the built scene (AABBs + relationships), NOT
+  //      vocabulary. This is the gate __BF_DRAWER_STRUCTURE (names) and __BF_DRAWER_MECHANICS (clearance) could not
+  //      be: it fails the c7bc83d "stacked cabinet panels" read. Mirrors tools/bf-lee-base-reference-check.js. ----
+  (function () {
+    const bb = o => new THREE.Box3().setFromObject(o);
+    const baseMeshes = []; groups.bedBase.traverse(o => { if (o.isMesh && o.name) baseMeshes.push(o); });
+    const dgSet = new Set(); drawerGroups.forEach(d => d.g.traverse(o => dgSet.add(o)));
+    const stat = baseMeshes.filter(o => !dgSet.has(o) && o.material !== mats.void && o.material !== mats.access);
+    const byRe = re => stat.filter(o => re.test(o.name)).map(o => ({ o, b: bb(o) }));
+    const cx = b => (b.min.x + b.max.x) / 2, ovx = (a, c) => Math.min(a.max.x, c.max.x) - Math.max(a.min.x, c.min.x), ovz = (a, c) => Math.min(a.max.z, c.max.z) - Math.max(a.min.z, c.min.z);
+    const F = [];
+    // side frames grounded (2 flush bottom rails to the floor at the outer plane)
+    const rails = byRe(/side face-frame BOTTOM rail/);
+    if (!(rails.length === 2 && rails.every(r => r.b.min.y < 0.02 && Math.max(Math.abs(r.b.min.x), Math.abs(r.b.max.x)) > 36.99))) F.push('side frames not grounded');
+    // ledges inside the side frames + their top y (per side) — tight regex: only the 2 real ledges, not the
+    // 12 end posts / 12 glide rails whose labels merely REFERENCE the ledge
+    const ledges = byRe(/side-frame internal ledge \(Dawna\/Donna PDF ledge/);
+    if (!(ledges.length === 2 && ledges.every(l => Math.max(Math.abs(l.b.min.x), Math.abs(l.b.max.x)) < 36.5))) F.push('ledges missing / not inside the side frames');
+    const ledgeTop = s => ledges.filter(l => (cx(l.b) < 0) === (s < 0)).reduce((m, l) => Math.max(m, l.b.max.y), -Infinity);
+    // 4 boundary stiles/side + 2-in strips inboard of them
+    if (byRe(/side face-frame vertical stile/).length !== 8) F.push('expected 8 boundary stiles (4/side)');
+    if (byRe(/inside strip \(2 in/).length !== 8) F.push('expected 8 hidden 2-in inside strips');
+    // KEY visual fix: glide rails are SHORT open-ladder rails (<6 in tall) crossing the 11.6 slide line, NOT full-height panels
+    const glides = byRe(/transverse CROSS-RAIL/);
+    const glideOpenLadder = glides.length === 6 && glides.every(g => (g.b.max.y - g.b.min.y) < 6.0 && g.b.min.y < 11.6 && g.b.max.y > 11.6);
+    if (!glideOpenLadder) F.push(glides.length + ' transverse cross-rails — each must be a SHORT (<6 in) open-ladder rail crossing y=11.6 (regression to full-height panels)');
+    // (plan 19) KEY: each drawer-support rail is ONE CONTINUOUS FULL-WIDTH board — it crosses x=0 and reaches past +-30 to
+    //   BOTH side-frame ledges (the reference "long piece crossing left-to-right", pg18-23). Split half-boards that stop at
+    //   the center chase FAIL. This is exactly the class the pre-plan-19 gates (which counted 12 half-boards) were blind to.
+    const crossRailsFullWidth = glides.length === 6 && glides.every(g => (g.b.max.x - g.b.min.x) >= 60 && g.b.min.x < -30 && g.b.max.x > 30);
+    if (!crossRailsFullWidth) F.push('drawer-support rails do not span the FULL bed width (>=60 in, crossing x=0, reaching both side-frame ledges) — split half-boards that dead-end at the center chase');
+    // KEY relationship: 12 module END POSTS rest on the side-frame ledge (bottom contacts the ledge top)
+    const posts = byRe(/END POST .*RESTS on the side-frame internal ledge/);
+    const postsOnLedge = posts.length === 12 && posts.every(p => { const t = ledgeTop(cx(p.b)); return isFinite(t) && Math.abs(p.b.min.y - t) < 0.4; });
+    if (!postsOnLedge) F.push('module end posts do not rest on the ledge (need 12; bottom on the ledge top)');
+    // cabinet slides are adjacent to a real glide rail (not floating): each within 0.7 in z of a glide, x-overlapping
+    const cabSlides = byRe(/full-extension slide rail \(cabinet/);
+    const slidesOnBoards = cabSlides.length >= 6 && cabSlides.every(s => glides.some(g => Math.abs((g.b.min.z + g.b.max.z) / 2 - (s.b.min.z + s.b.max.z) / 2) < 0.7 && ovx(s.b, g.b) > 1));
+    if (!slidesOnBoards) F.push('cabinet slides not mounted to (adjacent to) a real glide rail');
+    // one-side-per-window connector bolts: each of the 3 module rows has bolt(s) on exactly ONE side
+    const rowSign = {};
+    byRe(/module-to-side-frame CONNECTOR BOLT (head|middle|foot) row/).forEach(p => { const m = p.o.name.match(/CONNECTOR BOLT (head|middle|foot) row/); const s = Math.sign(cx(p.b)); rowSign[m[1]] = (rowSign[m[1]] === undefined) ? s : (rowSign[m[1]] === s ? s : 0); });
+    const oneSidePerWindow = ['head', 'middle', 'foot'].every(r => rowSign[r] === -1 || rowSign[r] === 1);
+    if (!oneSidePerWindow) F.push('connector bolts violate one-side-per-window (a row has bolts on both sides or none)');
+    // separate bolt families: module bolts vs the +-36 head/base tie bolts live at distinct x
+    if (!(byRe(/module-to-side-frame CONNECTOR BOLT/).length >= 3 && baseMeshes.some(o => /bed-base side bolt head aligned x=36/.test(o.name || '')))) F.push('module vs side/tie bolt families not both present/separate');
+    // center beam: narrow + under-slat + exactly 2 legs in the between-drawer gaps + no 3rd leg
+    const beam = byRe(/mattress-support CENTER BEAM/)[0];
+    const legs = byRe(/center-beam intermediate floor LEG/);
+    if (!(beam && (beam.b.max.x - beam.b.min.x) <= 3.0)) F.push('center beam missing or not narrow (<=3 in wide)');
+    if (legs.length !== 2) F.push(legs.length + ' center-beam legs (expected exactly 2 — no 3rd leg)');
+    // stationary security cover: exactly 2, NOT part of any moving drawer group
+    const covers = byRe(/stationary drawer-bay TOP \/ security cover/);
+    if (covers.length !== 2) F.push(covers.length + ' stationary security covers (expected 2)');
+    if (_names.some(n => /drawer (left|right) \d+ TOP\b/.test(n))) F.push('a moving drawer top exists (security must be the stationary cover)');
+    // finished exterior stays clean: 6 faces overlap the 4-in verticals
+    if (!(SPEC.drawer.faceOverlap === true && cnt(/drawer face .*OVERLAPS the 4-in verticals/) === 6)) F.push('finished exterior not clean (6 overlapping faces)');
+    // no toe kick
+    if (SPEC.base.toeH !== 0 || SPEC.base.toeInset !== 0 || has(/toe plinth/)) F.push('toe kick / under-drawer void reintroduced');
+    // the auditable inspection view exists (button + API + advertised mode)
+    const inspectionModePresent = (window.__BF_VIEW_MODES && window.__BF_VIEW_MODES.leeBaseInspection === true) && !!document.getElementById('leeBaseView');
+    if (!inspectionModePresent) F.push('Lee Base Construction inspection view is missing');
+    window.__BF_LEE_BASE_REFERENCE = {
+      pass: F.length === 0,
+      sideFramesGrounded: rails.length === 2, ledgesInsideFrame: ledges.length === 2,
+      glideRailsOpenLadder: glideOpenLadder, transverseCrossRailsFullWidth: crossRailsFullWidth, endPostsRestOnLedge: postsOnLedge, slidesOnRealBoards: slidesOnBoards,
+      oneSidePerWindow, twoLegsInGaps: legs.length === 2, narrowUnderSlatBeam: !!(beam && (beam.b.max.x - beam.b.min.x) <= 3.0),
+      stationaryCover: covers.length === 2, cleanExterior: cnt(/drawer face .*OVERLAPS the 4-in verticals/) === 6,
+      inspectionModePresent, glideRailCount: glides.length, endPostCount: posts.length, fails: F,
+      note: 'Lee bed-base reference-faithfulness (plan 18) measured from the built scene: side frames grounded; ledges inside the frame with module END POSTS resting on the ledge top; SHORT open-ladder glide rails (not full-height cabinet panels — the c7bc83d fix) crossing the slide line; slides adjacent to real boards; one-side-per-window connector bolts; separate bolt families; narrow under-slat beam with exactly 2 legs in the gaps; stationary (not moving) cover; clean overlapping-face exterior; no toe kick; the Lee Base Construction inspection view present. Mirrors tools/bf-lee-base-reference-check.js.'
+    };
+  })();
+  // ---- Lee-call Phase 4 (D0-2): VENTILATED plywood rear back (sealed-but-vented + serviceable) — supersedes the old open-rear mandate (D-052/054/060). ----
+  (function () {
+    const R = window.__BF_HB_REAR_META || {};
+    const d = {
+      rearPlywoodExists: cnt(/rear plywood back panel/) >= 3 && R.plywoodBack === true,
+      ventIntakeExists: cnt(/bottom intake vent hole/) >= 1 && (R.bottomIntakeHoles || 0) >= 1,
+      ventExhaustExists: (cnt(/top exhaust vent hole/) >= 1 && (R.topExhaustHoles || 0) >= 1) && has(/LED-channel mount gap \(TOP exhaust/) && R.ledSlotExhaustGap === true,
+      removableAccessPanelExists: has(/rear plywood REMOVABLE lower service access panel/) && R.removableAccessPanel === true && R.accessPanelHeightIn === 30,
+      twoPieceCenterBack: R.twoPieceCenterBack === true,
+      rearElectronicsMountZone: has(/rear electronics mount zone/) && R.rearElectronicsMountZone === true,
+      baseboardNotch: cnt(/baseboard notch/) === 2 && R.baseboardNotch === true,
+      // negative guards: NOT a continuous sealed unventilated back; NO wall cleat / wall attachment (freestanding).
+      notSealedUnventilated: R.sealedUnventilated === false && R.ventilated === true && !has(/sealed unventilated (rear|back)/i),
+      freestandingNoWallCleat: R.freestandingNoWallCleat === true && !has(/wall cleat|wall bracket|wall-mount cleat|wall attachment (bracket|cleat)/i),
+      note: 'Lee-call Phase 4 (D0-2): mostly-full ventilated plywood back — bottom cool-air intake + top hot-air exhaust (drilled circles + the LED-channel mount gap), removable ~30 in lower center service panel, rear electronics zone, baseboard notch for wall fit; freestanding (no wall cleat). Supersedes the open-rear-only mandate (D-052/054/060).'
+    };
+    d.pass = d.rearPlywoodExists && d.ventIntakeExists && d.ventExhaustExists && d.removableAccessPanelExists
+      && d.twoPieceCenterBack && d.rearElectronicsMountZone && d.baseboardNotch && d.notSealedUnventilated && d.freestandingNoWallCleat;
+    window.__BF_REAR = d;
+  })();
+  window.__BF_EDGE_STILES = { pass: has(/left side stile/) && has(/right side stile/), note: '2 full-depth 2x68x8 side stiles at x +-64' };
+  window.__BF_HEADBOARD_PHYSICAL_FRAME = { pass: cnt(/HB-MUL-[LR] hollow built-up mullion FACE board/) === 2 && has(/top cap segment/) && cnt(/bottom cap rail/) >= 3 && has(/side stile/), mullions: cnt(/HB-MUL-[LR] hollow built-up mullion FACE board/), bottomRails: cnt(/bottom cap rail/), note: '2 hollow built-up mullions (face board + 2 webs) + 3 butted top-cap segments + 3 per-box built-up L bottom rails + 2 built-up L side stiles (NO lower receiver ladder — retired 2026-07-04)' };
+  // ── Lee-call HEADBOARD ENGINEERING gate (2026-07-04): the retired lower-receiver ladder / ±4 internal-receiver /
+  //    F-BB-BC-CD drawdown / nightstand-receiver-rail + ash-diagonal / F-CN-NS(CN-SQ) construction is GONE, and the
+  //    Lee-supported final members are present. Measured from the built scene + the Phase metadata globals + the
+  //    fastener registry. The authoritative FILE-level gate is `npm run bf:headboard-check` (also run by bf:verify);
+  //    this runtime validator is the in-model mirror so bf:model-check fails closed if the stale class ever returns.
+  {
+    const _HBM = window.__BF_HB_MODULES_META || {}, _TCm = window.__BF_HB_TOPCAP_META || {}, _Rm = window.__BF_HB_REAR_META || {};
+    const _fid = re => fastenerAssemblies.some(f => re.test(f.id || ''));
+    const _nsIns = fastenerAssemblies.filter(f => f.type === 'NS-INS').length;
+    const _hud = ((document.getElementById('hudPanel') || {}).textContent || '') + ' ' + ((document.getElementById('legendPanel') || {}).textContent || '');
+    const e = {
+      // NEGATIVE — retired lower-receiver / ±4 / drawdown / nightstand-receiver / CN-SQ geometry + IDs are GONE
+      noLowerReceiverLadder: !has(/lower receiver/) && !has(/receiver ladder/),
+      noPlusMinus4InternalReceiverBlocks: !has(/lower-only center spine receiver/) && !has(/center spine receiver block/),
+      noFbbBcCdDrawdowns: !_fid(/^F-BB-BC-CD/) && !has(/F-BB-BC-CD/),
+      noNightstandReceiverRails: !has(/nightstand upper receiver/) && !has(/nightstand lower receiver/),
+      noNightstandDiagonalReceivers: !has(/nightstand ash diagonal/),
+      noFcnNsIds: !_fid(/^F-CN-NS/) && !has(/F-CN-NS/),
+      // POSITIVE — Lee-supported final construction is present
+      steelInsertNightstandMount: _nsIns >= 16 && cnt(/steel threaded insert in skin back/) >= 16,
+      baseTieOnlyAt36: JSON.stringify(FB.baseBoltLines) === JSON.stringify([-36, 36]),
+      ventilatedRearPlywood: _Rm.plywoodBack === true && _Rm.ventilated === true && has(/rear plywood back panel/),
+      freestandingNoWallCleat: _Rm.freestandingNoWallCleat === true && !has(/wall cleat/),
+      threeHeadboardModules: _HBM.count === 3,
+      centerOwnsBothMullions: _HBM.centerOwnsMullions === true,
+      perBoxBottomMember: cnt(/bottom cap rail/) >= 3,
+      segmentedTopCap: _TCm.segmentCount === 3 && _TCm.onePiece === false,
+      fieldSkinsRecessedDirect: window.__BF_SKIN_FIELD ? window.__BF_SKIN_FIELD.hbRetRetired === true : true,
+      // NEGATIVE COPY — HUD + legend text (the file-level bf:headboard-check is the authoritative copy gate)
+      noOnePieceCapCopy: !/one[- ]piece cap/i.test(_hud),
+      noReceiverLadderCopy: !/receiver ladder/i.test(_hud),
+      noNightstandReceiverRailCopy: !/nightstand receiver rail/i.test(_hud),
+      noCapturedSquareNutCopy: !/capt(ive|ured) square nut/i.test(_hud),
+    };
+    e.pass = Object.keys(e).every(k => e[k] === true);
+    e.note = 'Lee-call headboard engineering: retired lower-receiver ladder / ±4 receiver blocks / F-BB-BC-CD drawdowns / nightstand receiver rails + ash diagonal / F-CN-NS IDs are GONE; nightstand mounts on 8 steel threaded inserts/side in the skin back (NS-INS); ±36-only base tie; ventilated plywood rear (freestanding, no wall cleat); 3 modules (center owns both mullions); 3 per-box bottom rails; 3-segment top cap. File-level gate: npm run bf:headboard-check.';
+    window.__BF_HEADBOARD_ENGINEERING = e;
+  }
+  // ---- Lee-call Phase 2: BUILT-UP L-section frame members + HOLLOW built-up mullions (measured from the scene) ----
+  const _hbFrameMeta = window.__BF_HB_FRAME_META || {}, _hbMulMeta = window.__BF_HB_MULLION_META || {};
+  window.__BF_BUILT_UP_FRAME = {
+    builtUpLShowFaces: cnt(/built-up L show-FACE board/),                    // 5 (2 side stiles + 3 per-module bottom rails)
+    builtUpLReturnWebs: cnt(/built-up L return web/),                        // 5
+    frameFaceThickness: _hbFrameMeta.faceBoardThickness,                     // 0.875
+    frameReturnWebDepth: _hbFrameMeta.returnWebDepth,                        // 7.125
+    mullionFaceBoards: cnt(/hollow built-up mullion FACE board/),            // 2
+    mullionWebs: cnt(/hollow built-up mullion WEB/),                         // 4 (2 per mullion)
+    mullionConstruction: _hbMulMeta.construction,                           // 'hollow built-up'
+    mullionChaseClearance: _hbMulMeta.chaseClearance,                       // 2.25
+    mullionChaseClearsMin: _hbMulMeta.chaseClearsMin === true,             // clear chase > 2 in
+    switchPocketFitsChase: _hbMulMeta.switchPocketFitsChase === true,
+    noOnePieceExtrudedMullion: !has(/mullion one-piece/) && !has(/single extruded W-profile/),
+    noHbRetGeometry: !has(/HB-RET|retainer lip|skin retainer/i) && noActiveHbRetFasteners,
+    note: 'built-up L-section stiles+rails (5 show faces + 5 return webs, 7/8 face + 7.125 web) + 2 hollow built-up mullions (2 face boards + 4 webs, 2.25 in clear chase); no one-piece extruded mullion; no HB-RET geometry'
+  };
+  window.__BF_BUILT_UP_FRAME.pass =
+       window.__BF_BUILT_UP_FRAME.builtUpLShowFaces === 5
+    && window.__BF_BUILT_UP_FRAME.builtUpLReturnWebs === 5
+    && window.__BF_BUILT_UP_FRAME.mullionFaceBoards === 2
+    && window.__BF_BUILT_UP_FRAME.mullionWebs === 4
+    && _hbMulMeta.construction === 'hollow built-up'
+    && window.__BF_BUILT_UP_FRAME.mullionChaseClearsMin === true
+    && window.__BF_BUILT_UP_FRAME.switchPocketFitsChase === true
+    && window.__BF_BUILT_UP_FRAME.noOnePieceExtrudedMullion === true
+    && window.__BF_BUILT_UP_FRAME.noHbRetGeometry === true;
+  // ---- Lee-call Phase 1 (2026-07-03): headboard = THREE bolt-together finished boxes (HB-MOD-L / HB-MOD-C / HB-MOD-R) ----
+  const _HBM = window.__BF_HB_MODULES_META || {};
+  window.__BF_HEADBOARD_MODULES = {
+    headboardModuleCount: _HBM.count,
+    moduleSeams: _HBM.seams,
+    centerModuleOwnsMullions: _HBM.centerOwnsMullions === true,
+    sideModulesButtToCenterAtMullions: _HBM.sideModulesButtAtMullionFace === true,
+    noCenterSplit: Array.isArray(_HBM.seams) && _HBM.seams.indexOf(0) === -1 && cnt(/HB-MOD-C bottom cap rail/) === 1,
+    connectorBlocks: cnt(/HB-MOD-JOINT-.*ash connector block/),
+    connectorBolts: cnt(/HB-MOD-JOINT-.*connector bolt shaft/),
+    steelThreadedInserts: cnt(/HB-MOD-JOINT-.*steel threaded insert/),
+    moduleConnectorAssemblies: _HBM.connectorAssemblies,
+    boundarySeamPlanes: cnt(/HB-MOD boundary seam plane/),
+    perModuleBottomRails: cnt(/HB-MOD-[LCR] bottom cap rail/),
+    overallWidthResult: _HBM.overallWidthResult,
+    note: '3 finished bolt-together boxes split at ±36 (center owns both mullions); side boxes butt at the mullion faces = one clean 4-in line; 6 connector assemblies (3/seam); 130 in is the module-width RESULT. Built-up members (Phase 2) + 3 butted top-cap segments (Phase 3) IMPLEMENTED.'
+  };
+  window.__BF_HEADBOARD_MODULES.pass =
+       window.__BF_HEADBOARD_MODULES.headboardModuleCount === 3
+    && JSON.stringify(window.__BF_HEADBOARD_MODULES.moduleSeams) === JSON.stringify([-36, 36])
+    && window.__BF_HEADBOARD_MODULES.centerModuleOwnsMullions === true
+    && window.__BF_HEADBOARD_MODULES.sideModulesButtToCenterAtMullions === true
+    && window.__BF_HEADBOARD_MODULES.noCenterSplit === true
+    && window.__BF_HEADBOARD_MODULES.connectorBlocks === 6
+    && window.__BF_HEADBOARD_MODULES.connectorBolts === 6
+    && window.__BF_HEADBOARD_MODULES.steelThreadedInserts === 6
+    && window.__BF_HEADBOARD_MODULES.moduleConnectorAssemblies === 6
+    && window.__BF_HEADBOARD_MODULES.perModuleBottomRails === 3
+    && window.__BF_HEADBOARD_MODULES.boundarySeamPlanes === 2
+    && window.__BF_HEADBOARD_MODULES.overallWidthResult === 130;
+  // ---- Lee-call Phase 3 (D0-1, 2026-07-04): top cap = THREE butted per-box segments carrying ONE continuous drop-in LED run ----
+  const _TC = window.__BF_HB_TOPCAP_META || {};
+  window.__BF_TOPCAP = {
+    segmentCount: cnt(/top cap segment/),                                    // measured: exactly 3 butted segments
+    metaSegmentCount: _TC.segmentCount,
+    noOnePieceCap: !has(/top cap one[- ]piece/),                            // negative guard: the old one-piece cap is GONE
+    buttSeamPlanes: cnt(/crown segment butt-seam plane/),                   // 2 module-boundary butt seams (±38)
+    metaButtSeamsX: _TC.buttSeamsX,
+    centerSegmentSpansBothMullions: _TC.centerSegmentSpansBothMullions === true,
+    ledContinuousAcrossSeams: has(/continuous LED\/heatsink run across cap segment seams/) && _TC.ledContinuousAcrossSeams === true,
+    ledRunLength: _TC.ledRunLength,
+    ledChannelCount: _TC.ledChannelCount,
+    threeLandWReliefPreserved: _TC.threeLandWReliefPreserved === true && cnt(/routed through-slot in 8 in top cap/) === 2,
+    ledTopVentExhaustExtensions: cnt(/top-vent exhaust extension/),
+    ledChannelVentHoles: cnt(/bridged vent hole/),
+    coolingFanFailsafeConcept: cnt(/concept cooling fan/),
+    segmentWidths: _TC.segmentWidths,
+    overallWidthResult: _TC.overallWidthResult,
+    flangeRestsOnCapTop: _TC.flangeRestsOnCapTop === true && cnt(/flange rests ON cap top/i) >= 2,
+    note: '3 butted top-cap segments (27/76/27) at the ±38 module faces; center segment spans both ±36 mullions + carries the LED crown; ONE continuous 124-in drop-in LED/heatsink run crosses the two butt seams unbroken; top-vent exhaust extensions + ~9-in-center channel vents + 3 concept failsafe fans; 3-land W-relief preserved. NO one-piece cap.'
+  };
+  window.__BF_TOPCAP.pass =
+       window.__BF_TOPCAP.segmentCount === 3
+    && window.__BF_TOPCAP.metaSegmentCount === 3
+    && window.__BF_TOPCAP.noOnePieceCap === true
+    && window.__BF_TOPCAP.buttSeamPlanes === 2
+    && JSON.stringify(window.__BF_TOPCAP.metaButtSeamsX) === JSON.stringify([-38, 38])
+    && window.__BF_TOPCAP.centerSegmentSpansBothMullions === true
+    && window.__BF_TOPCAP.ledContinuousAcrossSeams === true
+    && window.__BF_TOPCAP.ledRunLength === 124
+    && window.__BF_TOPCAP.ledChannelCount === 2
+    && window.__BF_TOPCAP.threeLandWReliefPreserved === true
+    && window.__BF_TOPCAP.ledTopVentExhaustExtensions >= 2
+    && window.__BF_TOPCAP.ledChannelVentHoles >= 8
+    && window.__BF_TOPCAP.coolingFanFailsafeConcept >= 2
+    && window.__BF_TOPCAP.flangeRestsOnCapTop === true
+    && JSON.stringify(window.__BF_TOPCAP.segmentWidths) === JSON.stringify([27, 76, 27])
+    && window.__BF_TOPCAP.overallWidthResult === 130;
+  window.__BF_CONTINUOUS_SIDE_CHORDS = { pass: cnt(/side face-frame TOP rail/) === 2 && cnt(/side face-frame BOTTOM rail/) === 2, topRails: cnt(/side face-frame TOP rail/), bottomRails: cnt(/side face-frame BOTTOM rail/), sideChordCount: FT.sideChordCount, note: 'Lee-call Phase 5: continuous L+R side FACE FRAMES (top rail + flush bottom rail + 4-in verticals), full base length; no toe kick' };
+  window.__BF_LENGTH_GATE = { pass: B.L === 85 && F.D === 16, base: B.L, footboard: F.D, headFrontToFootFront: B.L + F.D, fullOutsideLength: SPEC.D + B.L + F.D };
+  if (!IS_REGULAR_FOOTBOARD) {
+    // TV-cabinet-only gates — NOT defined in the regular-footboard config, so the generic model-check gate never
+    // sees a pass:false lift/cubby validator for geometry this config intentionally does not build.
+    window.__BF_FLAT_LIFT_DECK = { pass: has(/flat raised lift deck/) && S2.footboardProductionDetailPass !== false, ribs: cnt(/lift-deck rib/), note: 'flat 8 AFF deck on 2 full-height ribs over an empty cubby; whole stack retracts above; no scabbard' };
+    const _usable = F.D - F.faceTh - F.rearTh, _req = L.bodyD + SPEC.tv.D + SPEC.soundbar.D + 0.5;
+    window.__BF_FOOTBOARD_DEPTH_GATE = { pass: _usable >= _req, outerDepth: F.D, usableInterior: +_usable.toFixed(2), required: +_req.toFixed(2), margin: +(_usable - _req).toFixed(2) };
+    window.__BF_LIFT_POSITION_GATE = { pass: S2.liftDetailPass !== false && S2.soundbarMountPass !== false, note: 'lift + TV + soundbar + soundbar-mount all on the lift carriage (one shared front-to-back datum)' };
+    window.__BF_CUBBY_CABLE_PORTS = { pass: cnt(/cubby rear-edge ceiling U-notch/) === 4, ceilingPorts: cnt(/cubby rear-edge ceiling U-notch/), noRearWallCubbyHoles: FB.noRearCubbyWallHoles !== false, note: '4 rear-edge ceiling U-notches + 2 side pass-throughs; no rear-wall holes' };
+  } else {
+    // REGULAR-FOOTBOARD config: prove the REAL conventional footboard is present AND the TV cabinet / lift / dock
+    // is ABSENT. This replaces the six TV-cabinet gates in the canonical set for this model.
+    window.__BF_REGULAR_FOOTBOARD = {
+      regularFootboardPresent: cnt(/REGFB /) >= 5 && has(/REGFB top cap/) && has(/REGFB flush bottom rail/) && has(/REGFB recessed front skin panel/),
+      groundedCornerPosts: cnt(/REGFB (left|right) corner post/) === 2,
+      recessedFrontSkin: has(/REGFB recessed front skin panel/) && SPEC.footboard.regularFootboardVariant.H === 14,
+      noToeKick: has(/REGFB flush bottom rail \(grounded; NO toe kick/),
+      // negative guards: NONE of the TV cabinet / lift / TV / soundbar / dock mass is built in this model
+      // NOTE: buildBedBase has a base-wiring label "... -> cubby + lift", so use SPECIFIC TV-cabinet part names,
+      // not a bare /cubby/ or /lift/ word match.
+      noTvCabinet: !has(/TV-lift stationary outer body/) && !has(/FB-CAB/) && !has(/lift-deck rib/) && !has(/cubby (floor|ceiling|rear-edge)/i),
+      noTvLift: !has(/inner mast \(telescoping\)/) && !has(/floor base plate 9\.875/) && !has(/horizontal rail 28\.375/) && !has(/VESA/i),
+      noTvOrSoundbar: !has(/55 in TV ghost panel/) && !has(/soundbar/i),
+      noDockSeamHardware: !has(/ash connector block \(screw\+glue to cabinet/) && !has(/hidden bed-facing bolt shaft/),
+      dims: SPEC.footboard.regularFootboardVariant,
+      note: 'Full bed in the REGULAR-FOOTBOARD config: a real grounded frame-and-panel footboard (buildRegularFootboard: 2 corner posts + sit-on top cap + flush grounded bottom rail (no toe kick) + recessed front skin, ~74x14x16) and NO TV cabinet / TV-lift / TV / soundbar / dock seam.'
+    };
+    window.__BF_REGULAR_FOOTBOARD.pass = window.__BF_REGULAR_FOOTBOARD.regularFootboardPresent
+      && window.__BF_REGULAR_FOOTBOARD.groundedCornerPosts && window.__BF_REGULAR_FOOTBOARD.recessedFrontSkin
+      && window.__BF_REGULAR_FOOTBOARD.noToeKick && window.__BF_REGULAR_FOOTBOARD.noTvCabinet
+      && window.__BF_REGULAR_FOOTBOARD.noTvLift && window.__BF_REGULAR_FOOTBOARD.noTvOrSoundbar
+      && window.__BF_REGULAR_FOOTBOARD.noDockSeamHardware;
+  }
+  // ---- Lee-call Phase 10 (rpt 49-52): electrical / lighting routing — under-base crossing, rear-ply 120V exit, switch in the mullion chase, speaker/USB-C routes. ----
+  window.__BF_ELECTRICAL = {
+    underBaseCableRoute: has(/UNDER-BASE cable crossing/) && has(/centre base-to-headboard cable bore/) && has(/centre cable run foot-gap to head/),
+    noOverDrawerCrossing: !_names.some(n => /over[- ]drawer cable|cable over[- ]drawer|routes over the drawer/i.test(n)),
+    rearPly120VExit: has(/120V rear-ply cable EXIT hole to the wall/),
+    baseboardAltRoute: has(/taller-baseboard recess 120V route/),
+    switchPocketInMullionChase: has(/switch-panel pocket cut into mullion face \(fits BETWEEN the two hollow-mullion webs/) && (SPEC.mullionW - 2 * SPEC.mullionWebTh) > SPEC.switchPanel.W,
+    mullionChaseClearInches: +(SPEC.mullionW - 2 * SPEC.mullionWebTh).toFixed(3),
+    switchPocketWidthInches: SPEC.switchPanel.W,
+    speakerRoutePlausible: has(/12 AWG speaker cable route/) && has(/mullion cable bore \(speaker crossing\)/),
+    usbCNotOnNightstandTop: !_names.some(n => /(nightstand|NS-[LR]).*usb-?c/i.test(n)),   // USB-C on the headboard face (D-042), not nightstand tops
+    note: 'Lee-call Phase 10: base cable crossing routes UNDER the base along the center-beam chase (NOT over the drawers); the inside-cabinet 120V exits a rear-ply hole to the wall receptacle (+ a taller-baseboard recess alternate); the bedside switch pocket fits between the two hollow-mullion webs (2.25 in chase > 1.5 in pocket); the 12 AWG speaker route runs the center/base/mullion chase; USB-C stays on the headboard face.'
+  };
+  window.__BF_ELECTRICAL.pass = window.__BF_ELECTRICAL.underBaseCableRoute && window.__BF_ELECTRICAL.noOverDrawerCrossing
+    && window.__BF_ELECTRICAL.rearPly120VExit && window.__BF_ELECTRICAL.baseboardAltRoute
+    && window.__BF_ELECTRICAL.switchPocketInMullionChase && window.__BF_ELECTRICAL.speakerRoutePlausible
+    && window.__BF_ELECTRICAL.usbCNotOnNightstandTop;
+  if (!IS_REGULAR_FOOTBOARD) {
+    window.__BF_LIFT_GEOMETRY = { pass: S2.liftDetailPass === true, basePlateW: L.basePlateW, basePlateD: L.basePlateD, bodyDepth: L.bodyD, tvRailSpan: L.baseW, floorMounts: S2.liftFloorBoltCount, rearMounts: S2.liftRearMountCount };
+    // ---- Lee-call Phase 8 (rpt 57-62): footboard CONFIGURATIONS — relocatable TV cabinet + regular-footboard variant + 1/8 reveal. ----
+    window.__BF_FOOTBOARD_VARIANTS = {
+      relocatableTvCabinet: has(/cabinet relocatable standalone marker/) && SPEC.footboard.relocatable === true,
+      regularFootboardVariant: has(/FB-REG regular footboard VARIANT/),
+      revealSetback: cnt(/cabinet 1\/8 in reveal.setback/) === 2 && SPEC.footboard.reveal === 0.125,
+      revealInches: SPEC.footboard.reveal,
+      cabinetNotProud: SPEC.footboard.reveal > 0,
+      keepLiftIntact: has(/TV-lift stationary outer body/) && has(/55 in TV ghost panel/) && has(/soundbar ghost body/) && has(/connected lid/),
+      bedFacingHiddenBolts: cnt(/hidden bed-facing bolt shaft/) === 4,
+      note: 'Lee-call Phase 8: the TV cabinet is a relocatable standalone module (unbolt the 4 bed bolts, stand against the wall) set back 1/8 in (never proud of the bed side/top cap); a regular footboard (no-TV) is the stored-part variant SKU so the bed can run without the cabinet; the TV lift + TV + soundbar + lid stay intact.'
+    };
+    window.__BF_FOOTBOARD_VARIANTS.pass = window.__BF_FOOTBOARD_VARIANTS.relocatableTvCabinet
+      && window.__BF_FOOTBOARD_VARIANTS.regularFootboardVariant && window.__BF_FOOTBOARD_VARIANTS.revealSetback
+      && window.__BF_FOOTBOARD_VARIANTS.cabinetNotProud && window.__BF_FOOTBOARD_VARIANTS.keepLiftIntact
+      && window.__BF_FOOTBOARD_VARIANTS.bedFacingHiddenBolts;
+  }
+
+  // ---- V1 construction validators ----
+  window.__BF_V1 = {
+    headboardConstructionPass: FB.pass === true,
+    mullionsAt36: JSON.stringify(FB.mullionCenterXs) === JSON.stringify([-36, 36]),
+    baseBoltLines36: JSON.stringify(FB.baseBoltLines) === JSON.stringify([-36, 36]),
+    twelveFrontSkins: (cnt(/recessed field skin/) + cnt(/recessed speaker-course skin assembly head-rail/)) === 12,   // 12 recessed field-skin bays: 10 solid recessed skins + 2 recessed speaker-course assemblies (jamb/jamb/sill/head around the cutout; counted once via the head-rail)
+    noVisibleFrontFasteners: !has(/front[- ]face (screw|fastener)/i),
+    switchRearExitsVisible: (SW.switchRearExitCount || 0) === 2,
+    noSpeakerPocketFrames: !has(/speaker pocket frame/i),
+    directSpeakerMount: has(/in-wall speaker exposed black baffle/),
+    zipboltURelief: S3.ledUThroatClearancePass === true,
+    forceTransferPass: FT.pass === true,
+    detailedNightstands: has(/NS-L drawer box/) && has(/NS-R drawer box/),
+    // regular-footboard config: the "footboard stack" pass is the real regular footboard; the cubby checks are
+    // N/A (there is no TV cabinet cubby). tv-cabinet config keeps the original lift-stack + empty-cubby checks.
+    detailedLiftStack: IS_REGULAR_FOOTBOARD ? (window.__BF_REGULAR_FOOTBOARD && window.__BF_REGULAR_FOOTBOARD.pass === true) : (S2.liftDetailPass === true && S2.soundbarMountPass === true),
+    emptyCubby: IS_REGULAR_FOOTBOARD ? true : (FB.noCubbyDevices !== false),
+    noRearCubbyHoles: IS_REGULAR_FOOTBOARD ? true : (FB.noRearCubbyWallHoles !== false)
+  };
+
+  // ---- aggregate ----
+  // canonical validators. The footboard block swaps by config: the regular-footboard model gates on the real
+  // conventional footboard (__BF_REGULAR_FOOTBOARD); the TV-cabinet model gates on the six lift/cubby/variant gates.
+  // (Merge 2026-07-04: the always-on base list also carries __BF_LEE_BASE_REFERENCE + __BF_HEADBOARD_ENGINEERING
+  // from origin/main Lee base-reference-faithfulness + headboard-engineering work.)
+  const _canon = ['__BF_CASE_KEEPOUT', '__BF_BASE_PLATFORM', '__BF_BASE_TIE', '__BF_DRAWERS', '__BF_DRAWER_STRUCTURE', '__BF_DRAWER_MECHANICS', '__BF_LEE_BASE_REFERENCE', '__BF_REAR', '__BF_EDGE_STILES', '__BF_HEADBOARD_PHYSICAL_FRAME', '__BF_HEADBOARD_ENGINEERING', '__BF_HEADBOARD_MODULES', '__BF_TOPCAP', '__BF_STAGE3', '__BF_SKIN_FIELD', '__BF_BUILT_UP_FRAME', '__BF_CONTINUOUS_SIDE_CHORDS', '__BF_LENGTH_GATE', '__BF_NIGHTSTANDS', '__BF_ELECTRICAL']
+    .concat(IS_REGULAR_FOOTBOARD
+      ? ['__BF_REGULAR_FOOTBOARD']
+      : ['__BF_FLAT_LIFT_DECK', '__BF_FOOTBOARD_DEPTH_GATE', '__BF_LIFT_POSITION_GATE', '__BF_CUBBY_CABLE_PORTS', '__BF_LIFT_GEOMETRY', '__BF_FOOTBOARD_VARIANTS']);
+  const _canonFails = _canon.filter(k => !(window[k] && window[k].pass === true));
+  const _v1Fails = Object.keys(window.__BF_V1).filter(k => window.__BF_V1[k] !== true);
+  // Drawer-lip recess + aluminum micro-channel validators (D-012/D-013/D-034/D-093): front-wall-anchored datum
+  (function () {
+    const FRONTWALL = 0.5, ROUT = 0.276, CH_H = 0.276, FT = 1.0, LCH = 1.0, REVEAL = 0.375;
+    const centerline = +(FRONTWALL + ROUT / 2).toFixed(3), recess = centerline, woa = +(LCH - CH_H).toFixed(3), bpr = +(recess + FT).toFixed(3);
+    const d = { frontWall: FRONTWALL, channelRoutWidth: ROUT, channelHeight: CH_H, faceThickness: FT, lipCarrierHeight: LCH, revealGap: REVEAL,
+      centerlineFromFront: centerline, visibleFrontRecess: recess, backPlaneRecess: bpr, woodAboveChannel: woa,
+      drawerFrontWallPass: FRONTWALL === 0.5, drawerFaceCenteredUnderChannelPass: recess === centerline, drawerLedChannelFitPass: ROUT <= LCH, drawerWoodAbovePass: woa >= 0.5, drawerRevealPass: REVEAL === 0.375 };
+    d.pass = d.drawerFrontWallPass && d.drawerFaceCenteredUnderChannelPass && d.drawerLedChannelFitPass && d.drawerWoodAbovePass && d.drawerRevealPass;
+    window.__BF_DRAWER_LIP = d;
+  })();
+  window.__BF_LOAD_OK = true;
+  window.__BF_RENDER_OK = true;
+  window.__BF_VALIDATION_OK = (_canonFails.length === 0) && (_v1Fails.length === 0) && (FB.pass === true);
+  window.__BF_OK = (window.__BF_VALIDATION_OK === true);
+  window.__BF_VALIDATORS = { canonicalCount: _canon.length, canonicalFails: _canonFails, v1Count: Object.keys(window.__BF_V1).length, v1Fails: _v1Fails, allPass: window.__BF_OK };
+})();
+
+// ---- Compact UI: collapsible panels + global hide (H) ----
+document.querySelectorAll('.panel-head[data-collapse]').forEach(h => {
+  h.addEventListener('click', () => {
+    const p = document.getElementById(h.dataset.collapse);
+    if (p) p.classList.toggle('collapsed');
+  });
+});
+(function(){
+  const btn = document.getElementById('uiHideBtn');
+  const toggle = () => {
+    const hidden = document.body.classList.toggle('ui-hidden');
+    if (btn) btn.textContent = hidden ? 'Show panels (H)' : 'Hide panels (H)';
+  };
+  if (btn) btn.addEventListener('click', toggle);
+  window.addEventListener('keydown', (e) => {
+    const t = e.target;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
+    if ((e.key === 'h' || e.key === 'H') && !e.metaKey && !e.ctrlKey && !e.altKey) { e.preventDefault(); toggle(); }
+  });
+})();
 </script>
 </body>
 </html>

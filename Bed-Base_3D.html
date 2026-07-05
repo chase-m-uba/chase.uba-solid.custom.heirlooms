@@ -1,16 +1,21 @@
 <!DOCTYPE html>
 <!--
-  TV cabinet + bed base (bolt-on seam) - the detailed footboard TV cabinet, the bed base, and the bolt-on cabinet-to-base seam between them (interactive detail model). The TV cabinet is a relocatable standalone module; a regular footboard is the stored-part variant.
-  The TV cabinet + lower bed are built from bf-geometry.js — the SAME shared builders Full-Bed uses,
-  so this model can never drift from the master. On top: the cabinet-to-base bolt-on hardware
-  (4 bed bolts in two rows = a moment couple + a 3/4 in grommeted bare-wire pass-through) + close/open-seam + rear-view animation.
-  Units: inches. X = width (0 centred), Y = height AFF, Z = head(0) -> foot(+). Seam plane Z = 85.
+  Bed Base - the drawer base / slat-support / under-bed construction only (interactive model). Shows the
+  full Lee/Dawna six-drawer under-bed build: face-frame long sides (top rail + flush grounded bottom rail,
+  NO toe kick + 4-in verticals framing the drawer openings), three drawer bays per side with faces that
+  overlap the verticals, the drawer-pair modules resting on the side-frame internal ledges (glide boards +
+  hidden 2-in inside strips + open-ladder rungs + connector bolts), the narrow under-slat mattress-support
+  CENTER BEAM on exactly 2 intermediate legs + head/foot end blocks, the STATIONARY drawer-bay security
+  cover, the sit-on top border, and the dense bolt-in slat field.
+  Built from bf-geometry.js -> buildBedBase — the SAME shared builder Full-Bed uses, so this model can never
+  drift from the master. No headboard, no footboard, no TV cabinet.
+  Units: inches. X = width (0 centred), Y = height AFF, Z = head(0) -> foot(+). Base runs Z 0..85.
 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>TV cabinet + bed base — bolt-on seam</title>
+<title>Bed base — drawer base &amp; slat-support construction</title>
 <style>
   * { box-sizing: border-box; }
   html, body { margin: 0; width: 100%; height: 100%; overflow: hidden;
@@ -61,43 +66,41 @@
 <div id="labels"></div>
 
 <div id="hud" class="panel">
-  <h1>TV cabinet + bed base &#8212; bolt-on seam</h1>
-  <p>The detailed <b>TV cabinet</b> and <b>bed base</b>, plus the <b>bolt&#8209;on cabinet&#8209;to&#8209;base seam</b> between them &#8212; all built from the shared <code>bf&#8209;geometry.js</code>, so this model can never drift from the master. The TV cabinet is a <b>relocatable standalone</b> module (unbolt the 4 bed bolts to pull it away and stand it against the wall); a <b>regular footboard</b> variant (no TV lift) is the stored-part alternative.</p>
-  <p>Drag to orbit &#183; scroll to zoom &#183; <b>Raise TV</b> to lift the screen, <b>Seat</b> to close the seam, <b>Flip</b> for the rear view.</p>
+  <h1>Bed base &#8212; drawer base &amp; slat support</h1>
+  <p>The <b>under&#8209;bed base construction</b> only &#8212; face&#8209;frame long sides (top rail + <b>flush grounded bottom rail, no toe kick</b> + 4&#8209;in verticals), <b>three drawer bays per side</b> whose faces overlap the verticals, the <b>drawer&#8209;pair modules</b> on the side&#8209;frame ledges (glide boards + hidden 2&#8209;in inside strips + open&#8209;ladder rungs + connector bolts), the narrow under&#8209;slat <b>center beam on 2 legs</b> + head/foot end blocks, the <b>stationary drawer&#8209;bay cover</b>, the sit&#8209;on top border, and the dense bolt&#8209;in slat field. Built from the shared <code>bf&#8209;geometry.js</code> &#8212; can never drift from the master.</p>
+  <p>Drag to orbit &#183; scroll to zoom &#183; <b>Open drawers</b> to slide the six drawers, <b>Ghost</b> to X&#8209;ray the structure, <b>Slats</b> / <b>Wires</b> to toggle layers.</p>
   <span class="tag">&#10003; shared single source &#183; cannot drift from master</span>
 </div>
 
 <div id="legend" class="panel">
-  <h2>Cabinet-to-base hardware</h2>
-  <p><span class="sw" style="background:#c2c9d1"></span><b>4 bed bolts</b> &#8212; two per side, two rows (a moment couple); hidden on the <b>bed&#8209;facing</b> side</p>
-  <p><span class="sw" style="background:#c79a5b"></span><b>1&#215;1 ash connector blocks + threaded inserts</b> &#8212; screw+glue in each cabinet face frame (Lee-call Phase 6); the room-facing cabinet front stays clean</p>
-  <p><span class="sw" style="background:#111418"></span><b>3/4&#8243; grommeted pass&#8209;through</b> &#8212; bundled 120V + speaker, fed by the under&#8209;base gap</p>
-  <p style="color:#8aa0b6;font-size:11px">Bolt-on seam (relocatable). <b>Ghost</b> shows the bolts + wire path; <b>Flip</b> = rear view.</p>
+  <h2>Under-bed construction</h2>
+  <p><span class="sw" style="background:#c9974c"></span><b>Face&#8209;frame long sides</b> &#8212; top rail + flush grounded bottom rail (no toe kick) + 4&#8209;in verticals framing the drawer openings</p>
+  <p><span class="sw" style="background:#d4b477"></span><b>Drawer&#8209;pair modules</b> &#8212; open&#8209;ladder glide boards on the side&#8209;frame ledges + hidden 2&#8209;in inside strips + connector bolts</p>
+  <p><span class="sw" style="background:#c9974c"></span><b>Center beam</b> &#8212; narrow under&#8209;slat mattress support on 2 legs + head/foot end blocks; stationary drawer&#8209;bay security cover above</p>
+  <p style="color:#8aa0b6;font-size:11px"><b>Ghost</b> X&#8209;rays the carcass; <b>Open drawers</b> proves the bays are clear.</p>
 </div>
 
 <div id="ctrl" class="panel">
   <h2>Motion</h2>
   <div class="row">
-    <button id="bRaise" class="prime">&#9650; Raise TV</button>
-    <button id="bDock" class="prime">&#9654; Seat cabinet</button>
+    <button id="bDrawers" class="prime">&#9664;&#9654; Open drawers</button>
   </div>
-  <div class="slab"><label>Seam gap</label><input id="gap" type="range" min="0" max="24" step="0.1" value="12"><span id="seamval">12.0&#8243;</span></div>
+  <div class="slab"><label>Drawer</label><input id="gap" type="range" min="0" max="100" step="1" value="0"><span id="seamval">0%</span></div>
   <div class="row" style="margin-top:6px">
     <button id="bGhost">Ghost / X&#8209;ray</button>
-    <button id="bLabels">Labels</button>
+    <button id="bSlats">Slats</button>
     <button id="bWires">Wires</button>
   </div>
   <div class="row">
-    <button id="bAuto">&#8734; Auto seat</button>
+    <button id="bLabels">Labels</button>
     <button id="bSpin">Auto&#8209;spin</button>
-    <button id="bFlip">Flip 180&#176;</button>
   </div>
 </div>
 
 <div id="cam" class="panel">
   <h2>Camera</h2>
-  <div class="row"><button data-cam="iso">Iso</button><button data-cam="side">Side</button><button data-cam="whole">Whole bed</button></div>
-  <div class="row"><button data-cam="ac">Bolts L</button><button data-cam="spk">Bolts R</button><button data-cam="top">Top</button></div>
+  <div class="row"><button data-cam="iso">Iso</button><button data-cam="side">Side</button><button data-cam="whole">Whole base</button></div>
+  <div class="row"><button data-cam="drwL">Drawers L</button><button data-cam="drwR">Drawers R</button><button data-cam="top">Top</button></div>
 </div>
 
 <script type="importmap">
@@ -421,7 +424,7 @@ return { installBFViewerControls };
 /* ==== END BF-VIEWER-CONTROLS INLINE (edit System/bf-viewer-controls.js, then re-run npm run bf:build) ==== */
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 /* ==== BF-GEOMETRY INLINE — generated by `npm run bf:build`; DO NOT EDIT BETWEEN THESE MARKERS ==== */
-const { SPEC, makeMaterials, makeEngine, buildBedBase, buildFootboardAndLift, buildDockHardware } = (() => {
+const { SPEC, makeMaterials, makeEngine, buildBedBase } = (() => {
 // bf-geometry.js — SINGLE SOURCE OF TRUTH for the shared bed geometry.
 // The TV-lift footboard, the TV-lift lift, and the 74x85 drawer base live HERE, once.
 // Full-Bed (full master) and Dock-Interface (the cabinet-to-base seam detail model) both import these builders, so the
@@ -489,8 +492,12 @@ const SPEC = Object.freeze({
   //   NOT a full-height wall / NOT a headboard moment beam) resting on 2 head/foot end SUPPORT BLOCKS + dropping EXACTLY 2
   //   intermediate legs (+ 2 levelers) through the center slot at the two between-drawer gaps (was a full-height 3-leg slab).
   //   drawerStructure = the Dawna/Donna PDF method: side-frame ledges, 4 boundary stiles/side + hidden 2-in inside strips,
-  //   3 open-ladder drawer-pair modules, side-to-side glide boards landing on the strips, module-to-side-frame connector bolts.
-  base: { W: 74, L: 85, top: 17, bayW: 67, bayL: 81, shoulder: 3.5, toeH: 0, toeInset: 0, caseBottom: 2.0, slat: { width: 2.75, gap: 1.5, mount: 'bolt-in nutsert ends' }, centerBeam: { present: true, role: 'slat/mattress support only', form: 'narrow under-slat beam', legs: 2, levelers: 2, endSupportBlocks: 2, beamW: 2.5, beamTh: 0.875 }, drawerStructure: { modules: 3, boundaryStiles: 4, insideStripWidth: 2, stileWidth: 4, ledges: true } },
+  //   and — reference-faithfulness correction 2026-07-04 (plan 19, "Assembly instruction example 6 drw structure.pdf"
+  //   pg18-23) — the drawer-support rails are CONTINUOUS FULL-WIDTH TRANSVERSE CROSS-RAILS (one board each, spanning
+  //   side-frame ledge to side-frame ledge, resting BOTH ends on the ledges), NOT left/right half-modules that dead-end
+  //   at the center chase. 6 cross-rails (head+foot per drawer row) framing 3 open-ladder drawer rows; the L+R slides
+  //   mount on their two ends (stopping short of centre); module-to-side-frame connector bolts (one side per window).
+  base: { W: 74, L: 85, top: 17, bayW: 67, bayL: 81, shoulder: 3.5, toeH: 0, toeInset: 0, caseBottom: 2.0, slat: { width: 2.75, gap: 1.5, mount: 'bolt-in nutsert ends' }, centerBeam: { present: true, role: 'slat/mattress support only', form: 'narrow under-slat beam', legs: 2, levelers: 2, endSupportBlocks: 2, beamW: 2.5, beamTh: 0.875 }, drawerStructure: { modules: 3, crossRails: 6, transverseSpanFullWidth: true, boundaryStiles: 4, insideStripWidth: 2, stileWidth: 4, ledges: true } },
   drawer: { perSide: 3, intH: 10.75, intW: 19, intD: 33, faceRecess: 0.638, frontWall: 0.5, revealGap: 0.375, channelRout: 0.276, channelH: 0.276, lipCarrierH: 1.0, faceThickness: 1.0, faceH: 12.0, faceGap: 0.25, faceReveal: 0.1875, faceOverlap: true },  // D-093/D-012/D-013: face FRONT recessed 0.638 in (centered under the aluminum micro-channel); 0.5 in front wall to the channel front edge; 7 mm routed groove; 1.0 in lip carrier (0.724 in wood above the 0.276 in channel); 3/8 in reveal; Dawna Option A bottom-edge pull. Lee-call Phase 7: faces OVERLAP the 4-in face-frame verticals with a thin 3/16 (0.1875) reveal, edge-to-edge read (faceReveal / faceOverlap)
   footboard: { W: 74, H: 41, D: 16, sideTh: 2.0, faceTh: 1.0, deckTh: 1.0, rearTh: 0.75, reveal: 0.125, relocatable: true, regularFootboardVariant: { W: 74, H: 14, D: 16 }, dock: { boltCenterX: 33, boltRowsAFF: [5, 14.5], wireHoleDia: 0.75, wireHoleCenterAFF: 3 } },  // Lee-call Phase 8: cabinet set back ~1/8 in (reveal) never proud of the bed side/top cap; relocatable standalone; regular-footboard (no-TV) variant is a stored-part SKU (~74x14x16)
   lift: { travel: 36, retractBody: 31, raised: 68.5, baseW: 28.375, basePlateW: 9.875, basePlateD: 5.125, bodyD: 7.0, deckTopY: 8.0 },
@@ -655,8 +662,10 @@ function buildBedBase(ctx) {
   const beamTopY = slatUnderside, beamCenterY = beamTopY - cb.beamTh / 2, beamBotY = beamTopY - cb.beamTh;
   const beamZ0 = 3.5, beamZ1 = B.L - 3.5, beamLen = beamZ1 - beamZ0, beamZc = (beamZ0 + beamZ1) / 2;
   box(group, 'BF-BASE mattress-support CENTER BEAM (narrow under-slat beam; slat/mattress support ONLY; NOT a full-height wall / NOT a headboard moment beam)', cb.beamW, cb.beamTh, beamLen, 0, beamCenterY, beamZc, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false });
-  // HEAD + FOOT end SUPPORT BLOCKS / seats — seat the beam ends on the bed-end structure (NOT floor legs, NOT intermediate legs).
-  [['HEAD', beamZ0 + 0.5], ['FOOT', beamZ1 - 0.5]].forEach(([e, ez]) => box(group, `BF-BASE center-beam ${e}-end support block / seat (seats the beam end on the bed-end structure; NOT a floor leg)`, cb.beamW + 0.5, 3.0, 2.2, 0, beamBotY - 1.5, ez, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false }));
+  // HEAD + FOOT end SUPPORT BLOCKS / seats — seat the beam ends on the head/foot TRANSVERSE CROSS-RAILS (which cross the
+  //   full width and rest on both ledges), NOT floor legs. Sit ON the cross-rail top (y 13.8) up to the beam bottom (15.0),
+  //   so the beam-end load path is beam -> end block -> full-width end cross-rail -> end posts -> ledges -> side frames.
+  [['HEAD', beamZ0 + 1.0], ['FOOT', beamZ1 - 1.0]].forEach(([e, ez]) => box(group, `BF-BASE center-beam ${e}-end support block / seat (seats the beam end on the full-width end cross-rail / bed-end structure; NOT a floor leg)`, cb.beamW + 0.5, 1.2, 2.2, 0, beamBotY - 0.6, ez, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false }));
   // TWO intermediate floor LEGS through the center slot at the between-drawer gaps (~Z 30.65 / ~56.35), each with a leveler.
   const cbLegZ = [30.65, 56.35], legTopY = beamBotY, legBotY = 1.2, legH = legTopY - legBotY, legCenterY = (legTopY + legBotY) / 2;
   cbLegZ.forEach((lz, i) => {
@@ -715,6 +724,8 @@ function buildBedBase(ctx) {
   const coverOutX = framePlaneX - (B.shoulder - 0.5);         // 32.362 — cover outboard edge butts the border backing cleat's inboard edge (the capture line)
   const boardX0 = backWallX + backWallTh / 2;                 // 3.15 — glide boards butt the bay back wall...
   const boardXc = (boardX0 + frameInnerX) / 2, boardW = frameInnerX - boardX0;   // ...and end at the frame inner plane (on the ledge, against the strip sides)
+  const glideRailBotY = 9.4, glideRailTopY = 13.8, glideRailH = glideRailTopY - glideRailBotY;   // short rail straddling the 11.6 slide line -> open windows above + below
+  const railHalfW = frameInnerX;                              // 32.962 — full-width transverse CROSS-RAIL ends land at the frame inner plane, ON both side-frame ledges / inside-strip sides
   [-1, 1].forEach(side => {
     const sAbbr = side < 0 ? 'L' : 'R', sName = side < 0 ? 'left' : 'right';
     const faceX = side * (B.W / 2 - DWR.faceRecess - DWR.faceThickness / 2); // face FRONT recessed DWR.faceRecess (0.638) behind the +-37 outer plane, centered under the channel (D-093); centre +-35.862
@@ -727,24 +738,28 @@ function buildBedBase(ctx) {
     //   Each intermediate strip fills the gap between the two flanking MODULE glide boards — the boards land on the
     //   strip SIDES, behind the 4-in board (Lee's explicit clue). Strip tops also support the security-cover edge.
     ffStileZ.forEach((sz, k) => box(group, `BF-BASE ${sName} inside strip (${DS.insideStripWidth} in; hidden behind the 4-in boundary stile ${k}; the MODULE glide boards land on the 2-in inside strip sides, behind the 4-in board; top supports the security-cover edge) [TBD-CONFIRM Lee]`, 1.0, coverBotY - structBotY, DS.insideStripWidth, side * (frameInnerX - 0.5), (structBotY + coverBotY) / 2, sz, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.4, cast: false }));
-    // (17 §3.2/§8.5) THREE drawer-pair STRUCTURE MODULES per side-pair — each row's module is a real OPEN LADDER:
-    //   two side-to-side GLIDE BOARDS at the row's head/foot BOUNDARIES (slide-mount faces FLUSH with the face-frame
-    //   opening edges; bodies tucked behind the 4-in stiles, flanking the 2-in strips) + under-drawer bottom ladder
-    //   rungs. The ladder window between the boards IS the drawer bay — nothing static crosses it.
+    // (17 §3.2/§8.5 + reference-faithfulness CORRECTION 2026-07-04, plan 19) THREE drawer rows — each a real OPEN
+    //   LADDER matching the Dawna/Donna reference pages 18-23. The two side-to-side GLIDE RAILS at each row's head/foot
+    //   boundary are now CONTINUOUS FULL-WIDTH TRANSVERSE CROSS-RAILS (built once, below, ledge-to-ledge) — NOT the prior
+    //   left-half + right-half boards that dead-ended at the center chase (nothing crossed the bed; the owner's complaint).
+    //   Per side here we build only the vertical END POSTS that carry each cross-rail's outboard end on the side-frame
+    //   internal ledge (pg19 "lift the ends of the structures onto the ledge"), plus the low under-drawer bottom rungs.
     openings.forEach(([oLo, oHi], r) => {
-      [['head', oLo, oLo - 0.5], ['foot', oHi, oHi + 0.5]].forEach(([end, edge, bzc]) => box(group,
-        `BF-BASE drawer-pair structure MODULE ${r + 1}/3 (${rowName[r]} row) ${end}-side glide board ${sAbbr} (side-to-side transverse open-ladder rail; slide-mount face FLUSH with the ${rowName[r]}-row opening edge; lands on the 2-in inside strip sides behind the 4-in stile; end rests on the side-frame internal ledge; the center slot stays open between the L/R segments)`,
-        boardW, coverBotY - structBotY, 1.0, side * boardXc, (structBotY + coverBotY) / 2, bzc, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false }));
+      [['head', oLo - 0.5], ['foot', oHi + 0.5]].forEach(([end, bzc]) => {
+        box(group, `BF-BASE drawer-pair structure MODULE ${r + 1}/3 (${rowName[r]} row) ${end}-side END POST ${sAbbr} (open-ladder vertical end member; the full-width cross-rail end RESTS on the side-frame internal ledge — Dawna/Donna pg19 — carried by this post; rises to the ${end}-side cross-rail at slide height; sits in the module-boundary z-gap, clear of the moving drawer)`,
+          1.6, glideRailTopY - structBotY, 1.0, side * (frameInnerX - 0.8), (structBotY + glideRailTopY) / 2, bzc, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false });
+      });
       [9.5, 26].forEach((rx, k) => box(group,
-        `BF-BASE drawer-pair structure MODULE ${r + 1}/3 (${rowName[r]} row) bottom ladder rung ${sAbbr} ${k + 1} (under-drawer open-ladder cross member; joins the two glide boards; clears the moving drawer floor above)`,
+        `BF-BASE drawer-pair structure MODULE ${r + 1}/3 (${rowName[r]} row) bottom ladder rung ${sAbbr} ${k + 1} (under-drawer open-ladder cross member; ties the head/foot full-width cross-rails low; clears the moving drawer floor above)`,
         1.5, 0.8, oHi - oLo, side * rx, structBotY - 0.4, (oLo + oHi) / 2, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.4, cast: false }));
     });
-    // (17 §4.4/§8.7) STATIONARY drawer-bay TOP / SECURITY COVER — fixed to the base, over the drawer bay + under the
-    //   slats/mattress; blocks top access into the LOCKED drawer cavity when the mattress/slats are lifted. NOT a
-    //   moving drawer lid. Mechanics: underside 14.6 clears the 14.175 drawer wall tops by 0.425 in (>= 3/8), top 15.2
-    //   sits under the 15.875 slat underside; rests on the glide-board/strip/back-wall tops; outboard edge captured
-    //   under the top-border backing cleat. Attachment (loose vs screwed vs security-bolted) [TBD-CONFIRM Lee].
-    box(group, `BF-BASE ${sName} stationary drawer-bay TOP / security cover (fixed to the base; over the drawer bay, under the slats/mattress; rests on the module glide-board tops + 2-in strip tops + bay back wall, outboard edge captured under the top-border backing cleat; blocks top access into the locked drawer cavity — NOT a moving drawer lid) [attachment TBD-CONFIRM Lee]`, coverOutX - backWallX, coverTh, 77, side * ((coverOutX + backWallX) / 2), coverBotY + coverTh / 2, 43.5, mats.baseWood, { edgeColor: 0x5f411a, edgeOpacity: 0.4, cast: false });
+    // (17 §4.4/§8.7 + plan 18) STATIONARY drawer-bay TOP / SECURITY COVER — fixed to the base, over the drawer bay +
+    //   under the slats/mattress; blocks top access into the LOCKED drawer cavity when the mattress/slats are lifted.
+    //   NOT a moving drawer lid. Mechanics: underside 14.6 clears the 14.175 drawer wall tops by 0.425 in (>= 3/8),
+    //   top 15.2 sits under the 15.875 slat underside; rests on the 2-in inside-strip tops + bay back-wall top (Lee's
+    //   "top on ledges" — the glide rails now sit LOWER at slide height, so the strips/back wall are the cover ledge);
+    //   outboard edge captured under the top-border backing cleat. Attachment (loose vs screwed vs security-bolted) [TBD-CONFIRM Lee].
+    box(group, `BF-BASE ${sName} stationary drawer-bay TOP / security cover (fixed to the base; over the drawer bay, under the slats/mattress; rests on the 2-in inside-strip tops + bay back-wall top — Lee's "top on ledges", outboard edge captured under the top-border backing cleat; blocks top access into the locked drawer cavity — NOT a moving drawer lid) [attachment TBD-CONFIRM Lee]`, coverOutX - backWallX, coverTh, 77, side * ((coverOutX + backWallX) / 2), coverBotY + coverTh / 2, 43.5, mats.baseWood, { edgeColor: 0x5f411a, edgeOpacity: 0.4, cast: false });
     box(group, `BF-BASE drawer-bay BACK wall (walls off the centre wiring chase; keeps the center slot open for the beam legs; top supports the stationary security cover inboard edge) ${sAbbr}`, backWallTh, coverBotY - 2.4, 77, side * backWallX, (2.4 + coverBotY) / 2, 43.5, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false });
     for (let i = 0; i < DWR.perSide; i += 1) {
       const z = 5 + drawerSpan / 2 + i * drawerSpan;          // equal exterior FACE pitch (Phase 7 read preserved)
@@ -774,6 +789,23 @@ function buildBedBase(ctx) {
       // drawer-side slide members ride OUTSIDE the box walls inside the slide zones (nested against the cabinet members)
       [[boxZ0 - 0.09, 0], [boxZ1 + 0.09, 1]].forEach(([sz, s]) => box(dg, `BF-BASE full-extension slide (drawer) ${sAbbr} ${i + 1}-${s}`, dW - 2, 0.34, 0.18, boxXc, 11.6, sz, mats.darkSteel, { edgeOpacity: 0.22, cast: false }));
     }
+  });
+
+  // ── (plan 19) FULL-WIDTH TRANSVERSE DRAWER-STRUCTURE CROSS-RAILS — the reference-faithfulness CORRECTION ──
+  //   "Assembly instruction example 6 drw structure.pdf" pg18-23: the drawer structures are DISCRETE OPEN LADDERS whose
+  //   rails span the FULL bed width and rest their ENDS on BOTH side-frame ledges (pg19-20 "lift the ends of both drawer
+  //   structures onto the frame ledge"). The prior model split every rail into a left-half + a right-half that dead-ended
+  //   at the center chase, so NOTHING crossed the bed left-to-right — the owner's exact complaint. Each cross-rail is now
+  //   ONE continuous board from ledge to ledge (2*railHalfW wide, centered on x=0). The L+R drawer slides mount on its two
+  //   ENDS (stopping short of centre so the opposed drawers never meet); it straddles the 11.6 slide line so the drawer bay
+  //   still reads as an OPEN WINDOW above/below. It is placed at the drawer-row BOUNDARIES that FLANK the two beam-leg gaps
+  //   (z 29.15/32.15 + 54.85/57.85 + the head/foot ends) and crosses ABOVE the low (y~3) center cable chase, so the 2
+  //   narrow center-beam legs still drop to the floor in the between-drawer gaps without ever meeting a cross-rail.
+  openings.forEach(([oLo, oHi], r) => {
+    [['head', oLo - 0.5], ['foot', oHi + 0.5]].forEach(([end, rz]) => {
+      box(group, `BF-BASE drawer-pair structure MODULE ${r + 1}/3 (${rowName[r]} row) ${end}-end transverse CROSS-RAIL (ONE continuous side-to-side glide rail spanning the FULL bed width — left side-frame ledge to right; both ends REST on the ledges via the END POSTS, Dawna/Donna pg19-20; carries the L+R drawer slides at slide height on its two ends; SHORT rail so the drawer bay reads as an OPEN WINDOW; crosses above the low center cable chase, clear of the 2 beam-leg gaps)`,
+        2 * railHalfW, glideRailH, 1.0, 0, (glideRailBotY + glideRailTopY) / 2, rz, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false });
+    });
   });
 
   // (17 §3.4/§8.8) module-to-side-frame CONNECTOR BOLTS — at the REAL joints: through the 4-in stile + 2-in strip into
@@ -810,7 +842,7 @@ function buildBedBase(ctx) {
     box(groups.wiring, `BF-BASE centre base-to-headboard cable bore (head rail + bottom cap -> rear cavity) x=${x}`, 1.4, 2.2, 8.4, x, 1, -1.8, mats.void, { edgeColor: 0x38bdf8, edgeOpacity: 0.66, cast: false });
     cyl(groups.wiring, `BF-BASE centre cable run foot-gap to head x=${x}`, 0.3, 80, x, 7, 42, mats.cableSpeaker, 'z', { segments: 16, cast: false });
   });
-  [-2, 2].forEach(x => box(groups.wiring, `centre cable raceway through receiver ladder x=${x}`, 1.4, 41, 1.4, x, 21.5, -5, mats.void, { edgeColor: 0x22d3ee, edgeOpacity: 0.5, cast: false }));
+  [-2, 2].forEach(x => box(groups.wiring, `centre cable raceway up the rear cavity to the head x=${x}`, 1.4, 41, 1.4, x, 21.5, -5, mats.void, { edgeColor: 0x22d3ee, edgeOpacity: 0.5, cast: false }));
   [-36, 36].forEach(x => box(groups.wiring, `mullion cable bore (speaker crossing) x=${x}`, 4.4, 1.4, 1.4, x, SPEC.speaker.bottom + 2, -5, mats.void, { edgeColor: 0x22d3ee, edgeOpacity: 0.6, cast: false }));
   label('centre cable chase: foot gap -> up the spine -> bottom-frame bore -> headboard rear cavity', 0, 9.2, 60, 'blue', 'base');
   line3(groups.wiring, 'AC + speaker: 3/4 in grommet pass-through (x0, AFF 3) -> riser -> cubby + lift', [
@@ -927,6 +959,43 @@ function buildFootboardAndLift(ctx) {
 }
 
 // ----------------------------------------------------------------------------
+//  BUILDER: REGULAR (no-TV) footboard — the standalone alternative to the TV-lift cabinet.
+//  A REAL grounded frame-and-panel footboard (~74 x 14 x 16), NOT a ghost/transparent variant of the TV
+//  cabinet and NOT the concept-ghost 'FB-REG' marker inside buildFootboardAndLift. It reads in the SAME
+//  design language as the bed: proud face-frame corner posts + a sit-on top cap + a flush grounded bottom
+//  rail (no toe kick, matching the base) + a recessed front skin panel (3/16 in reveal, like the headboard
+//  field skins) + bed-facing back stretcher rails. Solid ash (mats.footWood — in the ghost/solid wood set).
+//  Occupies the same foot envelope as the cabinet (Z footBack..footFront), so the bed length is unchanged.
+//  ctx: { box, mats, groups:{footboard}, label, pieceLabel }  (no lift, no dock, no TV).
+// ----------------------------------------------------------------------------
+function buildRegularFootboard(ctx) {
+  const { box, mats, groups, label, pieceLabel } = ctx;
+  const { footMidZ, ZB } = deriveZ();
+  const RV = SPEC.footboard.regularFootboardVariant;          // { W:74, H:14, D:16 }
+  const W = RV.W, H = RV.H, D = RV.D, post = SPEC.footboard.sideTh;   // post = 2.0 in corner leg
+  const group = groups.footboard;
+  const frontZ = ZB.footFront, backZ = ZB.footBack;           // 101 (foot-facing) .. 85 (bed-facing)
+  const reveal = SPEC.skinReveal;                             // 3/16 in — front skin sits behind the proud posts
+  // (1) two GROUNDED corner posts (the proud face-frame legs at the foot corners) — floor (y 0) to top (y H).
+  [-1, 1].forEach(s => box(group, `REGFB ${s < 0 ? 'left' : 'right'} corner post (grounded face-frame leg; proud front plane; foot of bed)`,
+    post, H, D, s * (W / 2 - post / 2), H / 2, footMidZ, mats.footWood, { edgeColor: 0x5f411a, edgeOpacity: 0.45 }));
+  // (2) sit-on TOP CAP — full 74 in width across both posts (top at y = H).
+  box(group, 'REGFB top cap (sit-on; full 74 in width; caps both posts)', W, 2, D, 0, H - 1, footMidZ, mats.footWood, { edgeColor: 0x604618, edgeOpacity: 0.5 });
+  // (3) FLUSH grounded bottom rail between the posts — NO toe kick (matches the base's grounded flush read).
+  box(group, 'REGFB flush bottom rail (grounded; NO toe kick; between the posts)', W - 2 * post, 2.5, D, 0, 1.25, footMidZ, mats.footWood, { edgeColor: 0x604618, edgeOpacity: 0.5 });
+  // (4) RECESSED front skin panel (foot-facing) — set 3/16 in BEHIND the proud posts' front plane (headboard
+  //     field-skin language), let into the frame between the posts + top cap + bottom rail.
+  const skinTh = 1.0, skinFrontZ = frontZ - reveal, skinZc = skinFrontZ - skinTh / 2;
+  box(group, 'REGFB recessed front skin panel (foot-facing; 3/16 in reveal behind the proud posts; let into the frame)', W - 2 * post, H - 4.5, skinTh, 0, H / 2 - 0.25, skinZc, mats.footWood, { edgeColor: 0x5f411a, edgeOpacity: 0.42 });
+  // (5) bed-facing BACK stretcher rails (top + bottom) — rigidity; hidden behind the bed, at the back plane.
+  const backZc = backZ + 0.75;
+  [['top', H - 1.25], ['bottom', 1.25]].forEach(([e, yc]) => box(group, `REGFB back ${e} stretcher rail (bed-facing; rigidity)`,
+    W - 2 * post, 2.5, 1.5, 0, yc, backZc, mats.footWood, { edgeColor: 0x5f411a, edgeOpacity: 0.4, cast: false }));
+  if (label) label('REGULAR footboard (no TV): grounded frame-and-panel — proud corner posts + sit-on top cap + flush bottom rail (no toe kick) + recessed front skin (3/16 reveal); ~74 x 14 x 16', 0, H + 2.5, footMidZ, 'green', 'footboard');
+  if (pieceLabel) pieceLabel('REGFB-01', 'REGULAR footboard (no TV cabinet; grounded frame-and-panel)', 0, H + 4.5, footMidZ, '74 x 14 x 16', 'footboard');
+}
+
+// ----------------------------------------------------------------------------
 //  BUILDER: cabinet-to-base bolt-on hardware at the foot-of-bed seam (Z = 85).
 //  Shared so the master (Full-Bed, docked) and the seam-detail model
 //  show the SAME bolts-only seam: 4 bed bolts (two per side, two rows = moment couple) + 1 grommeted wire hole.
@@ -1012,9 +1081,10 @@ function buildNightstands(ctx) {
     box(groups.detailedNightstands, `NS-${sideName} drawer box right wall`, 0.4, 6.6, dbD, cx + dbW / 2 - 0.2, dbY, zMid + 0.5, mats.night, { edgeOpacity: 0.3, cast: false });
     box(groups.detailedNightstands, `NS-${sideName} drawer box back wall`, dbW, 6.6, 0.4, cx, dbY, zMid + 0.5 - dbD / 2 + 0.2, mats.night, { edgeOpacity: 0.3, cast: false });
     box(groups.detailedNightstands, `NS-${sideName} drawer box bottom`, dbW, 0.4, dbD, cx, dbY - 3.1, zMid + 0.5, mats.night, { edgeOpacity: 0.3, cast: false });
-    // rear locator ledge + 2 dowel pins: set the nightstand before the 8 steel-insert bolts clamp (no steel arm; D0-4)
-    box(groups.detailedNightstands, `NS-${sideName} rear locator ledge`, N.W - 2.0, 0.6, 0.7, cx, N.bottom + 1.4, z0 + 0.55, mats.shell, { edgeColor: 0x5f411a, edgeOpacity: 0.4, cast: false });
-    [-6, 6].forEach(dx => cyl(groups.detailedNightstands, `NS-${sideName} locator dowel x=${dx}`, 0.18, 1.0, cx + dx, N.bottom + 2.4, z0 + 0.35, mats.tenon, 'z', { segments: 18, cast: false }));
+    // Lee-call Phase 9 (D0-4): NO locator ledge / dowels / tenons — Lee specified the mount as ONLY holes through
+    // the cabinet back + steel inserts in the skin back (self-supported, nests BETWEEN the two face frames). The
+    // between-frame fit marker + back-panel bolt plane + inside-access bolt ports fully represent that mount; a
+    // locator ledge/dowel was a pre-Lee receiver-era aid with no transcript support, so it is not modeled.
     [-9, -3, 3, 9].forEach(dx => [19.4, 26.1].forEach(y => {
       cyl(groups.detailedNightstands, `NS-${sideName} inside-access bolt port x=${dx} y=${y}`, 0.24, 0.4, cx + dx, y, z0 + 0.62, mats.void, 'z', { segments: 24, cast: false });
     }));
@@ -1107,10 +1177,10 @@ function addBaseTieBolt({ id, x, y }) {
     type: 'BB-CD',
     groupKey,
     labelSection,
-    joint: 'headboard ±36 mullion to bed-base side FACE FRAME (force transfers through the base sides + center beam; D0-3)',
-    pieceIds: [receiverId, 'HB-LR-U-01', 'HB-LR-L-01', 'bed-base side face frame'],
+    joint: 'headboard ±36 mullion to bed-base side FACE FRAME (force transfers through the base side FACE FRAMES + their 4-in verticals; the center beam is mattress-support only, NOT a headboard support; D0-3)',
+    pieceIds: [receiverId, 'HB-BC-01', 'bed-base side face frame'],
     position: { x, y, z: -4.1 },
-    notes: 'Primary headboard-to-base removable structural bolt at the ±36 mullions ONLY (Lee-call Phase 6, D0-3).'
+    notes: 'Primary headboard-to-base removable structural bolt at the ±36 mullions ONLY — the receiving member is the full-height ±36 mullion (Lee-call Phase 6, D0-3).'
   });
   addBedBoltCutoutVolumes({ id, group, x, y, z: -4.1, axis: 'z' });
   cyl(group, `${id} base tie bolt shaft`, 0.18, 7.2, x, y, -4.1, mats.darkSteel, 'z');
@@ -1122,7 +1192,7 @@ function addBaseTieBolt({ id, x, y }) {
 
 function addNightstandConnectorBolt({ id, sideName, x, y }) {
   // Lee-call Phase 9 (D0-4, rpt 56): the nightstand mounts by BOLTING THROUGH the nightstand cabinet BACK into a
-  // STEEL THREADED INSERT set in the headboard SKIN BACK — retiring the captive-square-nut (CN-SQ) wood receiver.
+  // STEEL THREADED INSERT set in the headboard SKIN BACK (supersedes the retired CN-SQ wood receiver; D-014/D0-4).
   const groupKey = 'nightstandFasteners';
   const labelSection = 'fastenerNightstand';
   const group = groups[groupKey];
@@ -1134,7 +1204,7 @@ function addNightstandConnectorBolt({ id, sideName, x, y }) {
     joint: `${sideName} nightstand cabinet back bolted into a steel threaded insert in the headboard skin back (D0-4)`,
     pieceIds: [`nightstand-${sideName}`, `HB-FP-${sideName}-skin-back`, 'steel threaded insert (skin back)'],
     position: { x, y, z: 1.5 },
-    notes: 'Bolt threads from inside the nightstand drawer cavity THROUGH the nightstand cabinet back into a steel threaded insert set in the headboard skin back (D0-4; retires the CN-SQ captive square nut).'
+    notes: 'Bolt threads from inside the nightstand drawer cavity THROUGH the nightstand cabinet back into a steel threaded insert set in the headboard skin back (D0-4; supersedes the retired CN-SQ wood receiver).'
   });
   cyl(group, `${id} connector bolt shaft (through the nightstand cabinet back into the skin-back insert)`, 0.13, 7.2, x, y, 1.5, mats.darkSteel, 'z');
   cyl(group, `${id} drawer-side washer`, 0.28, 0.12, x, y, 5.35, mats.steel, 'z', { segments: 28 });
@@ -1698,67 +1768,17 @@ SPEC.courseSeamsAFF.forEach(seamAFF => {
   });
 });
 
-// Lower-only center receiver doublet. It does not continue to the top cap.
-[-4, 4].forEach(x => {
-  box(groups.lattice, `lower-only center spine receiver block x=${x}`, 2.6, 15, loadRailDepth, x, 9.5, loadRailZ, mats.receiver);
-});
+// ── Lower headboard = per-box construction (Lee-call, 2026-07-03; ±4 receiver ladder retired 2026-07-04) ──────
+// Lee described each box as a top board + horizontal shelf pieces + floor pieces + a face skin + a 1/4-in plywood
+// back for rigidity — there is no ±4 internal "receiver ladder" (retired). So the lower headboard structure is three per-module
+// BUILT-UP L bottom cap rails (built above), the full-height ±36 mullions + built-up L side stiles, the AFF 19/38/57
+// course cross-rails + the rear shear rail, and the ventilated plywood back. There is NO ±4 center receiver block /
+// drawdown subsystem — it had no transcript support and never tied to the base (retired 2026-07-04). The headboard
+// is FLOOR-STANDING; the grounded base BUTTS INTO it, and the only head->base tie is the ±36 mullion bed-bolts below.
 
-// Simplified lower receiver ladder: two continuous rails between mullion inner faces, plus center receiver blocks.
-[
-  { railId: 'HB-LR-U-01', y: 14.5, h: 3, label: 'upper' },
-  { railId: 'HB-LR-L-01', y: 4.75, h: 2.5, label: 'lower' }
-].forEach(({ railId, y, h, label }) => {
-  housedRail(groups.lattice, `simplified lower receiver ${label} rail, mullion inner-face to inner-face`, -34, 34, y, h, loadRailDepth, loadRailZ, mats.receiver);
-  [
-    { x: -34, receiver: 'HB-MUL-L', tag: 'L', dir: -1 },
-    { x: 34, receiver: 'HB-MUL-R', tag: 'R', dir: 1 }
-  ].forEach(({ x, receiver, tag, dir }) => {
-    addZipboltSideDrive({
-      id: `F-ZB-${railId}-${tag}`,
-      groupKey: 'lowerLadderFasteners',
-      labelSection: 'fastenerLadder',
-      joint: `${railId} housed end to ${receiver}`,
-      pieceIds: [railId, receiver],
-      x,
-      y,
-      z: loadRailZ,
-      axis: 'x',
-      dir,
-      socket: 'rear'
-    });
-    addTenonKey({
-      id: `F-TENON-${railId}-${tag}`,
-      joint: `${railId} housed end to ${receiver} alignment key`,
-      pieceIds: [railId, receiver],
-      x: x + (tag === 'L' ? 0.42 : -0.42),
-      y,
-      z: loadRailZ,
-      sx: 0.62,
-      sy: 0.28,
-      sz: 0.45
-    });
-  });
-});
-
-[-4, 4].forEach((x, i) => {
-  [loadRailZ - 1.6, loadRailZ + 1.6].forEach((bz, j) => {     // 2 drawdown bolts per centre block (front + rear) -- no single-bolt hinge
-    addVerticalBedBolt({
-      id: `F-BB-BC-CD-${i + 1}-${j + 1}`,
-      groupKey: 'lowerLadderFasteners',
-      labelSection: 'fastenerLadder',
-      joint: `HB-CD-${i === 0 ? 'L' : 'R'} to HB-BC-01 center-block drawdown`,
-      pieceIds: [`HB-CD-${i === 0 ? 'L' : 'R'}`, 'HB-BC-01'],
-      x,
-      y: 1.25,
-      z: bz
-    });
-  });
-});
-
-// Headboard-to-base bolt clusters — Lee-call Phase 6 (D0-3): at the ±36 MULLIONS ONLY (the inner ±4 CLEFT/CRIGHT
-// ties are DROPPED). The load transfers through the mullions -> ±36 ties -> base side FACE FRAMES + center beam;
-// there is no separate moment-arm beam. The ±4 center receiver blocks/drawdowns stay as HEADBOARD-internal
-// structure (they no longer tie to the base).
+// Headboard-to-base bolt clusters — Lee-call Phase 6 (D0-3): at the ±36 MULLIONS ONLY (the inner ±4 pair is
+// DROPPED). The load transfers headboard mullions -> ±36 ties -> base side FACE FRAMES + their 4-in verticals;
+// the center beam is mattress-support only, and there is no separate moment-arm beam.
 [-36, 36].forEach(x => {
   [5, 9.75, 14.5].forEach(y => {                       // 3 bolts per line (vertical stack) -- primary moment couple to the base
     const lineName = x === -36 ? 'LMUL' : 'RMUL';
@@ -1767,126 +1787,22 @@ SPEC.courseSeamsAFF.forEach(seamAFF => {
   });
 });
 
-// Nightstand receiver bays, ghosts, bolts, square-nut pockets.
+// ── Nightstand mount (Lee-call Phase 9, D0-4) ────────────────────────────────────────────────────────────────
+// 8 bolts/side thread THROUGH the nightstand cabinet BACK into STEEL THREADED INSERTS set in the headboard SKIN
+// BACK. The nightstand is SELF-SUPPORTED on those bolts and nests BETWEEN the outer side stile + the center
+// mullion (back width = visible skin field - 1/8). NO receiver rails, NO ash diagonal, NO captive-square-nut
+// receiver, NO cantilever arm, NO locator dowels/ledge — all retired 2026-07-04 (Lee specified only the holes +
+// inserts). The insert/boss/bolt hardware is built by addNightstandConnectorBolt (fastener type NS-INS).
 [-1, 1].forEach(side => {
   const cx = side * SPEC.nightstand.centerX;
-  const bayX0 = side < 0 ? -63 : 38;
-  const bayX1 = side < 0 ? -38 : 63;
-  housedRail(groups.lattice, `nightstand upper receiver rail ${side}, housed stile-to-mullion (headboard structure, not nightstand body)`, bayX0, bayX1, 27.1, 1.8, loadRailDepth, loadRailZ, mats.receiver);
-  housedRail(groups.lattice, `nightstand lower receiver rail ${side}, housed stile-to-mullion (headboard structure, not nightstand body)`, bayX0, bayX1, 18.4, 1.8, loadRailDepth, loadRailZ, mats.receiver);
-  line3(groups.lattice, `nightstand ash diagonal ${side}`, [[bayX0, 18.4, -7.4], [bayX1, 27.1, -7.4]], 0x8a5a24, 0.9);
   const sideName = side < 0 ? 'L' : 'R';
-  const leftReceiver = side < 0 ? 'HB-ST-L' : 'HB-MUL-R';
-  const rightReceiver = side < 0 ? 'HB-MUL-L' : 'HB-ST-R';
-  [
-    { railId: `HB-NS-U-${sideName}`, y: 27.1 },
-    { railId: `HB-NS-L-${sideName}`, y: 18.4 }
-  ].forEach(({ railId, y }) => {
-    [
-      { x: bayX0, receiver: leftReceiver, tag: 'A' },
-      { x: bayX1, receiver: rightReceiver, tag: 'B' }
-    ].forEach(({ x, receiver, tag }) => {
-      [loadRailZ - 1.5, loadRailZ + 1.5].forEach((bz, j) => addZipboltSideDrive({   // 2 draw bolts per end (front + rear) -- cantilever rail + key
-        id: `F-ZB-${railId}-${tag}-${j + 1}`,
-        groupKey: 'nightstandFasteners',
-        labelSection: 'fastenerNightstand',
-        joint: `${railId} housed end to ${receiver}`,
-        pieceIds: [railId, receiver],
-        x,
-        y,
-        z: bz,
-        axis: 'x',
-        dir: tag === 'A' ? -1 : 1,
-        socket: 'rear'
-      }));
-      addTenonKey({
-        id: `F-TENON-${railId}-${tag}`,
-        joint: `${railId} housed end to ${receiver} alignment key`,
-        pieceIds: [railId, receiver],
-        x: x + (tag === 'A' ? 0.42 : -0.42),
-        y,
-        z: loadRailZ,
-        sx: 0.58,
-        sy: 0.22,
-        sz: 0.38
-      });
-    });
-  });
-  [
-    { x: bayX0 + 1.1, y: 18.8, tag: 'LOW' },
-    { x: bayX1 - 1.1, y: 26.7, tag: 'HIGH' }
-  ].forEach(({ x, y, tag }) => {
-    addZipboltSideDrive({
-      id: `F-ZB-HB-NS-D-${sideName}-${tag}`,
-      groupKey: 'nightstandFasteners',
-      labelSection: 'fastenerNightstand',
-      joint: `HB-NS-D-${sideName} diagonal housed end draw connector`,
-      pieceIds: [`HB-NS-D-${sideName}`, `HB-NS-${tag === 'LOW' ? 'L' : 'U'}-${sideName}`],
-      x,
-      y,
-      z: -7.4,
-      axis: 'x',
-      dir: tag === 'LOW' ? -1 : 1,
-      socket: 'rear'
-    });
-  });
-
+  // 8 connector bolts/side (2 rows AFF 19.4/26.1 x 4 cols), each reachable from inside the empty drawer pocket,
+  // clear of the side-mount slides — the whole nightstand load path (D-014 cantilever) is these bolts + inserts.
   const xs = [-9, -3, 3, 9].map(dx => cx + dx);
   [26.1, 19.4].forEach((y, rowIndex) => {
+    const rowName = rowIndex === 0 ? 'U' : 'L';
     xs.forEach((x, colIndex) => {
-      const rowName = rowIndex === 0 ? 'U' : 'L';
-      addNightstandConnectorBolt({ id: `F-CN-NS-${sideName}-${rowName}${colIndex + 1}`, sideName, x, y });
-      addSmallScrew({
-        id: `F-KS-NS-${sideName}-${rowName}${colIndex + 1}`,
-        groupKey: 'panelKeeperFasteners',
-        labelSection: 'fastenerPanel',
-        type: 'KS',
-        joint: `rear keeper screw for F-CN-NS-${sideName}-${rowName}${colIndex + 1}`,
-        pieceIds: [`HB-NSK-${sideName}-${rowIndex + 1}${colIndex + 1}`],
-        x,
-        y: y - 0.42,
-        z: -7.98,
-        axis: 'z',
-        length: 0.28
-      });
-    });
-  });
-  addTenonKey({
-    id: `F-TENON-NS-${sideName}-LOW`,
-    joint: `${sideName} nightstand low locator dowel`,
-    pieceIds: [`nightstand-${sideName}`, `HB-NS-L-${sideName}`],
-    x: cx - 11,
-    y: 17.7,
-    z: 1.2,
-    sx: 0.34,
-    sy: 0.34,
-    sz: 1.6
-  });
-  addTenonKey({
-    id: `F-TENON-NS-${sideName}-HIGH`,
-    joint: `${sideName} nightstand high locator dowel`,
-    pieceIds: [`nightstand-${sideName}`, `HB-NS-L-${sideName}`],
-    x: cx + 11,
-    y: 17.7,
-    z: 1.2,
-    sx: 0.34,
-    sy: 0.34,
-    sz: 1.6
-  });
-  box(groups.lattice, `nightstand locating ledge ${side}`, SPEC.nightstand.W, 0.45, 1.0, cx, 17.1, -0.85, mats.night, { edgeOpacity: 0.34 });
-  [-10, -3.5, 3.5, 10].forEach((dx, i) => {
-    addSmallScrew({
-      id: `F-KS-NS-LEDGE-${sideName}-${i + 1}`,
-      groupKey: 'panelKeeperFasteners',
-      labelSection: 'fastenerPanel',
-      type: 'KS',
-      joint: `HB-NS-LEDGE-${sideName} hidden rear retainer`,
-      pieceIds: [`HB-NS-LEDGE-${sideName}`, `HB-FP-${sideName}-LOW`],
-      x: cx + dx,
-      y: 17.1,
-      z: -1.08,
-      axis: 'z',
-      length: 0.55
+      addNightstandConnectorBolt({ id: `F-NSINS-${sideName}-${rowName}${colIndex + 1}`, sideName, x, y });
     });
   });
 });
@@ -2026,14 +1942,36 @@ SPEC.courseSeamsAFF.forEach(seamAFF => {
       chaseClearsMin: mulChaseClear > 2,
       switchPocketWidth: SPEC.switchPanel.W,                                // 1.5 (fits inside the 2.25 in chase)
       switchPocketFitsChase: SPEC.switchPanel.W < mulChaseClear
+    },
+    // Lee-call lower-headboard + nightstand engineering summary (consumed by __BF_HEADBOARD_ENGINEERING in Full-Bed).
+    lowerConstruction: {
+      floorStanding: true,                 // headboard runs floor->top; the grounded base BUTTS INTO it (Lee ~100:26)
+      baseButtsIn: true,
+      perBoxBottomMember: true,            // 3 per-module built-up L bottom cap rails (the real lower member)
+      baseTieAt36Only: true,               // head->base tie at the ±36 mullions ONLY
+      noPlusMinus4Receiver: true,          // NO ±4 center receiver blocks / drawdowns (retired 2026-07-04)
+      noLowerReceiverLadder: true,         // NO cross-mullion "receiver ladder" (retired)
+      noMomentArmBeam: true,               // NO separate longitudinal headboard-support beam (Lee)
+      rearPlyContributesRigidity: true     // 1/4-in (modeled 1/2) ply back adds box rigidity (Lee ~36:30)
+    },
+    nightstandMount: {
+      type: 'steel-inserts-in-skin-back',  // bolt through the cabinet back into steel threaded inserts (D0-4)
+      boltsPerSide: 8,
+      throughCabinetBack: true,
+      selfSupportedNoCantileverArm: true,  // hangs on the 8 bolts + inserts; no receiver rail / steel arm
+      fitsBetweenFrames: true,             // nests between the outer stile + center mullion
+      backReveal: SPEC.nightstand.backReveal,   // 0.125 (back width = visible skin field - 1/8)
+      noReceiverRails: true,
+      noAshDiagonal: true,
+      noCaptiveSquareNut: true,            // CN-SQ retired
+      noLocatorLedgeDowel: true            // no locator ledge/dowel/tenon (no Lee support)
     }
   };
 }
 
-return { SPEC, makeMaterials, makeEngine, deriveZ, buildBedBase, buildFootboardAndLift, buildDockHardware, buildNightstands, buildHeadboard };
+return { SPEC, makeMaterials, makeEngine, deriveZ, buildBedBase, buildFootboardAndLift, buildRegularFootboard, buildDockHardware, buildNightstands, buildHeadboard };
 })();
 /* ==== END BF-GEOMETRY INLINE (edit System/bf-geometry.js, then re-run npm run bf:build) ==== */
-
 const app = document.getElementById('app');
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
@@ -2053,14 +1991,14 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x0e1218);
 
 const camera = new THREE.PerspectiveCamera(43, innerWidth / innerHeight, 0.5, 3000);
-camera.position.set(94, 40, 120);
+camera.position.set(95, 55, 130);
 
 const controls = new OrbitControls(camera, renderer.domElement);
 installBFViewerControls({ THREE, controls });
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;
-controls.target.set(0, 13, 88);
-controls.minDistance = 14;
+controls.target.set(0, 10, 42);
+controls.minDistance = 12;
 controls.maxDistance = 520;
 
 scene.add(new THREE.HemisphereLight(0xcfe1f2, 0x2a2620, 1.05));
@@ -2075,96 +2013,73 @@ const ground = new THREE.Mesh(new THREE.PlaneGeometry(700, 700), new THREE.MeshS
 ground.rotation.x = -Math.PI / 2; ground.position.y = -0.05; ground.receiveShadow = true; scene.add(ground);
 const grid = new THREE.GridHelper(300, 24, 0x1e2731, 0x161d27); grid.material.transparent = true; grid.material.opacity = 0.4; scene.add(grid);
 
-// ---- shared geometry (identical to Full-Bed) ----
+// ---- shared geometry (identical to Full-Bed's base — single source bf-geometry.js -> buildBedBase) ----
 const mats = makeMaterials();
 const { box, cyl, line3 } = makeEngine();
-const wood = ['footWood', 'baseWood', 'baseStructure', 'shellGhost', 'skin', 'night', 'collector', 'receiver'];
+const wood = ['baseWood', 'baseStructure', 'footWood', 'shellGhost', 'collector', 'receiver'];
 const woodBaseOpacity = {};
 wood.forEach(k => { if (mats[k]) woodBaseOpacity[k] = mats[k].opacity; });
 
-const groups = { bedBase: new THREE.Group(), slats: new THREE.Group(), wiring: new THREE.Group(), footboard: new THREE.Group(), liftSystem: new THREE.Group() };
-const liftStage1 = new THREE.Group(); groups.liftSystem.add(liftStage1);
-const liftCarriage = new THREE.Group(); groups.liftSystem.add(liftCarriage);
-const drawerGroups = [];
+const groups = { bedBase: new THREE.Group(), slats: new THREE.Group(), wiring: new THREE.Group() };
+const drawerGroups = [];   // each: { g: THREE.Group, axis: 'x', dir: +-1, ext } -> driven by the Open-drawers control
 const noop = () => ({ element: { dataset: {} } });
 
 buildBedBase({ box, cyl, line3, mats, groups, label: noop, pieceLabel: noop, drawerGroups });
-buildFootboardAndLift({ box, cyl, mats, groups, label: noop, pieceLabel: noop, liftStage1, liftCarriage });
+scene.add(groups.bedBase, groups.slats, groups.wiring);
+groups.wiring.visible = false;   // cable/LED wiring off by default (toggle with "Wires")
 
-const baseGroup = new THREE.Group(); baseGroup.add(groups.bedBase, groups.slats, groups.wiring);
-const cabinetGroup = new THREE.Group(); cabinetGroup.add(groups.footboard, groups.liftSystem);
-scene.add(baseGroup, cabinetGroup);
-
-const dock = buildDockHardware({ cabGroup: cabinetGroup, baseGroup });
-const boltMat = dock.boltMat;
-groups.wiring.visible = false;   // cable wires off by default (toggle with "Wires")
-
-// solid (opaque) by default so the model is clearly visible; Ghost toggles see-through
+// solid (opaque) by default so the construction reads clearly; Ghost toggles the see-through review mode
 function setGhost(on) {
   wood.forEach(k => { const m = mats[k]; if (!m) return; m.opacity = on ? woodBaseOpacity[k] : 1; m.transparent = on; m.depthWrite = !on; m.needsUpdate = true; });
   const b = document.getElementById('bGhost'); if (b) b.classList.toggle('on', on);
 }
 setGhost(false);
 
-// ---- TV lift travel: carriage rises full travel, the middle telescoping stage half ----
-const TRAVEL = SPEC.tv.raisedBottom - SPEC.tv.retractBottom;   // ~35 in
-function setLift(t) {
-  liftCarriage.position.y = TRAVEL * t;
-  liftStage1.position.y = TRAVEL * 0.5 * t;
-}
-setLift(0);
+// ---- drawer open/close: each drawer group slides outward along +-X (its dir) by its full extension ----
+function setDrawers(t) { drawerGroups.forEach(d => { d.g.position.x = d.dir * d.ext * t; }); }
+setDrawers(0);
 
-// ---- cabinet-to-base bolt-on seam labels (CSS2D) ----
-const SEAM = 85;
-const dockLabels = [];
-function addLabel(html, x, y, z, cls, parent) {
+// ---- a few CSS2D construction labels ----
+const infoLabels = [];
+function addLabel(html, x, y, z, cls) {
   const el = document.createElement('div'); el.className = 'lbl ' + (cls || ''); el.innerHTML = html;
-  const o = new CSS2DObject(el); o.position.set(x, y, z); (parent || baseGroup).add(o); dockLabels.push(o); return o;
+  const o = new CSS2DObject(el); o.position.set(x, y, z); scene.add(o); infoLabels.push(o); return o;
 }
-addLabel('<b>bed bolts &#215;4</b> &#183; two rows = couple', -33, 14.5, SEAM - 4.6, '');
-addLabel('<b>3/4&#8243; wire pass-through</b> + grommet', 0, 3, SEAM - 4, '');
-addLabel('<b>BED BASE</b>', 0, 19, 52, '');
-addLabel('<b>TV CABINET</b>', 0, 37, SEAM + 8, '', cabinetGroup);
-dockLabels.forEach(o => o.visible = false);   // labels off by default (toggle with "Labels")
+addLabel('<b>face-frame long side</b> &#183; flush bottom rail (no toe kick)', 37, 15, 30, '');
+addLabel('<b>3 drawer bays / side</b> &#183; faces overlap the verticals', -37, 9, 42, 'spk');
+addLabel('<b>narrow under-slat center beam</b> &#183; 2 legs + end blocks', 0, 15, 20, 'ac');
+addLabel('<b>stationary drawer-bay security cover</b> (under the slats)', 0, 15.6, 62, '');
+addLabel('<b>dense bolt-in slat field</b>', 0, 17.5, 42, 'dow');
+infoLabels.forEach(o => o.visible = false);   // labels off by default (toggle with "Labels")
 
 // ---- state + UI ----
-const state = { gap: 12, target: 12, auto: false, dir: -1, spin: false, ghost: false, labels: false, wires: false, flip: 0, flipTarget: 0, lift: 0, liftTarget: 0 };
+const state = { open: 0, openTarget: 0, ghost: false, slats: true, wires: false, labels: false, spin: false };
 const gapInput = document.getElementById('gap'), seamval = document.getElementById('seamval');
 function setBtn(id, on) { const b = document.getElementById(id); if (b) b.classList.toggle('on', on); }
 function go(id, fn) { const b = document.getElementById(id); if (b) b.onclick = fn; }
-const raiseBtn = document.getElementById('bRaise');
-function syncRaiseBtn() {
-  if (!raiseBtn) return;
-  const up = state.liftTarget > 0.5;
-  if (raiseBtn._up === up) return;
-  raiseBtn._up = up;
-  raiseBtn.innerHTML = up ? '&#9660; Lower TV' : '&#9650; Raise TV';
+const drawersBtn = document.getElementById('bDrawers');
+function syncDrawersBtn() {
+  if (!drawersBtn) return;
+  const opening = state.openTarget > 0.5;
+  if (drawersBtn._open === opening) return;
+  drawersBtn._open = opening;
+  drawersBtn.innerHTML = opening ? '&#9654;&#9664; Close drawers' : '&#9664;&#9654; Open drawers';
 }
-go('bRaise', () => { state.liftTarget = state.liftTarget > 0.5 ? 0 : 1; });
-const dockBtn = document.getElementById('bDock');
-function syncDockBtn() {            // single button toggles + relabels to the NEXT action
-  if (!dockBtn) return;
-  const docked = state.target < 0.3;          // seam is closed -> offer Open
-  if (dockBtn._docked === docked) return;
-  dockBtn._docked = docked;
-  dockBtn.innerHTML = docked ? '&#9664; Open' : '&#9654; Seat';
-}
-go('bDock', () => { state.target = state.target > 0.3 ? 0 : 22; state.auto = false; setBtn('bAuto', false); });
-go('bAuto', () => { state.auto = !state.auto; setBtn('bAuto', state.auto); });
+go('bDrawers', () => { state.openTarget = state.openTarget > 0.5 ? 0 : 1; });
 go('bGhost', () => { state.ghost = !state.ghost; setGhost(state.ghost); });
-go('bLabels', () => { state.labels = !state.labels; dockLabels.forEach(o => o.visible = state.labels); setBtn('bLabels', state.labels); });
+go('bSlats', () => { state.slats = !state.slats; groups.slats.visible = state.slats; setBtn('bSlats', !state.slats); });
 go('bWires', () => { state.wires = !state.wires; groups.wiring.visible = state.wires; setBtn('bWires', state.wires); });
+go('bLabels', () => { state.labels = !state.labels; infoLabels.forEach(o => o.visible = state.labels); setBtn('bLabels', state.labels); });
 go('bSpin', () => { state.spin = !state.spin; setBtn('bSpin', state.spin); });
-go('bFlip', () => { state.flipTarget = state.flipTarget > 0.1 ? 0 : Math.PI; const on = state.flipTarget > 0.1; setBtn('bFlip', on); if (on) { state.target = 22; state.auto = false; setBtn('bAuto', false); } });
-if (gapInput) gapInput.oninput = () => { state.gap = state.target = parseFloat(gapInput.value); state.auto = false; setBtn('bAuto', false); };
+if (gapInput) gapInput.oninput = () => { state.open = state.openTarget = parseFloat(gapInput.value) / 100; };
 
 const views = {
-  iso:   { p: [94, 40, 120], t: [0, 13, 88] },
-  side:  { p: [130, 28, 88], t: [0, 13, 88] },
-  whole: { p: [120, 86, 210], t: [0, 16, 48] },
-  top:   { p: [2, 135, 92], t: [0, 8, 86] },
-  ac:    { p: [-60, 13, 64], t: [-33, 7, 84] },
-  spk:   { p: [60, 13, 64], t: [33, 7, 84] },
+  iso:   { p: [95, 55, 130], t: [0, 10, 42] },
+  side:  { p: [140, 20, 42], t: [0, 10, 42] },
+  whole: { p: [120, 90, 175], t: [0, 12, 42] },
+  drwL:  { p: [-92, 14, 42], t: [-37, 9, 42] },
+  drwR:  { p: [92, 14, 42], t: [37, 9, 42] },
+  top:   { p: [2, 150, 44], t: [0, 6, 42] },
 };
 let camAnim = null;
 document.querySelectorAll('[data-cam]').forEach(b => { b.onclick = () => { const v = views[b.dataset.cam]; if (!v) return;
@@ -2173,21 +2088,11 @@ document.querySelectorAll('[data-cam]').forEach(b => { b.onclick = () => { const
 const clock = new THREE.Clock();
 function tick() {
   const dt = Math.min(clock.getDelta(), 0.05);
-  if (state.auto && Math.abs(state.gap - state.target) < 0.2) { state.dir *= -1; state.target = state.dir < 0 ? 0 : 22; }
-  state.gap += (state.target - state.gap) * Math.min(1, dt * 4.0);
-  state.flip += (state.flipTarget - state.flip) * Math.min(1, dt * 3.5);
-  state.lift += (state.liftTarget - state.lift) * Math.min(1, dt * 2.4);
-  setLift(state.lift);
-  syncRaiseBtn();
-  const CZ = 93;                                   // cabinet centre Z — flip pivots here so it turns in place
-  cabinetGroup.rotation.y = state.flip;
-  cabinetGroup.position.x = -CZ * Math.sin(state.flip);
-  cabinetGroup.position.z = CZ * (1 - Math.cos(state.flip)) + state.gap;
-  if (gapInput && document.activeElement !== gapInput) gapInput.value = state.gap.toFixed(1);
-  if (seamval) seamval.textContent = state.gap.toFixed(1) + '″';
-  syncDockBtn();
-  const mated = state.gap < 0.6 ? 1 : 0;
-  boltMat.emissiveIntensity = mated * 0.85;        // bolts glow when seated
+  state.open += (state.openTarget - state.open) * Math.min(1, dt * 3.4);
+  setDrawers(state.open);
+  syncDrawersBtn();
+  if (gapInput && document.activeElement !== gapInput) gapInput.value = (state.open * 100).toFixed(0);
+  if (seamval) seamval.textContent = (state.open * 100).toFixed(0) + '%';
   controls.autoRotate = state.spin; controls.autoRotateSpeed = 0.8;
   if (camAnim) {
     camAnim.k = Math.min(1, camAnim.k + dt * 1.7);
@@ -2204,24 +2109,227 @@ addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; cam
   renderer.setSize(innerWidth, innerHeight); labelRenderer.setSize(innerWidth, innerHeight); });
 tick();
 
-window.__BFD09 = { ready: true, sharedGeometry: true, gap: () => state.gap,
-  baseMeshes: groups.bedBase.children.length, footMeshes: groups.footboard.children.length,
-  SPECfootboard: SPEC.footboard, seam: SEAM };
-// Lee-call Phase 8 (rpt 57-62): footboard CONFIGURATIONS — relocatable TV cabinet + regular-footboard variant + 1/8 reveal + Phase-6 ash-block attach.
+// ============================================================================
+//  VALIDATORS — the Lee/Dawna under-bed construction, measured from the BUILT base scene.
+//  Bed-Base is a metadata model: window.__BFBASE.ready gates load; the __BF_* validators below are
+//  discovered + gated generically by tools/bf-model-check.js (any gating pass:false fails the model).
+//  These reuse the exact base checks from Full-Bed_3D.html so the two models cannot disagree about the
+//  base. (Headboard / footboard / dock / cabinet checks are intentionally ABSENT — this is base-only.)
+// ============================================================================
 (function () {
-  const nm = []; scene.traverse(o => { if (o.name) nm.push(o.name); });
-  const has = re => nm.some(n => re.test(n)), cnt = re => nm.filter(n => re.test(n)).length;
-  const d = {
-    relocatableTvCabinet: has(/cabinet relocatable standalone marker/) && SPEC.footboard.relocatable === true,
-    regularFootboardVariant: has(/FB-REG regular footboard VARIANT/),
-    revealSetback: cnt(/cabinet 1\/8 in reveal.setback/) === 2 && SPEC.footboard.reveal === 0.125,
-    cabinetAshBlockAttach: has(/ash connector block \(screw\+glue to cabinet face frame/),
-    bedFacingHiddenBolts: cnt(/hidden bed-facing bolt shaft/) === 4,
-    note: 'Lee-call Phase 8: relocatable TV cabinet + regular-footboard variant + 1/8 reveal; Phase-6 ash-block cabinet-to-base attach (hidden bed-facing bolts).'
+  const _names = []; scene.traverse(o => { if (o.name) _names.push(o.name); });
+  const has = re => _names.some(n => re.test(n)), cnt = re => _names.filter(n => re.test(n)).length;
+  const B = SPEC.base;
+
+  // ---- base platform: face-frame long sides, NO toe kick, narrow under-slat center beam on 2 legs, dense slats ----
+  window.__BF_BASE_PLATFORM = {
+    noToeKick: !has(/toe plinth/) && SPEC.base.toeH === 0 && SPEC.base.toeInset === 0,
+    flushBottomRail: cnt(/side face-frame BOTTOM rail \(solid FLUSH to the floor; NO toe kick/) === 2,
+    faceFrameTopRails: cnt(/side face-frame TOP rail/) === 2,
+    faceFrameVerticals: cnt(/side face-frame vertical stile/) >= 6,
+    centerBeamPresent: has(/mattress-support CENTER BEAM/),
+    centerBeamTwoLegs: cnt(/center-beam intermediate floor LEG/) === 2,
+    levelersPresent: cnt(/floor LEVELER/) >= 3,
+    denseSlats: cnt(/BF-BASE removable slat/) >= 16,
+    slatGapDense: SPEC.base.slat.gap <= 2.0,
+    slatNutserts: cnt(/slat.*nutsert bolt/) >= 2,
+    stationaryBayCover: cnt(/stationary drawer-bay TOP \/ security cover/) === 2,
+    topBorderSitOn: cnt(/TOP BORDER RAIL \(sit-on/) >= 2 && has(/overlapping backing/),
+    note: 'Lee-call Phase 5 + drawer-base translation: face-frame long sides (top rail + flush bottom rail + 4-in verticals), NO toe kick, a NARROW under-slat mattress-support center beam on EXACTLY 2 intermediate legs (+ head/foot end blocks) + levelers, dense ~1.5 in bolt-in nutsert slats, a STATIONARY drawer-bay top/security cover, sit-on top border with overlapping backing.'
   };
-  d.pass = d.relocatableTvCabinet && d.regularFootboardVariant && d.revealSetback && d.cabinetAshBlockAttach && d.bedFacingHiddenBolts;
-  window.__BF_FOOTBOARD_VARIANTS = d;
+  window.__BF_BASE_PLATFORM.pass = window.__BF_BASE_PLATFORM.noToeKick && window.__BF_BASE_PLATFORM.flushBottomRail
+    && window.__BF_BASE_PLATFORM.faceFrameTopRails && window.__BF_BASE_PLATFORM.faceFrameVerticals
+    && window.__BF_BASE_PLATFORM.centerBeamPresent && window.__BF_BASE_PLATFORM.centerBeamTwoLegs
+    && window.__BF_BASE_PLATFORM.levelersPresent && window.__BF_BASE_PLATFORM.denseSlats
+    && window.__BF_BASE_PLATFORM.slatGapDense && window.__BF_BASE_PLATFORM.slatNutserts
+    && window.__BF_BASE_PLATFORM.stationaryBayCover && window.__BF_BASE_PLATFORM.topBorderSitOn;
+
+  // ---- drawers: faces overlap the 4-in verticals (thin reveal); no moving-drawer security top; D-093 lip LED intact ----
+  window.__BF_DRAWERS = {
+    overlappingFaces: SPEC.drawer.faceOverlap === true && cnt(/drawer face .*OVERLAPS the 4-in verticals/) === 6,
+    thinReveal: SPEC.drawer.faceReveal <= 0.25,
+    noMovingDrawerSecurityTop: cnt(/drawer .*TOP \(5th surface/) === 0,
+    sixDrawers: cnt(/BF-BASE drawer face /) === 6,
+    ledLipCarrierIntact: cnt(/drawer-lip LED carrier rail/) === 2,
+    ledLipChannelIntact: cnt(/drawer-lip LED channel/) === 2 && cnt(/drawer-lip COB strip/) === 2,
+    ledLipRecess093: SPEC.drawer.faceRecess === 0.638 && SPEC.drawer.frontWall === 0.5 && SPEC.drawer.revealGap === 0.375 && SPEC.drawer.channelRout === 0.276,
+    optionAPull: cnt(/beveled bottom-edge pull \(Dawna Option A/) === 6,
+    note: 'drawer faces overlap the 4-in face-frame verticals with a 3/16 in reveal (edge-to-edge read); the moving-drawer fifth-side TOP is REMOVED (security = the STATIONARY drawer-bay cover); the D-093 drawer-lip LED recess stays intact.'
+  };
+  window.__BF_DRAWERS.pass = window.__BF_DRAWERS.overlappingFaces && window.__BF_DRAWERS.thinReveal
+    && window.__BF_DRAWERS.noMovingDrawerSecurityTop && window.__BF_DRAWERS.sixDrawers
+    && window.__BF_DRAWERS.ledLipCarrierIntact && window.__BF_DRAWERS.ledLipChannelIntact
+    && window.__BF_DRAWERS.ledLipRecess093 && window.__BF_DRAWERS.optionAPull;
+
+  // ---- Lee/Dawna drawer-base structure (plan 17): ledges + boundary stiles + inside strips + open-ladder modules
+  //      + glide boards + connector bolts + stationary security cover + narrow center beam on 2 legs ----
+  window.__BF_DRAWER_STRUCTURE = {
+    sourceRef: has(/Dawna\/Donna PDF ledge/) && !!(SPEC.base.drawerStructure),
+    // side-frame ledges (distinguish the ACTUAL ledge from the module end-blocks that merely reference "lands on the ... ledge")
+    sideFrameLedges: cnt(/side-frame internal ledge \(Dawna\/Donna PDF ledge/) === 2,
+    // 3 drawer-pair modules — counted from REAL open-ladder members (2 glide boards + 2 rungs per side per module = 8),
+    // not a void identity marker (the 2026-07-04 mechanics pass deleted the void markers/windows as label-only structure)
+    drawerPairModules: [1, 2, 3].every(n => cnt(new RegExp('drawer-pair structure MODULE ' + n + '/3')) >= 8),
+    // 4 boundary stiles per side (the base side face-frame verticals) = 8 total
+    boundaryStiles: cnt(/side face-frame vertical stile/) === 8,
+    // hidden 2-in inside strips behind the 4-in stiles (4/side = 8)
+    insideStrips: cnt(/inside strip \(2 in/) === 8,
+    // side-to-side glide boards at the drawer-row BOUNDARIES (head+foot per module per side = 12), slide faces flush
+    // with the face-frame opening edges, landing on the 2-in inside strips (not floating, not through drawer centers)
+    glideBoardLandings: cnt(/transverse CROSS-RAIL/) === 6 && has(/spanning the FULL bed width/),   // (plan 19) 6 CONTINUOUS FULL-WIDTH transverse cross-rails spanning ledge-to-ledge (was 12 half-boards stopping at the center chase)
+    // cabinet-side slides mount to the named module glide boards (never floating)
+    slidesMountedToStructure: cnt(/slide rail \(cabinet; mounted to the drawer-pair module glide board\)/) >= 6,
+    // module-to-side-frame connector bolts
+    moduleConnectorBolts: cnt(/module-to-side-frame CONNECTOR BOLT/) >= 3,
+    // one-side-per-window PDF rule encoded in labels
+    oneSidePerWindowRule: has(/only one side of the structure in each window is connected/i),
+    // separate connector systems: module bolts vs ±36 head-to-base tie bolts vs side-frame/corner bolts
+    separateConnectorSystems: has(/module-to-side-frame CONNECTOR BOLT/) && has(/a SEPARATE bolt family/i) && has(/bed-base side bolt head aligned x=36/),
+    // drawer structures read as open ladder frames: real under-drawer rungs join the boundary boards; the window
+    // between the boards IS the drawer bay, kept mechanically empty (proven by __BF_DRAWER_MECHANICS, not a void box)
+    openLadderFrame: cnt(/bottom ladder rung/) >= 12 && has(/open-ladder/),
+    // plan-18 reference faithfulness: the glide boards are SHORT slide-height rails (not full-height panels) and each
+    // module's outboard ends REST on the side-frame ledge via vertical END POSTS (Dawna/Donna pg19) — 12 end posts
+    // (head+foot per module per side). This is the c7bc83d "stacked cabinet panels" -> "open ladder" visual fix.
+    openLadderEndPostsOnLedge: cnt(/END POST .*RESTS on the side-frame internal ledge/) === 12 && has(/cross-rail at slide height/),
+    // stationary drawer-bay top/security cover — present, stationary, NOT a moving drawer top
+    securityTopPresent: cnt(/stationary drawer-bay TOP \/ security cover/) === 2 && has(/rests on the 2-in inside-strip tops \+ bay back-wall top/),
+    securityTopStationary: has(/stationary drawer-bay TOP \/ security cover.*fixed to the base/i) && cnt(/drawer .*TOP \(5th surface/) === 0,
+    securityTopNotMovingDrawerTop: cnt(/drawer .*TOP \(5th surface/) === 0,
+    // no free/recessed toe-kick void under the drawers
+    noToeKickPreserved: !has(/toe plinth/) && SPEC.base.toeH === 0 && SPEC.base.toeInset === 0,
+    // center beam: slat/mattress support only, narrow form, exactly 2 legs at the two between-drawer gaps, + end blocks
+    centerBeamSlatOnly: has(/mattress-support CENTER BEAM.*slat\/mattress support ONLY/i) && !has(/moment-arm beam/i),
+    centerBeamNarrowForm: has(/mattress-support CENTER BEAM.*narrow under-slat/i) && !has(/3 x 17 x 85/) && (SPEC.base.centerBeam.beamTh <= 1.0),
+    centerBeamTwoLegsOnly: cnt(/center-beam intermediate floor LEG/) === 2,
+    centerBeamLegDropZones: has(/intermediate floor LEG.*between drawer 1\/2/) && has(/intermediate floor LEG.*between drawer 2\/3/),
+    centerBeamEndSupportBlocks: cnt(/center-beam .*end support block/i) === 2,
+    // finished exterior stays clean: drawer faces overlap the 4-in verticals with a thin reveal
+    finishedExteriorClean: SPEC.drawer.faceOverlap === true && cnt(/drawer face .*OVERLAPS the 4-in verticals/) === 6,
+    // central wiring/beam chase preserved (legs + cabling pass the center slot without blocking it)
+    centralSlotPreserved: has(/UNDER-BASE cable crossing/) && cnt(/drawer-bay BACK wall/) >= 2 && has(/center slot open for the beam legs/),   // (plan 19) the cross-rails cross the center at drawer height, but the LOW chase (cables, y~3) + the between-rail leg gaps stay open
+    note: 'Lee drawer-base translation (2026-07-04, plan 17): Dawna/Donna reference construction method in HB-RISO-02 — side-frame ledges + 4 boundary stiles/side + hidden 2-in inside strips + 3 open-ladder drawer-pair modules + side-to-side glide boards landing on the strips + module-to-side-frame connector bolts (one side per window; a separate bolt family) + a stationary drawer-bay top/security cover (not a moving drawer lid) + a narrow under-slat center beam (slat support only) on EXACTLY 2 legs + head/foot end blocks. Fails if the model regresses to generic divider walls, a moving drawer security top, a full-height 3-leg center slab, or a missing ledge/strip/module/glide/connector/cover.'
+  };
+  window.__BF_DRAWER_STRUCTURE.pass =
+       window.__BF_DRAWER_STRUCTURE.sourceRef && window.__BF_DRAWER_STRUCTURE.sideFrameLedges
+    && window.__BF_DRAWER_STRUCTURE.drawerPairModules && window.__BF_DRAWER_STRUCTURE.boundaryStiles
+    && window.__BF_DRAWER_STRUCTURE.insideStrips && window.__BF_DRAWER_STRUCTURE.glideBoardLandings
+    && window.__BF_DRAWER_STRUCTURE.slidesMountedToStructure && window.__BF_DRAWER_STRUCTURE.moduleConnectorBolts
+    && window.__BF_DRAWER_STRUCTURE.oneSidePerWindowRule && window.__BF_DRAWER_STRUCTURE.separateConnectorSystems
+    && window.__BF_DRAWER_STRUCTURE.openLadderFrame && window.__BF_DRAWER_STRUCTURE.openLadderEndPostsOnLedge && window.__BF_DRAWER_STRUCTURE.securityTopPresent
+    && window.__BF_DRAWER_STRUCTURE.securityTopStationary && window.__BF_DRAWER_STRUCTURE.securityTopNotMovingDrawerTop
+    && window.__BF_DRAWER_STRUCTURE.noToeKickPreserved && window.__BF_DRAWER_STRUCTURE.centerBeamSlatOnly
+    && window.__BF_DRAWER_STRUCTURE.centerBeamNarrowForm && window.__BF_DRAWER_STRUCTURE.centerBeamTwoLegsOnly
+    && window.__BF_DRAWER_STRUCTURE.centerBeamLegDropZones && window.__BF_DRAWER_STRUCTURE.centerBeamEndSupportBlocks
+    && window.__BF_DRAWER_STRUCTURE.finishedExteriorClean && window.__BF_DRAWER_STRUCTURE.centralSlotPreserved;
+
+  // ---- MECHANICAL drawer-clearance gate: real AABB collision + swept-travel math on the BUILT base scene
+  //      (drawers closed). Mirrors tools/bf-drawer-mechanics-check.js + Full-Bed's __BF_DRAWER_MECHANICS. ----
+  (function () {
+    const EPS = 0.005, MIN_COVER_CLEAR = 0.375;
+    const mechFails = [], samplePairs = [];
+    const isMesh = o => o.isMesh === true;
+    const boxOf = o => new THREE.Box3().setFromObject(o);
+    const dgSet = new Set(drawerGroups.map(d => d.g));
+    const statics = [];
+    groups.bedBase.children.forEach(o => { if (!dgSet.has(o) && isMesh(o) && o.material !== mats.void && o.material !== mats.access) statics.push(o); });
+    groups.slats.children.forEach(o => { if (isMesh(o)) statics.push(o); });
+    const staticBox = new Map(statics.map(o => [o, boxOf(o)]));
+    const ov = (a, b) => {
+      const dx = Math.min(a.max.x, b.max.x) - Math.max(a.min.x, b.min.x);
+      const dy = Math.min(a.max.y, b.max.y) - Math.max(a.min.y, b.min.y);
+      const dz = Math.min(a.max.z, b.max.z) - Math.max(a.min.z, b.min.z);
+      return (dx > EPS && dy > EPS && dz > EPS) ? { dx, dy, dz } : null;
+    };
+    const isCabSlide = o => /full-extension slide rail \(cabinet/.test(o.name || '');
+    const isDrwSlide = o => /full-extension slide \(drawer\)/.test(o.name || '');
+    let closedCollisions = 0, sweptCollisions = 0, centerRailHits = 0;
+    const drawerData = drawerGroups.map(d => {
+      const meshes = []; d.g.traverse(o => { if (isMesh(o)) meshes.push(o); });
+      const body = new THREE.Box3();
+      meshes.forEach(o => { if (/drawer (left|right) \d+ (floor|inner wall|front wall|side wall)/.test(o.name || '')) body.union(boxOf(o)); });
+      return { d, meshes, body: body.isEmpty() ? null : body };
+    });
+    drawerData.forEach(({ d, meshes, body }) => {
+      if (!body) { mechFails.push('a drawer group is missing its floor/walls'); return; }
+      const bodyCz = (body.min.z + body.max.z) / 2, bodySz = body.max.z - body.min.z;
+      meshes.forEach(m => {
+        const mb = boxOf(m);
+        const sw = mb.clone(); if (d.dir > 0) sw.max.x += d.ext; else sw.min.x -= d.ext;
+        statics.forEach(s => {
+          if (isCabSlide(s) && isDrwSlide(m)) return;
+          const sb = staticBox.get(s);
+          const c = ov(sb, mb);
+          if (c) {
+            closedCollisions += 1;
+            const zc = (sb.min.z + sb.max.z) / 2;
+            if (Math.abs(zc - bodyCz) < 0.3 * bodySz && ov(sb, body)) centerRailHits += 1;
+            if (samplePairs.length < 12) samplePairs.push('CLOSED "' + (s.name || '?').slice(0, 58) + '" x "' + (m.name || '?').slice(0, 58) + '" ov ' + [c.dx, c.dy, c.dz].map(v => v.toFixed(3)).join('/'));
+          } else if (ov(sb, sw)) {
+            sweptCollisions += 1;
+            if (samplePairs.length < 12) samplePairs.push('SWEPT "' + (s.name || '?').slice(0, 58) + '" blocks "' + (m.name || '?').slice(0, 58) + '"');
+          }
+        });
+      });
+    });
+    if (closedCollisions) mechFails.push(closedCollisions + ' static-vs-moving CLOSED collision(s) — static structure inside a drawer volume');
+    if (sweptCollisions) mechFails.push(sweptCollisions + ' static-vs-moving swept-TRAVEL collision(s) — a drawer cannot open');
+    if (centerRailHits) mechFails.push(centerRailHits + ' static rail(s) through a drawer-row CENTER');
+    const covers = statics.filter(s => /stationary drawer-bay TOP \/ security cover/.test(s.name || ''));
+    if (covers.length !== 2) mechFails.push(covers.length + ' stationary security cover(s) (expected 2)');
+    let slatMinY = Infinity; groups.slats.children.forEach(o => { if (isMesh(o) && /removable slat/.test(o.name || '')) slatMinY = Math.min(slatMinY, boxOf(o).min.y); });
+    let coverClear = Infinity;
+    covers.forEach(cv => {
+      const cb = staticBox.get(cv);
+      drawerData.forEach(({ body }) => {
+        if (!body) return;
+        if (((cb.min.x + cb.max.x) / 2 < 0) !== ((body.min.x + body.max.x) / 2 < 0)) return;
+        coverClear = Math.min(coverClear, cb.min.y - body.max.y);
+      });
+      if (isFinite(slatMinY) && cb.max.y > slatMinY - EPS) mechFails.push('the security cover top is not below the slat underside');
+    });
+    if (covers.length && coverClear < MIN_COVER_CLEAR - 1e-6) mechFails.push('security cover clears the drawer walls by ' + coverClear.toFixed(3) + ' in (< ' + MIN_COVER_CLEAR + ')');
+    const legs = statics.filter(s => /center-beam intermediate floor LEG/.test(s.name || ''));
+    if (legs.length !== 2) mechFails.push(legs.length + ' intermediate center-beam leg(s) (expected exactly 2)');
+    const leftRows = drawerData.filter(x => x.body && (x.body.min.x + x.body.max.x) / 2 < 0).map(x => x.body).sort((a, b) => a.min.z - b.min.z);
+    if (legs.length === 2 && leftRows.length === 3) {
+      const legZoneOk = legs.every(l => { const lb = staticBox.get(l); return leftRows.some((r, i) => i + 1 < leftRows.length && lb.min.z > r.max.z + EPS && lb.max.z < leftRows[i + 1].min.z - EPS); });
+      if (!legZoneOk) mechFails.push('a center-beam leg is not inside a between-drawer-row gap');
+    }
+    if (drawerGroups.length !== 6) mechFails.push(drawerGroups.length + ' drawer groups (expected 6)');
+    if (_names.some(n => /drawer (left|right) \d+ TOP\b/.test(n))) mechFails.push('a moving drawer fifth-side TOP exists (security must be the stationary bay cover)');
+    window.__BF_DRAWER_MECHANICS = {
+      pass: mechFails.length === 0,
+      closedCollisions, sweptCollisions, centerRailHits,
+      coverClearanceIn: isFinite(coverClear) ? +coverClear.toFixed(3) : null, minCoverClearanceIn: MIN_COVER_CLEAR,
+      drawers: drawerGroups.length, covers: covers.length, legs: legs.length,
+      staticsChecked: statics.length,
+      mechFails, samplePairs,
+      note: 'MECHANICAL drawer gate measured from the built base scene (real AABBs): closed drawer volumes clear, full swept travel clear, no rail through a drawer-row center, stationary cover >= 3/8 in over the drawer walls + below the slats, exactly 2 center-beam legs in the between-row gaps, no moving drawer top. Mirrors tools/bf-drawer-mechanics-check.js.'
+    };
+  })();
+
+  // ---- metadata contract: ready gates load; identity proves base-only (no headboard/footboard/cabinet) ----
+  window.__BFBASE = {
+    ready: true,
+    sharedGeometry: true,
+    baseMeshes: groups.bedBase.children.filter(o => o.isMesh).length,
+    slatMeshes: groups.slats.children.filter(o => o.isMesh && /removable slat/.test(o.name || '')).length,
+    drawerFaces: cnt(/BF-BASE drawer face /),
+    drawerGroups: drawerGroups.length,
+    // precise STRUCTURE checks (not loose word matches — buildBedBase has a "base-to-headboard cable bore"
+    // label + a "-> cubby + lift" cable label that must NOT read as headboard/footboard structure).
+    hasHeadboard: has(/HB-MUL|hollow built-up mullion|recessed field skin|headboard module|lattice/i),
+    hasFootboard: has(/REGFB|FB-CAB|FB (left|right) side panel|TV ghost|soundbar ghost/i),
+    SPECbase: SPEC.base,
+    note: 'Bed-Base: drawer base / slat-support / Lee under-bed construction ONLY (buildBedBase). No headboard, footboard, TV cabinet, or dock hardware.'
+  };
+  window.__BFBASE.pass = window.__BFBASE.ready === true && window.__BFBASE.drawerFaces === 6
+    && window.__BFBASE.hasHeadboard === false && window.__BFBASE.hasFootboard === false
+    && window.__BF_BASE_PLATFORM.pass && window.__BF_DRAWERS.pass
+    && window.__BF_DRAWER_STRUCTURE.pass && window.__BF_DRAWER_MECHANICS.pass;
 })();
 </script>
+
 </body>
 </html>

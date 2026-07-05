@@ -28,8 +28,8 @@ Nothing to install.
 ## What's here
 
 - **Measurements** (`Measurements.html`) — quick-reference list of key dimensions and clearances.
-- **Interactive 3D models** (repo root) — the full bed, the headboard, the TV cabinet + bed base,
-  and the top-cap joint detail.
+- **Interactive 3D models** (repo root) — the full bed with the TV cabinet, the full bed with a regular
+  footboard, the headboard, and the bed base.
 
 **Mouse:** left-drag rotate · wheel zoom · right-drag pan · hold Space/Shift + left-drag to pan ·
 press **P** for Pan Mode.
