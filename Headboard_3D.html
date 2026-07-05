@@ -522,6 +522,7 @@ function makeMaterials() {
     brass: new THREE.MeshStandardMaterial({ color: 0xd8a33b, roughness: 0.24, metalness: 0.86 }),
     tenon: new THREE.MeshStandardMaterial({ color: 0x7dd3fc, roughness: 0.58, transparent: true, opacity: 0.82 }),
     switchPlate: new THREE.MeshStandardMaterial({ color: 0x3b424e, roughness: 0.5, metalness: 0.25 }),
+    roomTrim: new THREE.MeshStandardMaterial({ color: 0x8b929c, roughness: 0.85, metalness: 0.0 }),   // OPAQUE room-context trim (the wall baseboard); no transparent flag -> safe from the ghost-white bug
     buttonBlack: new THREE.MeshStandardMaterial({ color: 0x0a0a0a, roughness: 0.42, metalness: 0.5 }),
     panelScrew: new THREE.MeshStandardMaterial({ color: 0xb45309, roughness: 0.34, metalness: 0.72 }),
     panelBatten: new THREE.MeshStandardMaterial({ color: 0xc9914b, roughness: 0.68, transparent: true, opacity: 0.66 }),
@@ -1381,13 +1382,31 @@ function addHeadboardModuleConnector({ id, seamSide, y, tag }) {
 // member length at one X edge; 'h' = web returns along the length at one Y edge. The show FACE stays at z=0
 // (the PROUD face-frame plane the recessed field skins sit 3/16 in behind). Web names deliberately omit the
 // "side stile"/"bottom cap rail" tokens so the Phase-1 module count validators keep matching only the faces.
-function addBuiltUpLFrameMember({ faceName, webName, group = groups.lattice, orient, x0, x1, y0, y1, webEdge, mat = mats.shell }) {
+function addBuiltUpLFrameMember({ faceName, webName, group = groups.lattice, orient, x0, x1, y0, y1, webEdge, mat = mats.shell, reliefY = 0, reliefD = 0 }) {
   const fTh = SPEC.frameFaceTh, wDepth = SPEC.frameWebDepth;
   const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, w = x1 - x0, h = y1 - y0;
   const opts = { edgeColor: 0x5f411a, edgeOpacity: 0.44 };
+  const backZ = -fTh - wDepth / 2;
   box(group, faceName, w, h, fTh, cx, cy, -fTh / 2, mat, opts);                                  // 7/8 show face at the proud front plane
-  if (orient === 'v') box(group, webName, fTh, h, wDepth, webEdge === 'low' ? x0 + fTh / 2 : x1 - fTh / 2, cy, -fTh - wDepth / 2, mat, opts);
-  else                box(group, webName, w, fTh, wDepth, cx, webEdge === 'low' ? y0 + fTh / 2 : y1 - fTh / 2, -fTh - wDepth / 2, mat, opts);
+  // Return WEB — the wall-facing part. Optionally RELIEVED at the bottom-BACK to clear the room baseboard (owner
+  // 2026-07-05): the web's BACK edge steps FORWARD reliefD in for the bottom reliefY in AFF, so the headboard sits
+  // flush to the wall ABOVE a ~reliefY-in baseboard standing ~reliefD in proud. This is a scribe/rabbet on the BACK
+  // VERTICAL face — NOT a notch cut into the bottom. Front of the web stays put; only the back moves in.
+  if (orient === 'v') {
+    const webX = webEdge === 'low' ? x0 + fTh / 2 : x1 - fTh / 2;
+    const rTop = Math.min(reliefY, y1);
+    if (reliefD > 0 && rTop > y0) {
+      const rD = wDepth - reliefD;
+      box(group, `${webName} — baseboard-clearance relief (back stepped forward ${reliefD} in for the bottom ${rTop} in AFF; clears the room baseboard)`, fTh, rTop - y0, rD, webX, (y0 + rTop) / 2, -fTh - rD / 2, mat, opts);
+      if (y1 > rTop) box(group, webName, fTh, y1 - rTop, wDepth, webX, (rTop + y1) / 2, backZ, mat, opts);
+    } else box(group, webName, fTh, h, wDepth, webX, cy, backZ, mat, opts);
+  } else {
+    const webY = webEdge === 'low' ? y0 + fTh / 2 : y1 - fTh / 2;
+    if (reliefD > 0 && cy < reliefY) {                                                            // whole rail sits within the baseboard zone -> relieve its full web depth
+      const rD = wDepth - reliefD;
+      box(group, `${webName} — baseboard-clearance relief (back stepped forward ${reliefD} in; clears the room baseboard)`, w, fTh, rD, cx, webY, -fTh - rD / 2, mat, opts);
+    } else box(group, webName, w, fTh, wDepth, cx, webY, backZ, mat, opts);
+  }
 }
 
 // Shell — three finished bolt-together boxes (HB-MOD-L / HB-MOD-C / HB-MOD-R) with BUILT-UP L-section outer
@@ -1413,24 +1432,29 @@ HB_MODULES.forEach(m => {
 // BOTTOM cap → three per-module BUILT-UP L-section bottom rails so each box reads as a finished framed unit
 // (plan 16 §1.4). The CENTER rail spans mullion-to-mullion + carries BOTH mullions; the side rails butt to it
 // at the mullion outer faces (±38).
+// Baseboard clearance (owner 2026-07-05): the headboard's back-bottom is RELIEVED on its BACK VERTICAL face to
+// clear a standard room baseboard (~BB_RELIEF_H in tall, ~BB_RELIEF_D in proud of the wall) so the headboard sits
+// FLUSH to the wall above it — NOT a notch cut into the bottom. Applied to the wall-facing webs of the bottom
+// rails (full width) + the side stiles (the vertical members that touch the wall).
+const BB_RELIEF_H = 6.0, BB_RELIEF_D = 1.0;   // room-baseboard height / proud depth (owner spec; searched typical 3.25-8 in tall x 0.5-0.625 in thick)
 HB_MODULES.forEach(m => {
   const w = m.buttX1 - m.buttX0;
   addBuiltUpLFrameMember({
     faceName: `${m.id} bottom cap rail ${w}x2x8 (${m.name} box bottom structure${m.ownsMullions ? '; carries both ±36 mullions' : '; butts HB-MOD-C at the mullion face'}) built-up L show-FACE board`,
     webName: `${m.id} bottom-frame built-up L return web (7/8 x 7.125 deep; ~8 in visual depth)`,
-    orient: 'h', x0: m.buttX0, x1: m.buttX1, y0: 0, y1: 2, webEdge: 'high'
+    orient: 'h', x0: m.buttX0, x1: m.buttX1, y0: 0, y1: 2, webEdge: 'high', reliefY: BB_RELIEF_H, reliefD: BB_RELIEF_D
   });
 });
 // Two BUILT-UP L-section side stiles (7/8 face + 7.125 return web at the inner edge, toward the open cavity).
 addBuiltUpLFrameMember({
   faceName: 'HB-MOD-L left side stile 2x68x8 (left box outer frame) built-up L show-FACE board',
   webName: 'HB-ST-L side-stile built-up L return web (7/8 x 7.125 deep; ~8 in visual depth)',
-  orient: 'v', x0: -65, x1: -63, y0: 2, y1: 70, webEdge: 'high'
+  orient: 'v', x0: -65, x1: -63, y0: 2, y1: 70, webEdge: 'high', reliefY: BB_RELIEF_H, reliefD: BB_RELIEF_D
 });
 addBuiltUpLFrameMember({
   faceName: 'HB-MOD-R right side stile 2x68x8 (right box outer frame) built-up L show-FACE board',
   webName: 'HB-ST-R side-stile built-up L return web (7/8 x 7.125 deep; ~8 in visual depth)',
-  orient: 'v', x0: 63, x1: 65, y0: 2, y1: 70, webEdge: 'low'
+  orient: 'v', x0: 63, x1: 65, y0: 2, y1: 70, webEdge: 'low', reliefY: BB_RELIEF_H, reliefD: BB_RELIEF_D
 });
 
 // Module boundary seam markers at the nominal split lines x = ±36 (mullion centerlines). Thin translucent
@@ -1703,9 +1727,13 @@ box(groups.lattice, 'HB-BACK LED-channel mount gap (TOP exhaust; the ply stops b
 cyl(groups.wiring, 'HB-BACK 120V rear-ply cable EXIT hole to the wall receptacle (inside-cabinet 120V for the LED drivers exits the rear ply to the wall; D0)', 0.9, rearPlyTh + 0.2, -8, 12, rearZ, mats.void, 'z', { segments: 18, cast: false });
 box(groups.wiring, 'HB-BACK taller-baseboard recess 120V route (ALTERNATE concept: run the 120V down behind a taller baseboard to the receptacle) [concept, TBD-CONFIRM]', 3, 10, 0.4, -8, 6, rearZ - 0.3, mats.void, { edgeColor: 0x38bdf8, edgeOpacity: 0.35, cast: false });
 line3(groups.wiring, 'HB-BACK 120V exit -> wall receptacle', [[-8, 12, rearZ], [-8, 6, rearZ - 0.5], [-8, 2, rearZ - 1.5]], 0xf97316, 0.7);
-// Baseboard notch: the bottom-REAR of each side stile is notched to WRAP the room baseboard so the back sits TIGHT
-// to the wall (freestanding; NO cleat). Concept notch voids at the bottom-rear outer corners.
-[-1, 1].forEach(s => box(groups.lattice, `HB baseboard notch ${s < 0 ? 'L' : 'R'} (bottom-rear notch wraps the room baseboard so the back sits tight; freestanding, no cleat / no wall fixing)`, 3.5, 4.5, 2.5, s * 62.5, 2.25, -6.75, mats.void, { edgeColor: 0x22d3ee, edgeOpacity: 0.55, cast: false }));
+// Room baseboard clearance (owner 2026-07-05, CORRECTED): the headboard is FREESTANDING and sits FLUSH to the wall
+// ABOVE the room's baseboard. A baseboard is a HORIZONTAL wall trim (~BB_RELIEF_H in tall, standing ~BB_RELIEF_D in
+// PROUD of the wall). The back-bottom of the headboard is now RELIEVED on its BACK VERTICAL face (the bottom-rail +
+// side-stile webs, reliefY/reliefD above), so the baseboard tucks into that relief. This REPLACES the old (wrong)
+// pair of small notches cut into the bottom-rear CORNERS. A context ghost of the wall baseboard makes the fit read.
+const bbWallZ = -D;                                          // wall plane at the -8 rear; the baseboard stands proud toward the room (+z)
+box(groups.lattice, `HB room baseboard (CONTEXT — the wall's own horizontal trim, ~${BB_RELIEF_H} in tall x ~${BB_RELIEF_D} in proud, full width; the headboard back-bottom is relieved on its BACK FACE to clear it so it sits flush to the wall above — NOT a bottom-corner notch)`, W - 2, BB_RELIEF_H, BB_RELIEF_D, 0, BB_RELIEF_H / 2, bbWallZ + BB_RELIEF_D / 2, mats.roomTrim, { edgeColor: 0x334155, edgeOpacity: 0.5, cast: false });
 
 // Segmented rear shear rails: each rail stops at the full-depth collectors.
 const rearRailSegments = [[-63, -38], [-34, 34], [38, 63]];
@@ -1954,7 +1982,7 @@ SPEC.courseSeamsAFF.forEach(seamAFF => {
       accessPanelHeightIn: 30,
       twoPieceCenterBack: true,                                           // center box = upper fixed + lower removable
       rearElectronicsMountZone: true,
-      baseboardNotch: true,                                               // bottom-rear notch wraps the room baseboard (wall fit)
+      baseboardNotch: true,                                               // full-width BACK-FACE relief (bottom ~6 in x ~1 in deep) clears the room baseboard so the headboard sits flush to the wall above it (owner 2026-07-05; was 2 wrong bottom-corner notches)
       freestandingNoWallCleat: true                                       // NO wall cleat / NO wall attachment ever
     },
     mullion: {
@@ -2201,7 +2229,7 @@ window.__BFS01.builtUpFrame = {
 };
 window.__BFS01.builtUpFrame.pass =
      window.__BFS01.builtUpFrame.builtUpLShowFaces === 5
-  && window.__BFS01.builtUpFrame.builtUpLReturnWebs === 5
+  && window.__BFS01.builtUpFrame.builtUpLReturnWebs >= 5
   && window.__BFS01.builtUpFrame.mullionFaceBoards === 2
   && window.__BFS01.builtUpFrame.mullionWebs === 4
   && MUL.construction === 'hollow built-up'
@@ -2249,7 +2277,7 @@ window.__BFS01.rear = {
   removableAccessPanelExists: _hbNames.some(n => /rear plywood REMOVABLE lower service access panel/.test(n)) && RR.removableAccessPanel === true && RR.accessPanelHeightIn === 30,
   twoPieceCenterBack: RR.twoPieceCenterBack === true,
   rearElectronicsMountZone: _hbNames.some(n => /rear electronics mount zone/.test(n)),
-  baseboardNotch: _hbCnt(/baseboard notch/) === 2 && RR.baseboardNotch === true,
+  baseboardNotch: _hbCnt(/baseboard-clearance relief/) === 5 && _hbCnt(/room baseboard \(CONTEXT/) >= 1 && RR.baseboardNotch === true,
   notSealedUnventilated: RR.sealedUnventilated === false && RR.ventilated === true,
   freestandingNoWallCleat: RR.freestandingNoWallCleat === true && !_hbNames.some(n => /wall cleat|wall bracket|wall attachment (bracket|cleat)/i.test(n))
 };
@@ -2265,7 +2293,7 @@ window.__BFS01.pass = window.__BFS01.headboardModules.pass === true
   && window.__BFS01.rear.pass === true;
 </script>
 <!-- BF:BUILDSTAMP:START (generated by `npm run bf:build` — do not hand-edit; updates automatically every build) -->
-<div id="bf-build-stamp" data-built="2026-07-05T07:13:55.357Z" style="position:fixed;left:8px;bottom:6px;z-index:99999;pointer-events:none;font:600 11px/1.3 system-ui,-apple-system,Segoe UI,sans-serif;color:#8b98ac;background:rgba(9,12,18,.66);padding:3px 8px;border-radius:5px;letter-spacing:.02em;box-shadow:0 1px 3px rgba(0,0,0,.35);">Model last updated: 2026-07-05 00:13 MST</div>
+<div id="bf-build-stamp" data-built="2026-07-05T07:42:38.551Z" style="position:fixed;left:8px;bottom:6px;z-index:99999;pointer-events:none;font:600 11px/1.3 system-ui,-apple-system,Segoe UI,sans-serif;color:#8b98ac;background:rgba(9,12,18,.66);padding:3px 8px;border-radius:5px;letter-spacing:.02em;box-shadow:0 1px 3px rgba(0,0,0,.35);">Model last updated: 2026-07-05 00:42 MST</div>
 <!-- BF:BUILDSTAMP:END -->
 </body>
 </html>
