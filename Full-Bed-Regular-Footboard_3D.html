@@ -719,7 +719,6 @@ function makeMaterials() {
     brass: new THREE.MeshStandardMaterial({ color: 0xd8a33b, roughness: 0.24, metalness: 0.86 }),
     tenon: new THREE.MeshStandardMaterial({ color: 0x7dd3fc, roughness: 0.58, transparent: true, opacity: 0.82 }),
     switchPlate: new THREE.MeshStandardMaterial({ color: 0x3b424e, roughness: 0.5, metalness: 0.25 }),
-    roomTrim: new THREE.MeshStandardMaterial({ color: 0x8b929c, roughness: 0.85, metalness: 0.0 }),   // OPAQUE room-context trim (the wall baseboard); no transparent flag -> safe from the ghost-white bug
     buttonBlack: new THREE.MeshStandardMaterial({ color: 0x0a0a0a, roughness: 0.42, metalness: 0.5 }),
     panelScrew: new THREE.MeshStandardMaterial({ color: 0xb45309, roughness: 0.34, metalness: 0.72 }),
     panelBatten: new THREE.MeshStandardMaterial({ color: 0xc9914b, roughness: 0.68, transparent: true, opacity: 0.66 }),
@@ -1924,13 +1923,12 @@ box(groups.lattice, 'HB-BACK LED-channel mount gap (TOP exhaust; the ply stops b
 cyl(groups.wiring, 'HB-BACK 120V rear-ply cable EXIT hole to the wall receptacle (inside-cabinet 120V for the LED drivers exits the rear ply to the wall; D0)', 0.9, rearPlyTh + 0.2, -8, 12, rearZ, mats.void, 'z', { segments: 18, cast: false });
 box(groups.wiring, 'HB-BACK taller-baseboard recess 120V route (ALTERNATE concept: run the 120V down behind a taller baseboard to the receptacle) [concept, TBD-CONFIRM]', 3, 10, 0.4, -8, 6, rearZ - 0.3, mats.void, { edgeColor: 0x38bdf8, edgeOpacity: 0.35, cast: false });
 line3(groups.wiring, 'HB-BACK 120V exit -> wall receptacle', [[-8, 12, rearZ], [-8, 6, rearZ - 0.5], [-8, 2, rearZ - 1.5]], 0xf97316, 0.7);
-// Room baseboard clearance (owner 2026-07-05, CORRECTED): the headboard is FREESTANDING and sits FLUSH to the wall
-// ABOVE the room's baseboard. A baseboard is a HORIZONTAL wall trim (~BB_RELIEF_H in tall, standing ~BB_RELIEF_D in
-// PROUD of the wall). The back-bottom of the headboard is now RELIEVED on its BACK VERTICAL face (the bottom-rail +
-// side-stile webs, reliefY/reliefD above), so the baseboard tucks into that relief. This REPLACES the old (wrong)
-// pair of small notches cut into the bottom-rear CORNERS. A context ghost of the wall baseboard makes the fit read.
-const bbWallZ = -D;                                          // wall plane at the -8 rear; the baseboard stands proud toward the room (+z)
-box(groups.lattice, `HB room baseboard (CONTEXT — the wall's own horizontal trim, ~${BB_RELIEF_H} in tall x ~${BB_RELIEF_D} in proud, full width; the headboard back-bottom is relieved on its BACK FACE to clear it so it sits flush to the wall above — NOT a bottom-corner notch)`, W - 2, BB_RELIEF_H, BB_RELIEF_D, 0, BB_RELIEF_H / 2, bbWallZ + BB_RELIEF_D / 2, mats.roomTrim, { edgeColor: 0x334155, edgeOpacity: 0.5, cast: false });
+// Baseboard clearance (owner 2026-07-05): a freestanding headboard clears the room's baseboard by a VERTICAL relief
+// cut into the BACK of the two side stiles (the back VERTICAL members) + the bottom rail — reliefY=BB_RELIEF_H tall x
+// reliefD=BB_RELIEF_D deep, applied above on the built-up L members. This is a VERTICAL notch on the back vertical
+// portion of the headboard so the back sits tight to the wall above the baseboard. NO separate baseboard object is
+// drawn: a full-width HORIZONTAL baseboard bar was added here before and read (correctly, as a fault) as "horizontal
+// 6 in" — removed per owner 2026-07-05. The baseboard itself is not modeled; only the vertical relief that clears it.
 
 // Segmented rear shear rails: each rail stops at the full-depth collectors.
 const rearRailSegments = [[-63, -38], [-34, 34], [38, 63]];
@@ -2607,10 +2605,11 @@ const IS_REGULAR_FOOTBOARD = true;
 
 addFullBedBase();
 addDetailedNightstands();
-// Regular (no-TV) footboard: a real grounded frame-and-panel footboard at the foot (~74 x 14 x 16), in the
-// same design language as the bed — NOT the TV-lift cabinet and NOT a ghost variant of it. Built into
-// groups.footboard; groups.liftSystem stays empty (no lift). No buildDockHardware (there is no cabinet seam).
-buildRegularFootboard({ box, mats, groups, label, pieceLabel });
+// Regular-footboard config (owner 2026-07-05): this is the bed with the TV cabinet simply REMOVED — NOTHING is
+// added back at the foot. The bed base's own grounded foot end IS the footboard (a "regular" bed). groups.footboard /
+// groups.liftSystem stay empty; no buildDockHardware (no cabinet seam) and NO separate footboard piece — the prior
+// buildRegularFootboard end-panel was removed per owner ("just remove the TV cabinet, don't add anything back in").
+// buildRegularFootboard is intentionally NOT called.
 
 // Concept force-transfer overlay (see Concepts/BF-D19). Translucent "moment path" members highlight the
 // real structural members that carry the headboard lean down into the base; arrows show the path.
@@ -2907,7 +2906,7 @@ window.__BF_STAGE2 = {
   nightstandBoltCount: _s2nsIns,
   // Regular-footboard config: the footboard "production detail" is the real REGFB frame-and-panel, and the
   // lift/soundbar/lid checks are N/A (there is no TV cabinet). IS_REGULAR_FOOTBOARD keeps this advisory honest.
-  footboardProductionDetailPass: IS_REGULAR_FOOTBOARD ? _s2has(/REGFB /i) : (_s2has(/front apron/i) && _s2count(/lift-deck rib/i) === 2 && _s2count(/cubby rear-edge ceiling U-notch/i) === 4 && _s2has(/flat raised lift deck/i)),
+  footboardProductionDetailPass: IS_REGULAR_FOOTBOARD ? !_s2has(/REGFB /i) : (_s2has(/front apron/i) && _s2count(/lift-deck rib/i) === 2 && _s2count(/cubby rear-edge ceiling U-notch/i) === 4 && _s2has(/flat raised lift deck/i)),
   lidTopClosurePass: IS_REGULAR_FOOTBOARD ? true : _s2count(/fixed top filler/i) === 2,
   noLiftCompartmentSightline: IS_REGULAR_FOOTBOARD ? true : (_s2has(/front apron \(closes upper front/i) && _s2count(/fixed top filler/i) === 2),
   liftDetailPass: IS_REGULAR_FOOTBOARD ? true : (_s2has(/floor base plate 9\.875/i) && _s2has(/outer body \/ housing/i) && _s2has(/inner mast \(telescoping\)/i) && _s2has(/middle telescoping stage/i) && _s2has(/rear mount tab/i) && _s2has(/horizontal rail 28\.375/i) && _s2has(/VESA strap/i)),
@@ -3622,7 +3621,7 @@ addEventListener('resize', () => {
       removableAccessPanelExists: has(/rear plywood REMOVABLE lower service access panel/) && R.removableAccessPanel === true && R.accessPanelHeightIn === 30,
       twoPieceCenterBack: R.twoPieceCenterBack === true,
       rearElectronicsMountZone: has(/rear electronics mount zone/) && R.rearElectronicsMountZone === true,
-      baseboardNotch: cnt(/baseboard-clearance relief/) === 5 && cnt(/room baseboard \(CONTEXT/) >= 1 && R.baseboardNotch === true,
+      baseboardNotch: cnt(/baseboard-clearance relief/) === 5 && R.baseboardNotch === true,
       // negative guards: NOT a continuous sealed unventilated back; NO wall cleat / wall attachment (freestanding).
       notSealedUnventilated: R.sealedUnventilated === false && R.ventilated === true && !has(/sealed unventilated (rear|back)/i),
       freestandingNoWallCleat: R.freestandingNoWallCleat === true && !has(/wall cleat|wall bracket|wall-mount cleat|wall attachment (bracket|cleat)/i),
@@ -3781,23 +3780,21 @@ addEventListener('resize', () => {
     // REGULAR-FOOTBOARD config: prove the REAL conventional footboard is present AND the TV cabinet / lift / dock
     // is ABSENT. This replaces the six TV-cabinet gates in the canonical set for this model.
     window.__BF_REGULAR_FOOTBOARD = {
-      regularFootboardPresent: cnt(/REGFB /) >= 5 && has(/REGFB top cap/) && has(/REGFB flush bottom rail/) && has(/REGFB recessed front skin panel/),
-      groundedCornerPosts: cnt(/REGFB (left|right) corner post/) === 2,
-      recessedFrontSkin: has(/REGFB recessed front skin panel/) && SPEC.footboard.regularFootboardVariant.H === 14,
-      noToeKick: has(/REGFB flush bottom rail \(grounded; NO toe kick/),
-      // negative guards: NONE of the TV cabinet / lift / TV / soundbar / dock mass is built in this model
-      // NOTE: buildBedBase has a base-wiring label "... -> cubby + lift", so use SPECIFIC TV-cabinet part names,
-      // not a bare /cubby/ or /lift/ word match.
+      // owner 2026-07-05: the regular-footboard config is simply the bed with the TV cabinet REMOVED — NOTHING is
+      // added back at the foot. The bed base's own grounded foot end is the footboard (a "regular" bed). So this
+      // gate asserts the ABSENCE of any added footboard piece AND of all TV-cabinet / lift / dock mass.
+      noAddedFootboardPiece: !has(/REGFB /),                     // the prior added end-panel footboard is gone
+      basePresent: has(/BF-BASE/),                               // the base (its own grounded foot end) IS the footboard
+      // negative guards: NONE of the TV cabinet / lift / TV / soundbar / dock mass is built in this model.
+      // NOTE: buildBedBase has a base-wiring label "... -> cubby + lift", so use SPECIFIC TV-cabinet part names.
       noTvCabinet: !has(/TV-lift stationary outer body/) && !has(/FB-CAB/) && !has(/lift-deck rib/) && !has(/cubby (floor|ceiling|rear-edge)/i),
       noTvLift: !has(/inner mast \(telescoping\)/) && !has(/floor base plate 9\.875/) && !has(/horizontal rail 28\.375/) && !has(/VESA/i),
       noTvOrSoundbar: !has(/55 in TV ghost panel/) && !has(/soundbar/i),
       noDockSeamHardware: !has(/ash connector block \(screw\+glue to cabinet/) && !has(/hidden bed-facing bolt shaft/),
-      dims: SPEC.footboard.regularFootboardVariant,
-      note: 'Full bed in the REGULAR-FOOTBOARD config: a real grounded frame-and-panel footboard (buildRegularFootboard: 2 corner posts + sit-on top cap + flush grounded bottom rail (no toe kick) + recessed front skin, ~74x14x16) and NO TV cabinet / TV-lift / TV / soundbar / dock seam.'
+      note: 'Regular-footboard config (owner 2026-07-05): the bed with the TV cabinet REMOVED and NOTHING added back at the foot — the base\'s own grounded foot end is the footboard. No added footboard piece, and no TV cabinet / TV-lift / TV / soundbar / dock seam.'
     };
-    window.__BF_REGULAR_FOOTBOARD.pass = window.__BF_REGULAR_FOOTBOARD.regularFootboardPresent
-      && window.__BF_REGULAR_FOOTBOARD.groundedCornerPosts && window.__BF_REGULAR_FOOTBOARD.recessedFrontSkin
-      && window.__BF_REGULAR_FOOTBOARD.noToeKick && window.__BF_REGULAR_FOOTBOARD.noTvCabinet
+    window.__BF_REGULAR_FOOTBOARD.pass = window.__BF_REGULAR_FOOTBOARD.noAddedFootboardPiece
+      && window.__BF_REGULAR_FOOTBOARD.basePresent && window.__BF_REGULAR_FOOTBOARD.noTvCabinet
       && window.__BF_REGULAR_FOOTBOARD.noTvLift && window.__BF_REGULAR_FOOTBOARD.noTvOrSoundbar
       && window.__BF_REGULAR_FOOTBOARD.noDockSeamHardware;
   }
@@ -3907,7 +3904,7 @@ document.querySelectorAll('.panel-head[data-collapse]').forEach(h => {
 })();
 </script>
 <!-- BF:BUILDSTAMP:START (generated by `npm run bf:build` — do not hand-edit; updates automatically every build) -->
-<div id="bf-build-stamp" data-built="2026-07-05T07:42:38.551Z" style="position:fixed;left:8px;bottom:6px;z-index:99999;pointer-events:none;font:600 11px/1.3 system-ui,-apple-system,Segoe UI,sans-serif;color:#8b98ac;background:rgba(9,12,18,.66);padding:3px 8px;border-radius:5px;letter-spacing:.02em;box-shadow:0 1px 3px rgba(0,0,0,.35);">Model last updated: 2026-07-05 00:42 MST</div>
+<div id="bf-build-stamp" data-built="2026-07-05T19:20:05.133Z" style="position:fixed;left:8px;bottom:6px;z-index:99999;pointer-events:none;font:600 11px/1.3 system-ui,-apple-system,Segoe UI,sans-serif;color:#8b98ac;background:rgba(9,12,18,.66);padding:3px 8px;border-radius:5px;letter-spacing:.02em;box-shadow:0 1px 3px rgba(0,0,0,.35);">Model last updated: 2026-07-05 12:20 MST</div>
 <!-- BF:BUILDSTAMP:END -->
 </body>
 </html>
