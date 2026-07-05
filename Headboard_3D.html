@@ -81,6 +81,9 @@
     <button id="bWires">Wiring</button>
     <button id="bSpin">Auto&#8209;spin</button>
   </div>
+  <div class="row">
+    <label style="display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:#cbd6e4;width:100%;" title="Slide the three bolt-together boxes (left / center / right, split at the ±36 mullions) apart and back together.">Together<input type="range" id="sepSlider" min="0" max="100" value="0" style="flex:1;min-width:80px;accent-color:#22d3ee;" />Apart</label>
+  </div>
 </div>
 
 <div id="cam" class="panel">
@@ -484,7 +487,7 @@ const SPEC = Object.freeze({
   //   mount on their two ends (stopping short of centre); module-to-side-frame connector bolts (one side per window).
   base: { W: 74, L: 85, top: 17, bayW: 67, bayL: 81, shoulder: 3.5, toeH: 0, toeInset: 0, caseBottom: 2.0, slat: { width: 2.75, gap: 1.5, mount: 'bolt-in nutsert ends' }, centerBeam: { present: true, role: 'slat/mattress support only', form: 'narrow under-slat beam', legs: 2, levelers: 2, endSupportBlocks: 2, beamW: 2.5, beamTh: 0.875 }, drawerStructure: { modules: 3, crossRails: 6, transverseSpanFullWidth: true, boundaryStiles: 4, insideStripWidth: 2, stileWidth: 4, ledges: true } },
   drawer: { perSide: 3, intH: 10.75, intW: 19, intD: 33, faceRecess: 0.638, frontWall: 0.5, revealGap: 0.375, channelRout: 0.276, channelH: 0.276, lipCarrierH: 1.0, faceThickness: 1.0, faceH: 12.0, faceGap: 0.25, faceReveal: 0.1875, faceOverlap: true },  // D-093/D-012/D-013: face FRONT recessed 0.638 in (centered under the aluminum micro-channel); 0.5 in front wall to the channel front edge; 7 mm routed groove; 1.0 in lip carrier (0.724 in wood above the 0.276 in channel); 3/8 in reveal; Dawna Option A bottom-edge pull. Lee-call Phase 7: faces OVERLAP the 4-in face-frame verticals with a thin 3/16 (0.1875) reveal, edge-to-edge read (faceReveal / faceOverlap)
-  footboard: { W: 74, H: 41, D: 16, sideTh: 2.0, faceTh: 1.0, deckTh: 1.0, rearTh: 0.75, reveal: 0.125, relocatable: true, regularFootboardVariant: { W: 74, H: 14, D: 16 }, dock: { boltCenterX: 33, boltRowsAFF: [5, 14.5], wireHoleDia: 0.75, wireHoleCenterAFF: 3 } },  // Lee-call Phase 8: cabinet set back ~1/8 in (reveal) never proud of the bed side/top cap; relocatable standalone; regular-footboard (no-TV) variant is a stored-part SKU (~74x14x16)
+  footboard: { W: 74, H: 41, D: 16, sideTh: 2.0, faceTh: 1.0, deckTh: 1.0, rearTh: 0.75, reveal: 0.125, relocatable: true, regularFootboardVariant: { W: 74, H: 14, D: 3 }, dock: { boltCenterX: 33, boltRowsAFF: [5, 14.5], wireHoleDia: 0.75, wireHoleCenterAFF: 3 } },  // Lee-call Phase 8 + owner 2026-07-04 reframe: cabinet set back ~1/8 in (reveal) never proud; relocatable standalone; the regular (no-TV) footboard is NOT a 16-in box — it is the THIN (3 in) interchangeable END PIECE at the foot seam (~74x14x3)
   lift: { travel: 36, retractBody: 31, raised: 68.5, baseW: 28.375, basePlateW: 9.875, basePlateD: 5.125, bodyD: 7.0, deckTopY: 8.0 },
   tv: { W: 48.0, H: 27.8, D: 1.5, retractBottom: 11.95, raisedBottom: 47.0 },
   lid: { W: 69.5, D: 14.25, T: 1.0, flushTop: 41, raisedTop: 76 },   // full cabinet-top lift-off lid (D-095): 70 in opening less ~0.25 in reveal/side; + underside stiffening ribs (not modeled as separate geo)
@@ -644,9 +647,15 @@ function buildBedBase(ctx) {
   //   Replaces the retired full-height '3 x 17 x 85' 3-leg center-slab abstraction.
   const cb = B.centerBeam;                                  // { legs:2, levelers:2, endSupportBlocks:2, beamW:2.5, beamTh:0.875 }
   const slatUnderside = 16.25 - 0.75 / 2;                   // slats centered Y 16.25, 0.75 thick -> underside 15.875
-  const beamTopY = slatUnderside, beamCenterY = beamTopY - cb.beamTh / 2, beamBotY = beamTopY - cb.beamTh;
+  // (owner 2026-07-04) SUBSTANTIAL center-spine reading: the beam is 2.0 in DEEP (Y), not the old 0.875 in flat strip —
+  //   a clearly-visible spine down the middle between the two drawer banks (matches the Dawna/Donna reference spine).
+  //   Top stays at the slat underside; bottom (13.875) sits just above the cross-rail tops (13.8) so it never
+  //   interpenetrates them; width stays cb.beamW (<= 3 in, narrowUnderSlatBeam gate). The LEG z-depth stays cb.beamTh
+  //   (0.875) — decoupled from the beam depth — so the legs still clear/flank the cross-rails (crossRailsClearLegs gate).
+  const beamYDepth = 2.0;
+  const beamTopY = slatUnderside, beamCenterY = beamTopY - beamYDepth / 2, beamBotY = beamTopY - beamYDepth;
   const beamZ0 = 3.5, beamZ1 = B.L - 3.5, beamLen = beamZ1 - beamZ0, beamZc = (beamZ0 + beamZ1) / 2;
-  box(group, 'BF-BASE mattress-support CENTER BEAM (narrow under-slat beam; slat/mattress support ONLY; NOT a full-height wall / NOT a headboard moment beam)', cb.beamW, cb.beamTh, beamLen, 0, beamCenterY, beamZc, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false });
+  box(group, 'BF-BASE mattress-support CENTER BEAM (narrow under-slat beam — a substantial-DEPTH spine down the middle between the two drawer banks; slat/mattress support ONLY; <= 3 in WIDE so NOT a full-height wall / NOT a headboard moment beam)', cb.beamW, beamYDepth, beamLen, 0, beamCenterY, beamZc, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false });
   // HEAD + FOOT end SUPPORT BLOCKS / seats — seat the beam ends on the head/foot TRANSVERSE CROSS-RAILS (which cross the
   //   full width and rest on both ledges), NOT floor legs. Sit ON the cross-rail top (y 13.8) up to the beam bottom (15.0),
   //   so the beam-end load path is beam -> end block -> full-width end cross-rail -> end posts -> ledges -> side frames.
@@ -687,8 +696,8 @@ function buildBedBase(ctx) {
   //   drawer-row CENTERS (rowZc), straight THROUGH the six moving drawer boxes, and sized the boxes LARGER than the
   //   face-frame openings — drawers that cannot exist or open. This rebuild starts from the drawer clearance volumes:
   //   1) the face-frame OPENINGS between the 4-in stiles are the clear volumes: [5..28.65] [32.65..54.35] [58.35..80];
-  //   2) each drawer BOX fits its opening with a 0.5-in slide zone per side (foot box 1 in short at the foot end for
-  //      the center cable drop, D-016-era carry-over) and travels in ±X through the opening — nothing static may
+  //   2) each drawer BOX fits its opening with a 0.5-in slide zone per side (ALL boxes are full-length now — the former
+  //      1-in-short foot box + its wire drop were reverted, owner 2026-07-04) and travels in ±X through the opening — nothing static may
   //      occupy the box volume or its swept path;
   //   3) each drawer-pair MODULE (17 §8.5) is a real OPEN LADDER: its two side-to-side GLIDE BOARDS sit at the row
   //      BOUNDARIES with their slide-mount faces FLUSH with the opening edges (tucked behind the 4-in stiles, flanking
@@ -736,7 +745,7 @@ function buildBedBase(ctx) {
       });
       [9.5, 26].forEach((rx, k) => box(group,
         `BF-BASE drawer-pair structure MODULE ${r + 1}/3 (${rowName[r]} row) bottom ladder rung ${sAbbr} ${k + 1} (under-drawer open-ladder cross member; ties the head/foot full-width cross-rails low; clears the moving drawer floor above)`,
-        1.5, 0.8, oHi - oLo, side * rx, structBotY - 0.4, (oLo + oHi) / 2, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.4, cast: false }));
+        2.5, 1.0, oHi - oLo, side * rx, structBotY - 0.55, (oLo + oHi) / 2, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.4, cast: false }));
     });
     // (17 §4.4/§8.7 + plan 18) STATIONARY drawer-bay TOP / SECURITY COVER — fixed to the base, over the drawer bay +
     //   under the slats/mattress; blocks top access into the LOCKED drawer cavity when the mattress/slats are lifted.
@@ -748,11 +757,17 @@ function buildBedBase(ctx) {
     box(group, `BF-BASE drawer-bay BACK wall (walls off the centre wiring chase; keeps the center slot open for the beam legs; top supports the stationary security cover inboard edge) ${sAbbr}`, backWallTh, coverBotY - 2.4, 77, side * backWallX, (2.4 + coverBotY) / 2, 43.5, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false });
     for (let i = 0; i < DWR.perSide; i += 1) {
       const z = 5 + drawerSpan / 2 + i * drawerSpan;          // equal exterior FACE pitch (Phase 7 read preserved)
-      const isFoot = i === DWR.perSide - 1, gap = isFoot ? 1.0 : 0;   // foot box 1 in short at the FOOT end (center cable-drop carry-over)
+      const gap = 0;   // full-length foot drawer (owner directive 2026-07-04: reverted the 1-in foot-drawer shortening + its wire gap; cabling routes the centre spine chase, not a drawer gap)
       const [oLo, oHi] = openings[i];
       const boxZ0 = oLo + slideZone, boxZ1 = oHi - slideZone - gap;   // the box fits INSIDE its opening with the slide zones — it can actually pass the frame
       // cabinet slide members mount ON the glide-board slide faces (flush with the opening edges), inside the slide zones
-      [[oLo + 0.09, 0], [oHi - 0.09, 1]].forEach(([sz, s]) => box(group, `BF-BASE full-extension slide rail (cabinet; mounted to the drawer-pair module glide board) ${sAbbr} ${i + 1}-${s}`, 28, 0.5, 0.18, side * 18.2, 11.6, sz, mats.steel, { edgeColor: 0x60a5fa, edgeOpacity: 0.45, cast: false }));
+      [[oLo + 0.09, 0], [oHi - 0.09, 1]].forEach(([sz, s]) => {
+        const sx = side * 18.2, zo = s === 0 ? 0.09 : -0.09;   // detail offset toward the opening interior (stays inside the slide zone, clear of the drawer's swept path)
+        box(group, `BF-BASE full-extension slide rail (cabinet; mounted to the drawer-pair module glide board) ${sAbbr} ${i + 1}-${s}`, 28, 0.5, 0.18, sx, 11.6, sz, mats.steel, { edgeColor: 0x60a5fa, edgeOpacity: 0.45, cast: false });
+        // higher-fidelity ball-bearing slide (owner: not a flat stick): the ball-bearing race + intermediate telescoping member + real ball bearings
+        box(group, `BF-BASE slide ball-bearing race + intermediate member ${sAbbr} ${i + 1}-${s}`, 26.8, 0.24, 0.12, sx, 11.6, sz + zo, mats.darkSteel, { edges: false, cast: false });
+        for (let b = 0; b < 7; b++) cyl(group, `BF-BASE slide ball bearing ${sAbbr} ${i + 1}-${s}-${b}`, 0.08, 0.14, sx - 12 + b * 4, 11.6, sz + zo, mats.steel, 'x', { segments: 10, cast: false });
+      });
       const dg = new THREE.Group(); group.add(dg); drawerGroups.push({ g: dg, axis: 'x', dir: side, ext: dW - 2 });
       // Lee-call Phase 7 (rpt 42): the drawer face OVERLAPS the 4-in face-frame verticals with a THIN 3/16 (faceReveal)
       // reveal to the adjacent faces -> an edge-to-edge face-frame read; the reveals land ON the stiles (no see-through).
@@ -789,7 +804,7 @@ function buildBedBase(ctx) {
   openings.forEach(([oLo, oHi], r) => {
     [['head', oLo - 0.5], ['foot', oHi + 0.5]].forEach(([end, rz]) => {
       box(group, `BF-BASE drawer-pair structure MODULE ${r + 1}/3 (${rowName[r]} row) ${end}-end transverse CROSS-RAIL (ONE continuous side-to-side glide rail spanning the FULL bed width — left side-frame ledge to right; both ends REST on the ledges via the END POSTS, Dawna/Donna pg19-20; carries the L+R drawer slides at slide height on its two ends; SHORT rail so the drawer bay reads as an OPEN WINDOW; crosses above the low center cable chase, clear of the 2 beam-leg gaps)`,
-        2 * railHalfW, glideRailH, 1.0, 0, (glideRailBotY + glideRailTopY) / 2, rz, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false });
+        2 * railHalfW, glideRailH, 1.0, 0, (glideRailBotY + glideRailTopY) / 2, rz, mats.baseStructure, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false });   // 1.0 in thick keeps the slide-mount face flush with the opening edge (drawer-mechanics fit-glide-flush); the rail is already 4.4 in TALL = substantial
     });
   });
 
@@ -822,7 +837,6 @@ function buildBedBase(ctx) {
   label('all bed cabling runs the CENTRE chase (side bays are full of drawers)', 0, 14.8, B.L - 9, 'blue', 'base');
   // Lee-call Phase 10 (rpt 49): the base cable crossing routes UNDER the base along the center beam/spine chase, NOT over the drawers.
   box(groups.wiring, 'BF-BASE UNDER-BASE cable crossing (routes UNDER the base along the center beam chase, NOT over the drawers; D0)', 4.5, 1.2, B.L - 6, 0, 3.0, baseMidZ, mats.void, { edgeColor: 0x22d3ee, edgeOpacity: 0.5, cast: false });
-  box(groups.wiring, 'BF-BASE foot-gap cable drop behind the 1 in-short foot drawer', 5, 7, 1.8, 0, 9, 82, mats.void, { edgeColor: 0x38bdf8, edgeOpacity: 0.66, cast: false });
   [-2, 2].forEach(x => {
     box(groups.wiring, `BF-BASE centre base-to-headboard cable bore (head rail + bottom cap -> rear cavity) x=${x}`, 1.4, 2.2, 8.4, x, 1, -1.8, mats.void, { edgeColor: 0x38bdf8, edgeOpacity: 0.66, cast: false });
     cyl(groups.wiring, `BF-BASE centre cable run foot-gap to head x=${x}`, 0.3, 80, x, 7, 42, mats.cableSpeaker, 'z', { segments: 16, cast: false });
@@ -890,11 +904,11 @@ function buildFootboardAndLift(ctx) {
   // 1/8 in reveal/setback markers on the cabinet side + top (never proud of the bed side/top cap)
   [-1, 1].forEach(s => box(group, `FB cabinet 1/8 in reveal/setback ${s < 0 ? 'L' : 'R'} (cabinet set back ${fbRev} in inboard of the bed side; never proud)`, fbRev, F.H, F.D, s * (F.W / 2 - fbRev / 2), F.H / 2, footMidZ, mats.void, { edgeColor: 0x38bdf8, edgeOpacity: 0.55, cast: false }));
   box(group, `FB cabinet relocatable standalone marker (unbolt the 4 bed bolts -> pull away -> stand against the wall; bolt-on cabinet-to-base seam)`, F.W - 4, 0.1, F.D - 2, 0, 0.4, footMidZ, mats.void, { edgeColor: 0x22d3ee, edgeOpacity: 0.4, cast: false });
-  // (8.2) REGULAR FOOTBOARD variant — a simple ~74x14x16 non-TV footboard, stored-part SKU (concept ghost, off to the foot).
-  const RV = F.regularFootboardVariant, rvZ = ZB.footFront + 10;   // shown just beyond the cabinet front as the alternate
-  box(groups.footboardVariant || group, `FB-REG regular footboard VARIANT (no-TV stored-part SKU; ~${RV.W}x${RV.H}x${RV.D}; lets the bed run without the TV cabinet) [concept ghost, TBD-CONFIRM Lee dims]`, RV.W, RV.H, RV.D, 0, RV.H / 2, rvZ, mats.ghost, { edgeColor: 0xe2e8f0, edgeOpacity: 0.4, cast: false });
-  [-1, 1].forEach(s => box(groups.footboardVariant || group, `FB-REG regular footboard variant side ${s < 0 ? 'L' : 'R'} (concept)`, F.sideTh, RV.H, RV.D, s * (RV.W / 2 - F.sideTh / 2), RV.H / 2, rvZ, mats.ghost, { edgeColor: 0xe2e8f0, edgeOpacity: 0.4, cast: false }));
-  label('Phase 8: TV cabinet = RELOCATABLE standalone (unbolt 4 bed bolts, stand against wall), set back 1/8 in reveal (never proud); REGULAR FOOTBOARD (no-TV) = stored-part variant SKU so the bed can run without the cabinet', 0, 46, footMidZ, 'gold', 'footboard');
+  // (8.2) The regular (no-TV) footboard is NOT a second box parked in front of the cabinet, and NOT a stored-part SKU
+  //       variant — it is the plain interchangeable END PIECE that takes this SAME foot seam when the TV cabinet is
+  //       removed (owner 2026-07-04). It is modeled ONLY in Full-Bed-Regular-Footboard_3D (buildRegularFootboard). The
+  //       old translucent 'FB-REG' concept-ghost box that floated in front of the cabinet is REMOVED (it read as a mystery box).
+  label('Phase 8: TV cabinet = RELOCATABLE standalone (unbolt the foot connectors, stand against the wall), set back 1/8 in reveal (never proud); remove it and the plain regular-footboard END PIECE takes this same foot seam (see the regular-footboard model)', 0, 46, footMidZ, 'gold', 'footboard');
 
   const lift = groups.liftSystem, bpTop = L.deckTopY + 0.4;
   const bodyW = 5.5, bodyH = 22, bodyD = 3.6;
@@ -955,29 +969,48 @@ function buildFootboardAndLift(ctx) {
 // ----------------------------------------------------------------------------
 function buildRegularFootboard(ctx) {
   const { box, mats, groups, label, pieceLabel } = ctx;
-  const { footMidZ, ZB } = deriveZ();
-  const RV = SPEC.footboard.regularFootboardVariant;          // { W:74, H:14, D:16 }
+  const { ZB } = deriveZ();
+  const RV = SPEC.footboard.regularFootboardVariant;          // { W:74, H:14, D:3 } — a THIN vertical END PANEL, not a box
   const W = RV.W, H = RV.H, D = RV.D, post = SPEC.footboard.sideTh;   // post = 2.0 in corner leg
   const group = groups.footboard;
-  const frontZ = ZB.footFront, backZ = ZB.footBack;           // 101 (foot-facing) .. 85 (bed-facing)
+  // (owner 2026-07-04 reframe) The regular footboard is the plain INTERCHANGEABLE END PIECE that takes the TV cabinet's
+  //   foot seam — a THIN (D in) grounded frame-and-panel at the VERY FOOT of the bed (z backZ..backZ+D), NOT a 16-in box
+  //   in the cabinet envelope. Install the cabinet OR this footboard on the SAME foot seam (no leftover holes); the bed
+  //   is simply shorter without the cabinet's 16-in projection.
+  const backZ = ZB.footBack, frontZ = backZ + D, fbMidZ = backZ + D / 2;   // 85 (bed-facing) .. 88 (foot-facing), centre 86.5
   const reveal = SPEC.skinReveal;                             // 3/16 in — front skin sits behind the proud posts
-  // (1) two GROUNDED corner posts (the proud face-frame legs at the foot corners) — floor (y 0) to top (y H).
+  // (1) two GROUNDED corner posts (proud face-frame legs at the foot corners) — floor (y 0) to top (y H).
   [-1, 1].forEach(s => box(group, `REGFB ${s < 0 ? 'left' : 'right'} corner post (grounded face-frame leg; proud front plane; foot of bed)`,
-    post, H, D, s * (W / 2 - post / 2), H / 2, footMidZ, mats.footWood, { edgeColor: 0x5f411a, edgeOpacity: 0.45 }));
+    post, H, D, s * (W / 2 - post / 2), H / 2, fbMidZ, mats.footWood, { edgeColor: 0x5f411a, edgeOpacity: 0.45 }));
   // (2) sit-on TOP CAP — full 74 in width across both posts (top at y = H).
-  box(group, 'REGFB top cap (sit-on; full 74 in width; caps both posts)', W, 2, D, 0, H - 1, footMidZ, mats.footWood, { edgeColor: 0x604618, edgeOpacity: 0.5 });
+  box(group, 'REGFB top cap (sit-on; full 74 in width; caps both posts)', W, 2, D, 0, H - 1, fbMidZ, mats.footWood, { edgeColor: 0x604618, edgeOpacity: 0.5 });
   // (3) FLUSH grounded bottom rail between the posts — NO toe kick (matches the base's grounded flush read).
-  box(group, 'REGFB flush bottom rail (grounded; NO toe kick; between the posts)', W - 2 * post, 2.5, D, 0, 1.25, footMidZ, mats.footWood, { edgeColor: 0x604618, edgeOpacity: 0.5 });
-  // (4) RECESSED front skin panel (foot-facing) — set 3/16 in BEHIND the proud posts' front plane (headboard
-  //     field-skin language), let into the frame between the posts + top cap + bottom rail.
-  const skinTh = 1.0, skinFrontZ = frontZ - reveal, skinZc = skinFrontZ - skinTh / 2;
+  box(group, 'REGFB flush bottom rail (grounded; NO toe kick; between the posts)', W - 2 * post, 2.5, D, 0, 1.25, fbMidZ, mats.footWood, { edgeColor: 0x604618, edgeOpacity: 0.5 });
+  // (4) RECESSED front skin panel (foot-facing) — 3/16 in BEHIND the proud posts' front plane; let into the frame.
+  const skinTh = 1.0, skinZc = (frontZ - reveal) - skinTh / 2;
   box(group, 'REGFB recessed front skin panel (foot-facing; 3/16 in reveal behind the proud posts; let into the frame)', W - 2 * post, H - 4.5, skinTh, 0, H / 2 - 0.25, skinZc, mats.footWood, { edgeColor: 0x5f411a, edgeOpacity: 0.42 });
-  // (5) bed-facing BACK stretcher rails (top + bottom) — rigidity; hidden behind the bed, at the back plane.
-  const backZc = backZ + 0.75;
+  // (5) bed-facing BACK stretcher rails (top + bottom) — rigidity + the bolt line to the base.
+  const backZc = backZ + 0.5;
   [['top', H - 1.25], ['bottom', 1.25]].forEach(([e, yc]) => box(group, `REGFB back ${e} stretcher rail (bed-facing; rigidity)`,
-    W - 2 * post, 2.5, 1.5, 0, yc, backZc, mats.footWood, { edgeColor: 0x5f411a, edgeOpacity: 0.4, cast: false }));
-  if (label) label('REGULAR footboard (no TV): grounded frame-and-panel — proud corner posts + sit-on top cap + flush bottom rail (no toe kick) + recessed front skin (3/16 reveal); ~74 x 14 x 16', 0, H + 2.5, footMidZ, 'green', 'footboard');
-  if (pieceLabel) pieceLabel('REGFB-01', 'REGULAR footboard (no TV cabinet; grounded frame-and-panel)', 0, H + 4.5, footMidZ, '74 x 14 x 16', 'footboard');
+    W - 2 * post, 2.5, 0.9, 0, yc, backZc, mats.footWood, { edgeColor: 0x5f411a, edgeOpacity: 0.4, cast: false }));
+  // (6) SHARED interchangeable foot-seam attachment: the footboard bolts to the bed at the SAME foot seam as the TV
+  //   cabinet — connector bolts THROUGH the base side-rail ends into the footboard corner posts (±dock.boltCenterX, AFF
+  //   dock.boltRowsAFF). Cabinet and footboard are interchangeable end pieces on ONE interface (install one OR the other;
+  //   no leftover holes). Gravity is on the footboard's own grounded posts; the bolts only tie it to the bed + resist tip.
+  const Dk = SPEC.footboard.dock;
+  const rfbBoltMat = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, roughness: 0.3, metalness: 0.85 });
+  for (const sx of [-Dk.boltCenterX, Dk.boltCenterX]) for (const y of Dk.boltRowsAFF) {
+    const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.19, 0.19, 4.5, 18), rfbBoltMat);
+    shaft.rotation.x = Math.PI / 2; shaft.position.set(sx, y, backZ - 0.5); shaft.castShadow = false;
+    shaft.name = `REGFB foot-seam connector bolt (through the base side-rail end into the footboard corner post; SHARED interchangeable interface with the TV cabinet) x=${sx} AFF=${y}`;
+    group.add(shaft);
+    const insrt = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.8, 18), rfbBoltMat);
+    insrt.rotation.x = Math.PI / 2; insrt.position.set(sx, y, backZ + 1.3); insrt.castShadow = false;
+    insrt.name = `REGFB connector-bolt threaded insert in footboard corner post x=${sx} AFF=${y}`;
+    group.add(insrt);
+  }
+  if (label) label('REGULAR footboard (no TV) = the plain interchangeable END PIECE: a THIN grounded frame-and-panel (proud corner posts + sit-on top cap + flush bottom rail, no toe kick + recessed front skin) that bolts to the SAME foot seam as the TV cabinet; ~74 x 14 x 3', 0, H + 2.5, fbMidZ, 'green', 'footboard');
+  if (pieceLabel) pieceLabel('REGFB-01', 'REGULAR footboard END PIECE (no TV cabinet; interchangeable at the foot seam)', 0, H + 4.5, fbMidZ, '74 x 14 x 3', 'footboard');
 }
 
 // ----------------------------------------------------------------------------
@@ -1000,19 +1033,19 @@ function buildDockHardware(ctx) {
   const bore = new THREE.MeshStandardMaterial({ color: 0x0d1014, roughness: 1 });
   const rubber = new THREE.MeshStandardMaterial({ color: 0x111418, roughness: 0.95, metalness: 0 });
   const copper = new THREE.MeshStandardMaterial({ color: 0xc07a3a, roughness: 0.5, metalness: 0.7 });
-  const ash = new THREE.MeshStandardMaterial({ color: 0xc79a5b, roughness: 0.6, metalness: 0.03 });
   function zc(r1, r2, len, mat, seg = 26) { const m = new THREE.Mesh(new THREE.CylinderGeometry(r1, r2, len, seg), mat); m.rotation.x = Math.PI / 2; m.castShadow = true; return m; }
-  // Lee-call Phase 6 (rpt 38): base<->cabinet attachment = 1x1 ASH BLOCKS screw+glue into THREADED INSERTS in each
-  // cabinet face frame; the bed bolt threads from the BED-FACING (hidden) side into the insert. The cabinet FRONT
-  // face carries NO visible/front attachment holes; the bed-facing side hides the bolts. Two per side x two rows =
-  // a tension/compression COUPLE that resists the raised-TV overturning moment (a single row would hinge).
+  // (owner 2026-07-04 reframe) base<->cabinet attachment = CONNECTOR BOLTS through the base side-rail ends at the foot
+  // seam into THREADED INSERTS in the CABINET'S OWN bed-facing frame — the SAME clean shared interface the
+  // interchangeable regular footboard uses. NO separate glued "ash blocks" (the owner questioned those). Hidden on the
+  // bed-facing side; the room-facing cabinet front stays clean. Two per side x two rows (AFF 5 + 14.5) = a
+  // tension/compression COUPLE that resists the raised-TV overturning moment (a single row would hinge). Unbolt the 4
+  // to detach the cabinet + stand it against the wall (then the plain footboard end piece takes the same seam).
   for (const sx of [-boltX, boltX]) {
     for (const y of rows) {
-      const block = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 6.5), ash); block.name = '1x1 ash connector block (screw+glue to cabinet face frame; bed-facing hidden side; the room-facing front face stays clean, no exposed front fasteners)'; block.position.set(sx, y, SEAM + 3.0); block.castShadow = true; cabGroup.add(block);
-      const insert = zc(0.18, 0.18, 0.9, brass, 20); insert.name = 'threaded insert in cabinet ash block (receives the hidden bed-facing bolt)'; insert.position.set(sx, y, SEAM + 1.4); cabGroup.add(insert);
-      const shaft = zc(0.19, 0.19, 3.6, boltMat); shaft.name = 'hidden bed-facing bolt shaft (threads from the bed-facing side into the cabinet ash-block insert; room-facing front face stays clean)'; shaft.position.set(sx, y, SEAM - 0.2); baseGroup.add(shaft);
-      const head = zc(0.42, 0.42, 0.55, steel, 6); head.name = 'hidden bed-facing bolt hex head (on the bed-facing side, hidden from the room)'; head.position.set(sx, y, SEAM - 2.2); baseGroup.add(head);
-      const cup = zc(0.5, 0.5, 0.16, steel); cup.name = 'bed-facing bolt washer cup'; cup.position.set(sx, y, SEAM - 1.8); baseGroup.add(cup);
+      const insert = zc(0.22, 0.22, 0.9, brass, 20); insert.name = 'threaded insert in the cabinet bed-facing frame (receives the connector bolt; the cabinet frame itself is the receiver — NOT a separate ash block)'; insert.position.set(sx, y, SEAM + 1.5); cabGroup.add(insert);
+      const shaft = zc(0.19, 0.19, 4.2, boltMat); shaft.name = 'hidden bed-facing bolt shaft (connector bolt through the base side-rail end at the foot seam into the cabinet bed-facing-frame insert; the SAME shared interface the regular footboard uses; room-facing front face stays clean)'; shaft.position.set(sx, y, SEAM - 0.4); baseGroup.add(shaft);
+      const head = zc(0.42, 0.42, 0.55, steel, 6); head.name = 'hidden bed-facing bolt hex head (on the bed-facing side, hidden from the room)'; head.position.set(sx, y, SEAM - 2.4); baseGroup.add(head);
+      const cup = zc(0.5, 0.5, 0.16, steel); cup.name = 'bed-facing bolt washer cup'; cup.position.set(sx, y, SEAM - 2.0); baseGroup.add(cup);
     }
   }
   // ONE 3/4 in GROMMETED bare-wire pass-through, low + centered on the bed-facing wall, fed by the under-base foot
@@ -1188,15 +1221,19 @@ function addNightstandConnectorBolt({ id, sideName, x, y }) {
     labelSection,
     joint: `${sideName} nightstand cabinet back bolted into a steel threaded insert in the headboard skin back (D0-4)`,
     pieceIds: [`nightstand-${sideName}`, `HB-FP-${sideName}-skin-back`, 'steel threaded insert (skin back)'],
-    position: { x, y, z: 1.5 },
-    notes: 'Bolt threads from inside the nightstand drawer cavity THROUGH the nightstand cabinet back into a steel threaded insert set in the headboard skin back (D0-4; supersedes the retired CN-SQ wood receiver).'
+    position: { x, y, z: skinBackZ - 0.3 },   // the insert seats just behind the skin (backing plane) — NOT 6 in back at the headboard rear
+    notes: 'SHORT bolt: from inside the empty nightstand drawer pocket, THROUGH the nightstand cabinet back + the headboard skin, into a steel threaded insert seated in the SKIN-BACK backing plane. Lower row (AFF 19.4) threads into the deep AFF-19 course cross-rail (HB-SR19); upper row (AFF 26.1) threads into the dedicated HB-NS-BACK insert cleat — so BOTH rows land on real structure (D0-4; CN-SQ retired).'
   });
-  cyl(group, `${id} connector bolt shaft (through the nightstand cabinet back into the skin-back insert)`, 0.13, 7.2, x, y, 1.5, mats.darkSteel, 'z');
-  cyl(group, `${id} drawer-side washer`, 0.28, 0.12, x, y, 5.35, mats.steel, 'z', { segments: 28 });
-  cyl(group, `${id} steel threaded insert in skin back (receives the bolt; D0-4)`, 0.22, 0.7, x, y, -7.0, mats.steel, 'z', { segments: 22 });
-  box(group, `${id} skin-back insert boss (solid backing behind the field skin)`, 1.0, 0.6, 0.5, x, y, -7.6, mats.shell, { edgeOpacity: 0.22 });
-  addClampLine(group, id, [x, y, 5.25], [x, y, -6.65], 0xf59e0b);
-  fastenerLabel(id, 'NS-INS', x + 0.8, y + 0.45, 2.4, labelSection);
+  // Coherent, CONTIGUOUS assembly (the old shaft ended at z=-2.1 while the insert floated at z=-7 — a stale rear-mount
+  // carry-over that never reached its insert). Drawer-cavity head/washer -> shaft -> skin-back insert -> seat boss.
+  const drawZ = 1.2, insZ = skinBackZ - 0.55, bossZ = skinBackZ - 0.95;
+  cyl(group, `${id} connector bolt shaft (from the nightstand drawer pocket through the cabinet back + skin into the skin-back insert)`, 0.13, drawZ - bossZ, x, y, (drawZ + bossZ) / 2, mats.darkSteel, 'z');
+  cyl(group, `${id} drawer-side washer (reached from inside the empty nightstand drawer pocket)`, 0.28, 0.12, x, y, drawZ, mats.steel, 'z', { segments: 28 });
+  cyl(group, `${id} drawer-side hex head`, 0.2, 0.16, x, y, drawZ + 0.16, mats.darkSteel, 'z', { segments: 6 });
+  cyl(group, `${id} steel threaded insert in skin back (receives the bolt; seated in the backing plane; D0-4)`, 0.22, 0.7, x, y, insZ, mats.steel, 'z', { segments: 22 });
+  box(group, `${id} skin-back insert seat boss (solid backing behind the field skin)`, 1.0, 0.6, 0.5, x, y, bossZ, mats.shell, { edgeOpacity: 0.22 });
+  addClampLine(group, id, [x, y, drawZ], [x, y, bossZ], 0xf59e0b);
+  fastenerLabel(id, 'NS-INS', x + 0.8, y + 0.45, drawZ, labelSection);
 }
 
 function addSmallScrew({ id, groupKey, labelSection, type = 'KS', joint, pieceIds, x, y, z, axis = 'z', length = 0.8 }) {
@@ -1451,19 +1488,23 @@ panelRows.forEach(row => {
     frontPanels.push({ id, col: col.key, row: row.key, x0: col.x0, x1: col.x1, y0: row.y0, y1: row.y1, width, height, cx, cy, isSpeakerPanel, isSpeakerCourse, attachMethod });
     const zSkin = skinFrontZ - SPEC.skinTh / 2;                    // recessed: front at -skinReveal, back at -(skinReveal+skinTh)
     if (isSpeakerPanel) {
-      // The speaker skin is ONE recessed speaker-course panel ASSEMBLY (NOT four unrelated boards): a window is cut
-      // for the in-wall speaker so the exposed baffle reads against a dark recess, not solid wood. The assembly is
-      // two jambs + sill + head around the cutW x cutH opening, all sharing the HB-FP id + the SAME recessed plane.
+      // The speaker skin reads as ONE CONTINUOUS recessed panel with a speaker HOLE — NOT a picture-frame of 4 boards.
+      // ROOT CAUSE of the old vertical lines at the speaker edges: the two jambs ran the FULL course height and butted
+      // the sill/head at the cutout x-positions, so the coplanar seams (each drawing a faint edge outline) read as
+      // vertical lines running the whole height. FIX (owner 2026-07-04): the head + sill strips now span the FULL bay
+      // width (no vertical seam above/below the cutout) and the two jambs are ONLY the cutout height (flanking the hole);
+      // all four share the HB-FP id + the SAME recessed plane + mats.skin and carry NO edge outlines (edges:false), so
+      // the same-material coplanar pieces render as one continuous board — only the cutout opening (dark recess/baffle) shows.
       const sCx = Math.sign(cx) * SPEC.speaker.centerX;
       const cutX0 = sCx - SPEC.speaker.cutW / 2, cutX1 = sCx + SPEC.speaker.cutW / 2;
-      const cutY0 = SPEC.speaker.bottom, cutY1 = SPEC.speaker.top;
-      const jW0 = cutX0 - col.x0, jW1 = col.x1 - cutX1;           // inboard / outboard jamb widths
-      const rHB = cutY0 - row.y0, rHT = row.y1 - cutY1;            // sill / head rail heights
-      const A = `${id} recessed speaker-course skin assembly`;    // ONE assembly id; 4 milled members around the cutout
-      box(groups.skins, `${A} jamb-inboard 0.875 in (3/16 in recess)`, jW0, height, SPEC.skinTh, (col.x0 + cutX0) / 2, cy, zSkin, mats.skin, { edgeOpacity: 0.28 });
-      box(groups.skins, `${A} jamb-outboard 0.875 in (3/16 in recess)`, jW1, height, SPEC.skinTh, (cutX1 + col.x1) / 2, cy, zSkin, mats.skin, { edgeOpacity: 0.28 });
-      box(groups.skins, `${A} sill-rail 0.875 in (3/16 in recess)`, SPEC.speaker.cutW, rHB, SPEC.skinTh, sCx, (row.y0 + cutY0) / 2, zSkin, mats.skin, { edgeOpacity: 0.28 });
-      box(groups.skins, `${A} head-rail 0.875 in (3/16 in recess)`, SPEC.speaker.cutW, rHT, SPEC.skinTh, sCx, (cutY1 + row.y1) / 2, zSkin, mats.skin, { edgeOpacity: 0.28 });
+      const cutY0 = SPEC.speaker.bottom, cutY1 = SPEC.speaker.top, cutH = cutY1 - cutY0;
+      const jW0 = cutX0 - col.x0, jW1 = col.x1 - cutX1;           // inboard / outboard jamb widths (cutout height only)
+      const rHB = cutY0 - row.y0, rHT = row.y1 - cutY1;            // full-bay-width sill / head strip heights
+      const A = `${id} recessed speaker-course skin assembly`;    // ONE continuous panel: full-width head + sill strips + short jambs
+      box(groups.skins, `${A} head-rail 0.875 in (3/16 in recess; full-bay-width continuous strip above the cutout)`, width, rHT, SPEC.skinTh, cx, (cutY1 + row.y1) / 2, zSkin, mats.skin, { edges: false });
+      box(groups.skins, `${A} sill-rail 0.875 in (3/16 in recess; full-bay-width continuous strip below the cutout)`, width, rHB, SPEC.skinTh, cx, (row.y0 + cutY0) / 2, zSkin, mats.skin, { edges: false });
+      box(groups.skins, `${A} jamb-inboard 0.875 in (3/16 in recess; cutout-height only, flanks the speaker hole)`, jW0, cutH, SPEC.skinTh, (col.x0 + cutX0) / 2, (cutY0 + cutY1) / 2, zSkin, mats.skin, { edges: false });
+      box(groups.skins, `${A} jamb-outboard 0.875 in (3/16 in recess; cutout-height only, flanks the speaker hole)`, jW1, cutH, SPEC.skinTh, (cutX1 + col.x1) / 2, (cutY0 + cutY1) / 2, zSkin, mats.skin, { edges: false });
     } else {
       box(groups.skins, `${id} ${col.name} ${row.name} recessed field skin 0.875 in (3/16 in reveal behind the proud face-frame)`, width, height, SPEC.skinTh, cx, cy, zSkin, mats.skin, { edgeOpacity: 0.28 });
     }
@@ -1617,13 +1658,10 @@ const LED_LIT_LEN = 124, LED_VENT_EXT = 2;                          // routed gr
   // (3.3) LED-CHANNEL VENTILATION: bridged round holes on ~9 in centers along the slot edge (concept; passive convection intake/exhaust for the channel).
   for (let vx = -54; vx <= 54; vx += 9) cyl(groups.led, `${ch.key} LED-channel bridged vent hole x=${vx} (~9 in centers along the slot edge; passive convection)`, 0.2, 2.0, vx, 71, ch.z + (Vcut / 2 + 0.18), mats.void, 'y', { segments: 16, cast: false });
 });
-// (3.5) CONCEPT COOLING FANS (thermal FAILSAFE) on the AFF-57 top course cross-rail below the cap — quiet PWM fans
-// sweep the 124 in of fins; expected to rarely/never run (the passive extruded heatsink is the primary). Concept-level part /
-// location + controller [TBD-CONFIRM Lee/thermal bench test, D-082]. Named without cap tokens so the render classifier hides them.
-[-40, 0, 40].forEach((fx, i) => {
-  box(groups.led, `HB-FAN-${i + 1} concept cooling fan / thermal-failsafe location on the AFF-57 cross-rail below the cap [TBD-CONFIRM controller/thermal bench, D-082] x=${fx}`, 2.4, 2.4, 1.0, fx, 58.5, -6.6, mats.darkSteel, { edgeColor: 0x94a3b8, edgeOpacity: 0.4, cast: false });
-  cyl(groups.led, `HB-FAN-${i + 1} concept fan hub x=${fx}`, 0.5, 0.9, fx, 58.5, -6.6, mats.steel, 'z', { segments: 20, cast: false });
-});
+// (3.5) Thermal cooling = the passive extruded aluminum heatsink + the ventilated rear back (intake low / exhaust high).
+// The former three concept PWM "failsafe fans" (HB-FAN-1/2/3, dark boxes on the AFF-57 cross-rail) are NO LONGER
+// MODELED — owner directive 2026-07-04: they were never an owner-requested part, only a speculative TBD-CONFIRM
+// thermal concept (D-082). The active-fan failsafe stays an OPEN NOTE in the ledger, not a modeled object.
 // The cap is now THREE butted segments (see the top-cap segments, above); the 124 in LED run is routed as ONE
 // continuous drop-in piece straight across the two ±38 butt seams (sub-slots machined to align), leaving ~3 in of
 // solid (un-routed) ash at each end of the crown. The lit line never breaks at a segment seam (D0-1/D-033).
@@ -1784,6 +1822,11 @@ SPEC.courseSeamsAFF.forEach(seamAFF => {
   // 8 connector bolts/side (2 rows AFF 19.4/26.1 x 4 cols), each reachable from inside the empty drawer pocket,
   // clear of the side-mount slides — the whole nightstand load path (D-014 cantilever) is these bolts + inserts.
   const xs = [-9, -3, 3, 9].map(dx => cx + dx);
+  // UPPER-row insert backing: the LOWER bolt row (AFF 19.4) threads into the deep AFF-19 course cross-rail (HB-SR19);
+  // the UPPER row (AFF 26.1) falls BETWEEN the AFF-19 and AFF-38 course rails, so a dedicated horizontal BACKING CLEAT
+  // behind the nightstand skin field gives the upper steel inserts real structure to thread into — now BOTH rows land
+  // on solid backing (this is local insert backing, NOT the retired nightstand receiver-rail/ash-diagonal system).
+  box(groups.lattice, `HB-NS-BACK-${sideName} nightstand-mount insert BACKING CLEAT (upper bolt row AFF 26.1; solid backing behind the skin field so the upper steel inserts land on real structure; the lower row lands on the deep AFF-19 course cross-rail)`, SPEC.nightstand.skinFieldWidth - 1, 2.6, 2.0, cx, 26.1, skinBackZ - 1.0, mats.shellGhost, { edgeColor: 0x5f411a, edgeOpacity: 0.42, cast: false });
   [26.1, 19.4].forEach((y, rowIndex) => {
     const rowName = rowIndex === 0 ? 'U' : 'L';
     xs.forEach((x, colIndex) => {
@@ -1894,7 +1937,7 @@ SPEC.courseSeamsAFF.forEach(seamAFF => {
       threeLandWReliefPreserved: true,                                       // front/center/rear lands + two channel gaps intact
       ledVentExhaustExtensionEachInches: LED_VENT_EXT,                       // routed groove runs 2 in past each lit end (top-vent exhaust)
       ledVentHoleCentersInches: 9,                                           // bridged round vent holes ~9 in centers along the slot edge
-      coolingFanConcept: true,                                              // 3 concept thermal-failsafe fans on the AFF-57 cross-rail [TBD-CONFIRM D-082]
+      coolingFanConcept: false,                                             // concept failsafe fans NOT modeled (owner directive 2026-07-04); passive heatsink is the cooling system; D-082 stays an open note only
       flangeRestsOnCapTop: true                                             // 44.4 mm flange on the cap top, 35 mm routed cut, <0.25 in buffer
     },
     // Lee-call Phase 4 (D0-2): ventilated plywood rear back (sealed-but-vented + serviceable), NOT the old open-rear mandate.
@@ -2016,6 +2059,27 @@ const { headboardModules: HBM, skinField: SF, frame: FR, mullion: MUL, topCap: T
 const headboard = new THREE.Group();
 groupKeys.forEach(k => headboard.add(groups[k]));
 scene.add(headboard);
+
+// ── Headboard-separation slider (owner 2026-07-04) ─────────────────────────────────────────────────────────────
+// The headboard ships as THREE bolt-together boxes (HB-MOD-L / -C / -R, split at the ±38 mullion faces). This slider
+// pulls them apart so you can watch them come together. NO reparenting (keeps the subsystem groups + ghost/toggle
+// system intact): each mesh + its edge outline is offset in X by which module it belongs to (L -> -x, R -> +x; the
+// center box + the continuous top-cap LED run stay put). Module + base X are precomputed ONCE at the assembled pose.
+const _sepParts = [];
+headboard.updateWorldMatrix(true, true);
+{ const _bb = new THREE.Box3(), _cc = new THREE.Vector3();
+  headboard.children.forEach(grp => grp.children.forEach(o => {
+    if (!o.geometry) return;
+    _bb.setFromObject(o); _bb.getCenter(_cc);
+    const spansBoth = _bb.min.x < -37.5 && _bb.max.x > 37.5;   // a continuous element crossing BOTH seams stays with the center
+    const dir = spansBoth ? 0 : (_cc.x < -38 ? -1 : _cc.x > 38 ? 1 : 0);
+    if (dir !== 0) _sepParts.push({ o, baseX: o.position.x, dir });
+  }));
+}
+const HB_SEP_MAX = 24;   // inches of side-box travel at slider = 100
+function setHeadboardSeparation(t) { const k = Math.max(0, Math.min(1, t)); for (const p of _sepParts) p.o.position.x = p.baseX + p.dir * k * HB_SEP_MAX; }
+const sepSliderEl = document.getElementById('sepSlider');
+if (sepSliderEl) sepSliderEl.addEventListener('input', e => setHeadboardSeparation(Number(e.target.value) / 100));
 
 const fastenerGroups = ['capFasteners', 'rearRailFasteners', 'baseTieFasteners', 'nightstandFasteners', 'panelKeeperFasteners', 'alignmentKeys'];
 fastenerGroups.forEach(k => groups[k].visible = false);   // fasteners off by default
@@ -2174,7 +2238,7 @@ window.__BFS01.topCap.pass =
   && window.__BFS01.topCap.threeLandWReliefPreserved === true
   && window.__BFS01.topCap.ledTopVentExhaustExtensions >= 2
   && window.__BFS01.topCap.ledChannelVentHoles >= 8
-  && window.__BFS01.topCap.coolingFanFailsafeConcept >= 2
+  && window.__BFS01.topCap.coolingFanFailsafeConcept === 0   // concept failsafe fans REMOVED (owner 2026-07-04, D-082): assert NOT modeled (passive heatsink is the cooling system)
   && JSON.stringify(TC.segmentWidths) === JSON.stringify([27, 76, 27])
   && TC.overallWidthResult === 130;
 // Lee-call Phase 4 (D0-2) — ventilated plywood rear back (sealed-but-vented + serviceable), NOT the open-rear mandate.
@@ -2200,5 +2264,8 @@ window.__BFS01.pass = window.__BFS01.headboardModules.pass === true
   && window.__BFS01.topCap.pass === true
   && window.__BFS01.rear.pass === true;
 </script>
+<!-- BF:BUILDSTAMP:START (generated by `npm run bf:build` — do not hand-edit; updates automatically every build) -->
+<div id="bf-build-stamp" data-built="2026-07-05T07:13:55.357Z" style="position:fixed;left:8px;bottom:6px;z-index:99999;pointer-events:none;font:600 11px/1.3 system-ui,-apple-system,Segoe UI,sans-serif;color:#8b98ac;background:rgba(9,12,18,.66);padding:3px 8px;border-radius:5px;letter-spacing:.02em;box-shadow:0 1px 3px rgba(0,0,0,.35);">Model last updated: 2026-07-05 00:13 MST</div>
+<!-- BF:BUILDSTAMP:END -->
 </body>
 </html>
