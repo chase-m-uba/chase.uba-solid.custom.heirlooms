@@ -499,7 +499,7 @@ const SPEC = Object.freeze({
   //   mount on their two ends (stopping short of centre); module-to-side-frame connector bolts (one side per window).
   base: { W: 74, L: 85, top: 17, bayW: 67, bayL: 81, shoulder: 3.5, toeH: 0, toeInset: 0, caseBottom: 2.0, slat: { width: 2.75, gap: 1.5, mount: 'bolt-in nutsert ends' }, centerBeam: { present: true, role: 'slat/mattress support only', form: 'narrow under-slat beam', legs: 2, levelers: 2, endSupportBlocks: 2, beamW: 2.5, beamTh: 0.875 }, drawerStructure: { modules: 3, crossRails: 6, transverseSpanFullWidth: true, boundaryStiles: 4, insideStripWidth: 2, stileWidth: 4, ledges: true } },
   drawer: { perSide: 3, intH: 10.75, intW: 19, intD: 33, faceRecess: 0.638, frontWall: 0.5, revealGap: 0.375, channelRout: 0.276, channelH: 0.276, lipCarrierH: 1.0, faceThickness: 1.0, faceH: 12.0, faceGap: 0.25, faceReveal: 0.1875, faceOverlap: true },  // D-093/D-012/D-013: face FRONT recessed 0.638 in (centered under the aluminum micro-channel); 0.5 in front wall to the channel front edge; 7 mm routed groove; 1.0 in lip carrier (0.724 in wood above the 0.276 in channel); 3/8 in reveal; Dawna Option A bottom-edge pull. Lee-call Phase 7: faces OVERLAP the 4-in face-frame verticals with a thin 3/16 (0.1875) reveal, edge-to-edge read (faceReveal / faceOverlap)
-  footboard: { W: 74, H: 41, D: 16, sideTh: 2.0, faceTh: 1.0, deckTh: 1.0, rearTh: 0.75, reveal: 0.125, relocatable: true, regularFootboardVariant: { W: 74, H: 14, D: 3 }, dock: { boltCenterX: 33, boltRowsAFF: [5, 14.5], wireHoleDia: 0.75, wireHoleCenterAFF: 3 } },  // Lee-call Phase 8 + owner 2026-07-04 reframe: cabinet set back ~1/8 in (reveal) never proud; relocatable standalone; the regular (no-TV) footboard is NOT a 16-in box — it is the THIN (3 in) interchangeable END PIECE at the foot seam (~74x14x3)
+  footboard: { W: 74, H: 41, D: 16, sideTh: 2.0, faceTh: 1.0, deckTh: 1.0, rearTh: 0.75, reveal: 0.125, relocatable: true, dock: { boltCenterX: 33, boltRowsAFF: [5, 14.5], wireHoleDia: 0.75, wireHoleCenterAFF: 3 } },  // Lee-call Phase 8: cabinet set back ~1/8 in (reveal) never proud; relocatable standalone. The regular (no-TV) footboard is NOT a separate modeled piece — it is the bed BASE's own grounded foot end (owner 2026-07-05; buildRegularFootboard removed).
   lift: { travel: 36, retractBody: 31, raised: 68.5, baseW: 28.375, basePlateW: 9.875, basePlateD: 5.125, bodyD: 7.0, deckTopY: 8.0 },
   tv: { W: 48.0, H: 27.8, D: 1.5, retractBottom: 11.95, raisedBottom: 47.0 },
   lid: { W: 69.5, D: 14.25, T: 1.0, flushTop: 41, raisedTop: 76 },   // full cabinet-top lift-off lid (D-095): 70 in opening less ~0.25 in reveal/side; + underside stiffening ribs (not modeled as separate geo)
@@ -916,11 +916,11 @@ function buildFootboardAndLift(ctx) {
   // 1/8 in reveal/setback markers on the cabinet side + top (never proud of the bed side/top cap)
   [-1, 1].forEach(s => box(group, `FB cabinet 1/8 in reveal/setback ${s < 0 ? 'L' : 'R'} (cabinet set back ${fbRev} in inboard of the bed side; never proud)`, fbRev, F.H, F.D, s * (F.W / 2 - fbRev / 2), F.H / 2, footMidZ, mats.void, { edgeColor: 0x38bdf8, edgeOpacity: 0.55, cast: false }));
   box(group, `FB cabinet relocatable standalone marker (unbolt the 4 bed bolts -> pull away -> stand against the wall; bolt-on cabinet-to-base seam)`, F.W - 4, 0.1, F.D - 2, 0, 0.4, footMidZ, mats.void, { edgeColor: 0x22d3ee, edgeOpacity: 0.4, cast: false });
-  // (8.2) The regular (no-TV) footboard is NOT a second box parked in front of the cabinet, and NOT a stored-part SKU
-  //       variant — it is the plain interchangeable END PIECE that takes this SAME foot seam when the TV cabinet is
-  //       removed (owner 2026-07-04). It is modeled ONLY in Full-Bed-Regular-Footboard_3D (buildRegularFootboard). The
-  //       old translucent 'FB-REG' concept-ghost box that floated in front of the cabinet is REMOVED (it read as a mystery box).
-  label('Phase 8: TV cabinet = RELOCATABLE standalone (unbolt the foot connectors, stand against the wall), set back 1/8 in reveal (never proud); remove it and the plain regular-footboard END PIECE takes this same foot seam (see the regular-footboard model)', 0, 46, footMidZ, 'gold', 'footboard');
+  // (8.2) The regular (no-TV) footboard is NOT modeled as a separate added piece at all (owner 2026-07-05): the bed
+  //       BASE's own grounded foot end IS the regular footboard. When the TV cabinet is removed (the regular-footboard
+  //       model), the base foot end is simply exposed — no piece is added at this seam. The old translucent 'FB-REG'
+  //       concept-ghost box + the later REGFB end-panel are BOTH removed (they read as a mystery/duplicate foot slab).
+  label('Phase 8: TV cabinet = RELOCATABLE standalone (unbolt the foot connectors, stand against the wall), set back 1/8 in reveal (never proud); remove it and the bed BASE\'s own grounded foot end is the regular footboard (nothing added — see the regular-footboard model)', 0, 46, footMidZ, 'gold', 'footboard');
 
   const lift = groups.liftSystem, bpTop = L.deckTopY + 0.4;
   const bodyW = 5.5, bodyH = 22, bodyD = 3.6;
@@ -979,51 +979,17 @@ function buildFootboardAndLift(ctx) {
 //  Occupies the same foot envelope as the cabinet (Z footBack..footFront), so the bed length is unchanged.
 //  ctx: { box, mats, groups:{footboard}, label, pieceLabel }  (no lift, no dock, no TV).
 // ----------------------------------------------------------------------------
-function buildRegularFootboard(ctx) {
-  const { box, mats, groups, label, pieceLabel } = ctx;
-  const { ZB } = deriveZ();
-  const RV = SPEC.footboard.regularFootboardVariant;          // { W:74, H:14, D:3 } — a THIN vertical END PANEL, not a box
-  const W = RV.W, H = RV.H, D = RV.D, post = SPEC.footboard.sideTh;   // post = 2.0 in corner leg
-  const group = groups.footboard;
-  // (owner 2026-07-04 reframe) The regular footboard is the plain INTERCHANGEABLE END PIECE that takes the TV cabinet's
-  //   foot seam — a THIN (D in) grounded frame-and-panel at the VERY FOOT of the bed (z backZ..backZ+D), NOT a 16-in box
-  //   in the cabinet envelope. Install the cabinet OR this footboard on the SAME foot seam (no leftover holes); the bed
-  //   is simply shorter without the cabinet's 16-in projection.
-  const backZ = ZB.footBack, frontZ = backZ + D, fbMidZ = backZ + D / 2;   // 85 (bed-facing) .. 88 (foot-facing), centre 86.5
-  const reveal = SPEC.skinReveal;                             // 3/16 in — front skin sits behind the proud posts
-  // (1) two GROUNDED corner posts (proud face-frame legs at the foot corners) — floor (y 0) to top (y H).
-  [-1, 1].forEach(s => box(group, `REGFB ${s < 0 ? 'left' : 'right'} corner post (grounded face-frame leg; proud front plane; foot of bed)`,
-    post, H, D, s * (W / 2 - post / 2), H / 2, fbMidZ, mats.footWood, { edgeColor: 0x5f411a, edgeOpacity: 0.45 }));
-  // (2) sit-on TOP CAP — full 74 in width across both posts (top at y = H).
-  box(group, 'REGFB top cap (sit-on; full 74 in width; caps both posts)', W, 2, D, 0, H - 1, fbMidZ, mats.footWood, { edgeColor: 0x604618, edgeOpacity: 0.5 });
-  // (3) FLUSH grounded bottom rail between the posts — NO toe kick (matches the base's grounded flush read).
-  box(group, 'REGFB flush bottom rail (grounded; NO toe kick; between the posts)', W - 2 * post, 2.5, D, 0, 1.25, fbMidZ, mats.footWood, { edgeColor: 0x604618, edgeOpacity: 0.5 });
-  // (4) RECESSED front skin panel (foot-facing) — 3/16 in BEHIND the proud posts' front plane; let into the frame.
-  const skinTh = 1.0, skinZc = (frontZ - reveal) - skinTh / 2;
-  box(group, 'REGFB recessed front skin panel (foot-facing; 3/16 in reveal behind the proud posts; let into the frame)', W - 2 * post, H - 4.5, skinTh, 0, H / 2 - 0.25, skinZc, mats.footWood, { edgeColor: 0x5f411a, edgeOpacity: 0.42 });
-  // (5) bed-facing BACK stretcher rails (top + bottom) — rigidity + the bolt line to the base.
-  const backZc = backZ + 0.5;
-  [['top', H - 1.25], ['bottom', 1.25]].forEach(([e, yc]) => box(group, `REGFB back ${e} stretcher rail (bed-facing; rigidity)`,
-    W - 2 * post, 2.5, 0.9, 0, yc, backZc, mats.footWood, { edgeColor: 0x5f411a, edgeOpacity: 0.4, cast: false }));
-  // (6) SHARED interchangeable foot-seam attachment: the footboard bolts to the bed at the SAME foot seam as the TV
-  //   cabinet — connector bolts THROUGH the base side-rail ends into the footboard corner posts (±dock.boltCenterX, AFF
-  //   dock.boltRowsAFF). Cabinet and footboard are interchangeable end pieces on ONE interface (install one OR the other;
-  //   no leftover holes). Gravity is on the footboard's own grounded posts; the bolts only tie it to the bed + resist tip.
-  const Dk = SPEC.footboard.dock;
-  const rfbBoltMat = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, roughness: 0.3, metalness: 0.85 });
-  for (const sx of [-Dk.boltCenterX, Dk.boltCenterX]) for (const y of Dk.boltRowsAFF) {
-    const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.19, 0.19, 4.5, 18), rfbBoltMat);
-    shaft.rotation.x = Math.PI / 2; shaft.position.set(sx, y, backZ - 0.5); shaft.castShadow = false;
-    shaft.name = `REGFB foot-seam connector bolt (through the base side-rail end into the footboard corner post; SHARED interchangeable interface with the TV cabinet) x=${sx} AFF=${y}`;
-    group.add(shaft);
-    const insrt = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.8, 18), rfbBoltMat);
-    insrt.rotation.x = Math.PI / 2; insrt.position.set(sx, y, backZ + 1.3); insrt.castShadow = false;
-    insrt.name = `REGFB connector-bolt threaded insert in footboard corner post x=${sx} AFF=${y}`;
-    group.add(insrt);
-  }
-  if (label) label('REGULAR footboard (no TV) = the plain interchangeable END PIECE: a THIN grounded frame-and-panel (proud corner posts + sit-on top cap + flush bottom rail, no toe kick + recessed front skin) that bolts to the SAME foot seam as the TV cabinet; ~74 x 14 x 3', 0, H + 2.5, fbMidZ, 'green', 'footboard');
-  if (pieceLabel) pieceLabel('REGFB-01', 'REGULAR footboard END PIECE (no TV cabinet; interchangeable at the foot seam)', 0, H + 4.5, fbMidZ, '74 x 14 x 3', 'footboard');
-}
+// buildRegularFootboard — DELETED (owner 2026-07-05, final regular-footboard contract).
+//   DECISION: the "regular footboard" configuration is simply the bed with the TV cabinet REMOVED. The bed BASE
+//   already has its own complete grounded foot end — a full-width, full-height (17 in) finished 'foot rail receiver
+//   face' + sit-on top border rail + mattress shoulder (see buildBedBase). THAT is the normal footboard/end piece.
+//   The TV cabinet, when installed, sits at the same foot seam (z=85) and REPLACES that read; remove it and the
+//   base's own foot end is exposed as a normal low platform-bed footboard. Faithful to the builder reference PDF
+//   ("TV CABINET (FOOTBOARD) REMOVED" shows the bare drawer base foot — no separate footboard).
+//   A prior pass ADDED a separate ~74x14x3 REGFB end-panel here; that read as an EXTRA/duplicate slab in front of
+//   the base foot rail (two foot pieces). Owner: "there's not supposed to be anything added back in... one normal
+//   footboard/end piece." So this builder is removed from source semantics and is NOT called by any model; the
+//   Full-Bed-Regular-Footboard gate (__BF_REGULAR_FOOTBOARD) asserts NO REGFB panel + NO TV cabinet can reappear.
 
 // ----------------------------------------------------------------------------
 //  BUILDER: cabinet-to-base bolt-on hardware at the foot-of-bed seam (Z = 85).
@@ -1174,16 +1140,13 @@ function addZipboltSideDrive({ id, groupKey, labelSection, joint, pieceIds, x, y
 }
 
 function addBedBoltCutoutVolumes({ id, group, x, y, z, axis = 'y' }) {
+  // owner 2026-07-05: the transparent CUTAWAY x-ray markers (void/access bolt-bore + counterbore + captured
+  // receiver-pocket boxes) are REMOVED — they read as "mysterious transparent boxes" in the model, most visibly
+  // the ±36 base-tie set at the headboard bottom. The REAL solid fastener geometry (bolt shaft, washer cup, brass
+  // nut bearing) is added by the callers (addBaseTieBolt / addVerticalBedBolt) and stays — non-obtrusive real
+  // hardware. The cutout is still REGISTERED in the data array (barrelConnectorCutoutPass counts it), just not
+  // drawn as translucent volumes. (group/x/y/z/axis kept in the signature for the callers + the data record.)
   bedBoltCutouts.push({ id, axis, position: { x, y, z } });
-  if (axis === 'z') {
-    cyl(group, `${id} actual bolt shaft bore / cutout`, 0.24, 7.45, x, y, -4.05, mats.void, 'z', { segments: 28, cast: false });
-    cyl(group, `${id} actual base-side counterbore / access pocket`, 0.5, 0.22, x, y, 0.04, mats.access, 'z', { segments: 30, cast: false });
-    box(group, `${id} actual captured receiver pocket / cross-dowel cutout`, 1.25, 0.86, 0.38, x, y, -7.45, mats.access, { edgeColor: 0xfb923c, edgeOpacity: 0.7, cast: false });
-    return;
-  }
-  cyl(group, `${id} actual vertical bolt shaft bore / cutout`, 0.16, 2.92, x, y, z, mats.void, 'y', { segments: 28, cast: false });
-  cyl(group, `${id} actual washer counterbore / access pocket`, 0.36, 0.2, x, y - 1.35, z, mats.access, 'y', { segments: 30, cast: false });
-  cyl(group, `${id} actual transverse barrel-nut bore`, 0.27, 1.28, x, y + 1.25, z, mats.access, 'x', { segments: 28, cast: false });
 }
 
 function addVerticalBedBolt({ id, groupKey, labelSection, joint, pieceIds, x, y, z }) {
@@ -1393,30 +1356,21 @@ function addHeadboardModuleConnector({ id, seamSide, y, tag }) {
 // member length at one X edge; 'h' = web returns along the length at one Y edge. The show FACE stays at z=0
 // (the PROUD face-frame plane the recessed field skins sit 3/16 in behind). Web names deliberately omit the
 // "side stile"/"bottom cap rail" tokens so the Phase-1 module count validators keep matching only the faces.
-function addBuiltUpLFrameMember({ faceName, webName, group = groups.lattice, orient, x0, x1, y0, y1, webEdge, mat = mats.shell, reliefY = 0, reliefD = 0 }) {
+function addBuiltUpLFrameMember({ faceName, webName, group = groups.lattice, orient, x0, x1, y0, y1, webEdge, mat = mats.shell }) {
   const fTh = SPEC.frameFaceTh, wDepth = SPEC.frameWebDepth;
   const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, w = x1 - x0, h = y1 - y0;
   const opts = { edgeColor: 0x5f411a, edgeOpacity: 0.44 };
   const backZ = -fTh - wDepth / 2;
   box(group, faceName, w, h, fTh, cx, cy, -fTh / 2, mat, opts);                                  // 7/8 show face at the proud front plane
-  // Return WEB — the wall-facing part. Optionally RELIEVED at the bottom-BACK to clear the room baseboard (owner
-  // 2026-07-05): the web's BACK edge steps FORWARD reliefD in for the bottom reliefY in AFF, so the headboard sits
-  // flush to the wall ABOVE a ~reliefY-in baseboard standing ~reliefD in proud. This is a scribe/rabbet on the BACK
-  // VERTICAL face — NOT a notch cut into the bottom. Front of the web stays put; only the back moves in.
+  // Return WEB — the wall-facing part. NORMAL full-depth web. (owner 2026-07-05: the old baseboard-clearance relief
+  // / rabbet is REMOVED — the headboard bottom is a normal flush built-up frame: normal bottom rail, normal side
+  // stiles, no bottom notch, no back step. See the noBaseboardRelief gate.)
   if (orient === 'v') {
     const webX = webEdge === 'low' ? x0 + fTh / 2 : x1 - fTh / 2;
-    const rTop = Math.min(reliefY, y1);
-    if (reliefD > 0 && rTop > y0) {
-      const rD = wDepth - reliefD;
-      box(group, `${webName} — baseboard-clearance relief (back stepped forward ${reliefD} in for the bottom ${rTop} in AFF; clears the room baseboard)`, fTh, rTop - y0, rD, webX, (y0 + rTop) / 2, -fTh - rD / 2, mat, opts);
-      if (y1 > rTop) box(group, webName, fTh, y1 - rTop, wDepth, webX, (rTop + y1) / 2, backZ, mat, opts);
-    } else box(group, webName, fTh, h, wDepth, webX, cy, backZ, mat, opts);
+    box(group, webName, fTh, h, wDepth, webX, cy, backZ, mat, opts);
   } else {
     const webY = webEdge === 'low' ? y0 + fTh / 2 : y1 - fTh / 2;
-    if (reliefD > 0 && cy < reliefY) {                                                            // whole rail sits within the baseboard zone -> relieve its full web depth
-      const rD = wDepth - reliefD;
-      box(group, `${webName} — baseboard-clearance relief (back stepped forward ${reliefD} in; clears the room baseboard)`, w, fTh, rD, cx, webY, -fTh - rD / 2, mat, opts);
-    } else box(group, webName, w, fTh, wDepth, cx, webY, backZ, mat, opts);
+    box(group, webName, w, fTh, wDepth, cx, webY, backZ, mat, opts);
   }
 }
 
@@ -1443,29 +1397,27 @@ HB_MODULES.forEach(m => {
 // BOTTOM cap → three per-module BUILT-UP L-section bottom rails so each box reads as a finished framed unit
 // (plan 16 §1.4). The CENTER rail spans mullion-to-mullion + carries BOTH mullions; the side rails butt to it
 // at the mullion outer faces (±38).
-// Baseboard clearance (owner 2026-07-05): the headboard's back-bottom is RELIEVED on its BACK VERTICAL face to
-// clear a standard room baseboard (~BB_RELIEF_H in tall, ~BB_RELIEF_D in proud of the wall) so the headboard sits
-// FLUSH to the wall above it — NOT a notch cut into the bottom. Applied to the wall-facing webs of the bottom
-// rails (full width) + the side stiles (the vertical members that touch the wall).
-const BB_RELIEF_H = 6.0, BB_RELIEF_D = 1.0;   // room-baseboard height / proud depth (owner spec; searched typical 3.25-8 in tall x 0.5-0.625 in thick)
+// Headboard bottom (owner 2026-07-05): NORMAL flush built-up frame — no baseboard notch, no relief, no back rabbet,
+// no stepped bottom corners. The prior baseboard-clearance relief concept is REMOVED entirely (see the
+// noBaseboardRelief gate). The headboard sits on the floor as a normal freestanding frame.
 HB_MODULES.forEach(m => {
   const w = m.buttX1 - m.buttX0;
   addBuiltUpLFrameMember({
     faceName: `${m.id} bottom cap rail ${w}x2x8 (${m.name} box bottom structure${m.ownsMullions ? '; carries both ±36 mullions' : '; butts HB-MOD-C at the mullion face'}) built-up L show-FACE board`,
     webName: `${m.id} bottom-frame built-up L return web (7/8 x 7.125 deep; ~8 in visual depth)`,
-    orient: 'h', x0: m.buttX0, x1: m.buttX1, y0: 0, y1: 2, webEdge: 'high', reliefY: BB_RELIEF_H, reliefD: BB_RELIEF_D
+    orient: 'h', x0: m.buttX0, x1: m.buttX1, y0: 0, y1: 2, webEdge: 'high'
   });
 });
 // Two BUILT-UP L-section side stiles (7/8 face + 7.125 return web at the inner edge, toward the open cavity).
 addBuiltUpLFrameMember({
   faceName: 'HB-MOD-L left side stile 2x68x8 (left box outer frame) built-up L show-FACE board',
   webName: 'HB-ST-L side-stile built-up L return web (7/8 x 7.125 deep; ~8 in visual depth)',
-  orient: 'v', x0: -65, x1: -63, y0: 2, y1: 70, webEdge: 'high', reliefY: BB_RELIEF_H, reliefD: BB_RELIEF_D
+  orient: 'v', x0: -65, x1: -63, y0: 2, y1: 70, webEdge: 'high'
 });
 addBuiltUpLFrameMember({
   faceName: 'HB-MOD-R right side stile 2x68x8 (right box outer frame) built-up L show-FACE board',
   webName: 'HB-ST-R side-stile built-up L return web (7/8 x 7.125 deep; ~8 in visual depth)',
-  orient: 'v', x0: 63, x1: 65, y0: 2, y1: 70, webEdge: 'low', reliefY: BB_RELIEF_H, reliefD: BB_RELIEF_D
+  orient: 'v', x0: 63, x1: 65, y0: 2, y1: 70, webEdge: 'low'
 });
 
 // Module boundary seam markers at the nominal split lines x = ±36 (mullion centerlines). Thin translucent
@@ -1738,12 +1690,10 @@ box(groups.lattice, 'HB-BACK LED-channel mount gap (TOP exhaust; the ply stops b
 cyl(groups.wiring, 'HB-BACK 120V rear-ply cable EXIT hole to the wall receptacle (inside-cabinet 120V for the LED drivers exits the rear ply to the wall; D0)', 0.9, rearPlyTh + 0.2, -8, 12, rearZ, mats.void, 'z', { segments: 18, cast: false });
 box(groups.wiring, 'HB-BACK taller-baseboard recess 120V route (ALTERNATE concept: run the 120V down behind a taller baseboard to the receptacle) [concept, TBD-CONFIRM]', 3, 10, 0.4, -8, 6, rearZ - 0.3, mats.void, { edgeColor: 0x38bdf8, edgeOpacity: 0.35, cast: false });
 line3(groups.wiring, 'HB-BACK 120V exit -> wall receptacle', [[-8, 12, rearZ], [-8, 6, rearZ - 0.5], [-8, 2, rearZ - 1.5]], 0xf97316, 0.7);
-// Baseboard clearance (owner 2026-07-05): a freestanding headboard clears the room's baseboard by a VERTICAL relief
-// cut into the BACK of the two side stiles (the back VERTICAL members) + the bottom rail — reliefY=BB_RELIEF_H tall x
-// reliefD=BB_RELIEF_D deep, applied above on the built-up L members. This is a VERTICAL notch on the back vertical
-// portion of the headboard so the back sits tight to the wall above the baseboard. NO separate baseboard object is
-// drawn: a full-width HORIZONTAL baseboard bar was added here before and read (correctly, as a fault) as "horizontal
-// 6 in" — removed per owner 2026-07-05. The baseboard itself is not modeled; only the vertical relief that clears it.
+// Headboard bottom (owner 2026-07-05): the entire baseboard-clearance concept is RETIRED. No baseboard notch, no
+// relief, no rabbet, no back step, no baseboard object of any kind. The headboard bottom is a normal flush built-up
+// frame that sits on the floor. (History: a bottom-corner notch, then a back-face relief, then a horizontal
+// baseboard bar were all tried and all rejected by the owner — the correct answer is simply NORMAL.)
 
 // Segmented rear shear rails: each rail stops at the full-depth collectors.
 const rearRailSegments = [[-63, -38], [-34, 34], [38, 63]];
@@ -1992,7 +1942,7 @@ SPEC.courseSeamsAFF.forEach(seamAFF => {
       accessPanelHeightIn: 30,
       twoPieceCenterBack: true,                                           // center box = upper fixed + lower removable
       rearElectronicsMountZone: true,
-      baseboardNotch: true,                                               // full-width BACK-FACE relief (bottom ~6 in x ~1 in deep) clears the room baseboard so the headboard sits flush to the wall above it (owner 2026-07-05; was 2 wrong bottom-corner notches)
+      noBaseboardRelief: true,                                            // owner 2026-07-05: the headboard bottom is NORMAL/FLUSH — NO baseboard notch, relief, rabbet, or bottom/back step of any kind (the whole baseboard-clearance concept is retired). Gated so it cannot reappear.
       freestandingNoWallCleat: true                                       // NO wall cleat / NO wall attachment ever
     },
     mullion: {
@@ -2035,7 +1985,7 @@ SPEC.courseSeamsAFF.forEach(seamAFF => {
   };
 }
 
-return { SPEC, makeMaterials, makeEngine, deriveZ, buildBedBase, buildFootboardAndLift, buildRegularFootboard, buildDockHardware, buildNightstands, buildHeadboard };
+return { SPEC, makeMaterials, makeEngine, deriveZ, buildBedBase, buildFootboardAndLift, buildDockHardware, buildNightstands, buildHeadboard };
 })();
 /* ==== END BF-GEOMETRY INLINE (edit System/bf-geometry.js, then re-run npm run bf:build) ==== */
 const app = document.getElementById('app');
@@ -2398,7 +2348,7 @@ tick();
 </script>
 
 <!-- BF:BUILDSTAMP:START (generated by `npm run bf:build` — do not hand-edit; updates automatically every build) -->
-<div id="bf-build-stamp" data-built="2026-07-05T19:20:05.133Z" style="position:fixed;left:8px;bottom:6px;z-index:99999;pointer-events:none;font:600 11px/1.3 system-ui,-apple-system,Segoe UI,sans-serif;color:#8b98ac;background:rgba(9,12,18,.66);padding:3px 8px;border-radius:5px;letter-spacing:.02em;box-shadow:0 1px 3px rgba(0,0,0,.35);">Model last updated: 2026-07-05 12:20 MST</div>
+<div id="bf-build-stamp" data-built="2026-07-05T22:24:34.126Z" style="position:fixed;left:8px;bottom:6px;z-index:99999;pointer-events:none;font:600 11px/1.3 system-ui,-apple-system,Segoe UI,sans-serif;color:#8b98ac;background:rgba(9,12,18,.66);padding:3px 8px;border-radius:5px;letter-spacing:.02em;box-shadow:0 1px 3px rgba(0,0,0,.35);">Model last updated: 2026-07-05 15:24 MST</div>
 <!-- BF:BUILDSTAMP:END -->
 </body>
 </html>
