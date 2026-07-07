@@ -1233,7 +1233,7 @@ function buildDockHardware(ctx) {
 //  locator bays and steel-insert bolts (D0-4) are headboard structure (built in Full-Bed), not here.
 // ----------------------------------------------------------------------------
 function buildNightstands(ctx) {
-  const { box, cyl, mats, groups, label, pieceLabel } = ctx;
+  const { box, cyl, mats, groups, label, pieceLabel, line3 = () => {} } = ctx;   // line3: under-LED feed/downwash routes (no-op where the host/exporter doesn't pass it)
   const N = SPEC.nightstand;
   [-1, 1].forEach(side => {
     const cx = side * N.centerX;
@@ -1248,15 +1248,24 @@ function buildNightstands(ctx) {
     box(groups.detailedNightstands, `NS-${sideName} back panel bolt plane (width = skin field ${N.skinFieldWidth} - 1/8 = ${N.skinFieldWidth - N.backReveal}; bolts into steel inserts in the skin back, D0-4)`, N.skinFieldWidth - N.backReveal, N.H - 1.5, 0.55, cx, (N.top + N.bottom) / 2, z0 + 0.28, mats.night);
     box(groups.detailedNightstands, `NS-${sideName} between-frame fit marker (fits BETWEEN the outer side stile + the center mullion; not flush to the outer side)`, N.skinFieldWidth - N.backReveal, 0.1, 0.1, cx, N.bottom + 0.3, z0 + 0.1, mats.void, { edgeColor: 0x22d3ee, edgeOpacity: 0.4, cast: false });
     box(groups.detailedNightstands, `NS-${sideName} drawer box full-extension ghost`, N.W - 4.0, 7.0, N.D - 3.2, cx, 21.7, zMid + 0.5, mats.ghost, { edgeColor: 0xe2e8f0, edgeOpacity: 0.42, cast: false });
-    box(groups.detailedNightstands, `NS-${sideName} recessed drawer face`, N.W - 2.0, N.drwFaceH, 0.55, cx, 21.6, z0 + N.D - 0.9125, mats.night, { edgeColor: 0x5f411a, edgeOpacity: 0.54 });  // face FRONT recessed 0.638 in, centered under the channel (D-093)
+    // (owner 2026-07-06) the drawer face is an OVERLAY face FLUSH with the cabinet front — NOT recessed (the old
+    // 0.638-in recessed face read badly). Same face language as the bed drawers: edge-to-edge overlay, handle-less
+    // bottom-edge pull. The top-lip LED channel above is CENTERED over this face plane (the drawer lip).
+    box(groups.detailedNightstands, `NS-${sideName} OVERLAY drawer face (flush at the cabinet front; NOT recessed — owner 2026-07-06; bed-drawer face language)`, N.W - 2.0, N.drwFaceH, 0.55, cx, 21.6, z0 + N.D - 0.275, mats.night, { edgeColor: 0x5f411a, edgeOpacity: 0.54 });
     // handle-less sharknose pull: flat face + 45 deg beveled BOTTOM edge (nightstand drawer pulls from the bottom bevel)
     const nbev = new THREE.Mesh(new THREE.BoxGeometry(N.W - 4.0, 0.12, 0.6), mats.night);
-    nbev.position.set(cx, 18.0, z0 + N.D - 0.85); nbev.rotation.x = Math.PI / 4; nbev.castShadow = false;
+    nbev.position.set(cx, 18.0, z0 + N.D - 0.28); nbev.rotation.x = Math.PI / 4; nbev.castShadow = false;   // bevel cut INTO the face bottom edge — fully behind the flush face plane (never proud; nightstand.depth parity)
     nbev.name = `NS-${sideName} drawer beveled bottom-edge pull (handle-less sharknose)`;
     groups.detailedNightstands.add(nbev);
     box(groups.detailedNightstands, `NS-${sideName} left slide`, 0.24, 0.28, N.D - 4.0, cx - 10.2, 22.2, zMid + 0.2, mats.steel, { edgeOpacity: 0.18, cast: false });
     box(groups.detailedNightstands, `NS-${sideName} right slide`, 0.24, 0.28, N.D - 4.0, cx + 10.2, 22.2, zMid + 0.2, mats.steel, { edgeOpacity: 0.18, cast: false });
-    box(groups.detailedNightstands, `NS-${sideName} fixed top-lip LED wash`, N.W - 3.0, 0.22, 0.24, cx, N.top - 1.25, z0 + N.D - 1.15, mats.ledWarm, { edgeOpacity: 0.24, cast: false });
+    // (owner 2026-07-06) top-lip luminaire = the same 7 mm micro-channel family as the base drawer-lip (D-085),
+    // routed into the FIXED valance underside and CENTERED over the drawer-lip face plane (the overlay face's
+    // thickness centerline) — the wash drops straight down the flush face.
+    const nLipChZ = z0 + N.D - 0.275, nValUnderY = N.top - 0.75 - N.lipH;
+    box(groups.detailedNightstands, `NS-${sideName} top-lip 7 mm micro LED channel (routed into the fixed valance underside; CENTERED over the drawer lip — owner 2026-07-06)`, N.W - 3.0, 0.276, 0.276, cx, nValUnderY + 0.138, nLipChZ, mats.ledChannel, { edgeColor: 0x9aa5b1, edgeOpacity: 0.4, cast: false });
+    box(groups.detailedNightstands, `NS-${sideName} fixed top-lip LED wash (COB strip in the channel; emits DOWN the flush face)`, N.W - 3.4, 0.1, 0.16, cx, nValUnderY + 0.04, nLipChZ, mats.ledWarm, { edgeOpacity: 0.24, cast: false });
+    [-7, 7].forEach(dx => line3(groups.wiring, `NS-${sideName} top-lip down-wash light`, [[cx + dx, nValUnderY, nLipChZ], [cx + dx, 18.2, z0 + N.D + 0.15]], 0xffd166, 0.45));
     // fixed front top lip / valance (Full-Bed): the wash is hidden in its underside; nightstand reads finished
     box(groups.detailedNightstands, `NS-${sideName} fixed front top lip / valance`, N.W, N.lipH, 0.7, cx, N.top - 0.75 - N.lipH / 2, z0 + N.D - 0.35, mats.night, { edgeColor: 0x5f411a, edgeOpacity: 0.5 });
     // real soft-close drawer box (4 walls + bottom) inside the full-extension travel
@@ -1265,6 +1274,26 @@ function buildNightstands(ctx) {
     box(groups.detailedNightstands, `NS-${sideName} drawer box right wall`, 0.4, 6.6, dbD, cx + dbW / 2 - 0.2, dbY, zMid + 0.5, mats.night, { edgeOpacity: 0.3, cast: false });
     box(groups.detailedNightstands, `NS-${sideName} drawer box back wall`, dbW, 6.6, 0.4, cx, dbY, zMid + 0.5 - dbD / 2 + 0.2, mats.night, { edgeOpacity: 0.3, cast: false });
     box(groups.detailedNightstands, `NS-${sideName} drawer box bottom`, dbW, 0.4, dbD, cx, dbY - 3.1, zMid + 0.5, mats.night, { edgeOpacity: 0.3, cast: false });
+    // ── (owner 2026-07-06) UNDER-NIGHTSTAND FLOOR WASH: FOUR transverse 7 mm micro-channel runs (same channel
+    //    family as the base drawer-lip + the top-lip above), routed into the nightstand bottom underside, EVENLY
+    //    spaced front-to-back (z = D/5, 2D/5, 3D/5, 4D/5). Wiring is the owner-selected route: each strip's feed
+    //    runs along the underside to ONE shared 3/8 in hole at the back-bottom, up the interior BACK wall to a
+    //    FLUSH 4-pair junction, and a SINGLE cable exits through the nightstand back + the headboard skin into the
+    //    rear cavity. The exit bore sits at AFF ~20.7 — just ABOVE the deep AFF-19 backing cross-rail (17.625..
+    //    20.375) so the cable never drills through structure, and at the nightstand centerline x, 3 in clear of
+    //    the nearest NS-INS bolt column (±3). ──
+    const uLen = N.W - 4, uChanY = N.bottom + 0.138, uStripY = N.bottom + 0.03;
+    [1, 2, 3, 4].forEach(k => {
+      const uz = z0 + (N.D * k) / 5;
+      box(groups.detailedNightstands, `NS-${sideName} under-nightstand 7 mm micro LED channel ${k}/4 (routed into the bottom underside; 4 runs evenly spaced front-to-back; same channel family as the drawer-lip — owner 2026-07-06)`, uLen, 0.276, 0.276, cx, uChanY, uz, mats.ledChannel, { edgeColor: 0x9aa5b1, edgeOpacity: 0.4, cast: false });
+      box(groups.wiring, `NS-${sideName} under-nightstand COB strip ${k}/4 (emits DOWN; floor wash)`, uLen - 1, 0.1, 0.16, cx, uStripY, uz, mats.ledWarm, { edgeColor: 0xffd9a0, edgeOpacity: 0.4, cast: false });
+      line3(groups.wiring, `NS-${sideName} under-LED ${k} feed along the underside to the shared back-bottom hole`, [[cx + side * 9, N.bottom + 0.08, uz], [cx + side * 9, N.bottom + 0.08, z0 + 0.9], [cx, N.bottom + 0.08, z0 + 0.9]], 0x38bdf8, 0.45);
+    });
+    cyl(groups.wiring, `NS-${sideName} under-LED shared feed hole (3/8 in, drilled at the back-bottom; all 4 strip feeds enter here)`, 0.19, 0.85, cx, N.bottom + 0.38, z0 + 0.9, mats.void, 'y', { segments: 20, cast: false });
+    box(groups.detailedNightstands, `NS-${sideName} interior back-wall FLUSH junction (the 4 strip pairs join -> ONE cable; flush to the interior wood — owner 2026-07-06)`, 1.8, 1.0, 0.2, cx, 18.4, z0 + 0.66, mats.darkSteel, { edgeOpacity: 0.3, cast: false });
+    line3(groups.wiring, `NS-${sideName} under-LED single cable up the interior back wall to the exit bore`, [[cx, N.bottom + 0.8, z0 + 0.9], [cx, 18.4, z0 + 0.72], [cx, 20.7, z0 + 0.72]], 0x38bdf8, 0.55);
+    cyl(groups.wiring, `NS-${sideName} under-LED cable EXIT bore (single cable through the nightstand back + headboard skin; just ABOVE the deep AFF-19 backing rail, clear of the bolt columns)`, 0.21, 2.6, cx, 20.7, -0.14, mats.void, 'z', { segments: 20, cast: false });
+    line3(groups.wiring, `NS-${sideName} under-LED cable into the rear-cavity harness`, [[cx, 20.7, -1.5], [cx, 12, -5], [side * 36, 8, -5]], 0x38bdf8, 0.45);
     // Lee-call Phase 9 (D0-4): NO locator ledge / dowels / tenons — Lee specified the mount as ONLY holes through
     // the cabinet back + steel inserts in the skin back (self-supported, nests BETWEEN the two face frames). The
     // between-frame fit marker + back-panel bolt plane + inside-access bolt ports fully represent that mount; a
@@ -1416,7 +1445,13 @@ function addSmallScrew({ id, groupKey, labelSection, type = 'KS', joint, pieceId
 function addSkinFieldScrews(p) {
   const grp = groups.panelKeeperFasteners;
   const isSpk = p.row === 'C3';                                     // the speaker-height course
-  const method = isSpk ? 'screw-only (no glue, field-replaceable)' : 'glued+screwed';
+  // (owner 2026-07-06, per the Lee call — ACTION-REPORT §4 + 74:37–78:12): STANDARD courses are GLUED to the
+  // frame/rails with NO fastener field (Lee: screw/retainer systems exist only for shipping-in-pieces; shop screws
+  // are glue-up clamps, not a serviceable system — not modeled). ONLY the ~19 in SPEAKER course keeps a real screw
+  // field: SCREW-ONLY, NO GLUE, field-replaceable from the rear; Lee will supply a SPARE speaker-course panel so a
+  // future speaker swap is never blocked by a discontinued driver (owner can re-cut the hole in the spare).
+  if (!isSpk) return;
+  const method = 'screw-only (no glue, field-replaceable)';
   const zBack = skinBackZ;                                          // recessed skin back plane = rear-rail seat
   const cxS = (p.x0 + p.x1) / 2;
   const nCol = Math.max(2, Math.round((p.x1 - p.x0) / 14));         // ~1 screw column / 14 in
@@ -1427,9 +1462,7 @@ function addSkinFieldScrews(p) {
       registerFastener({ id, type: 'SKF', groupKey: 'panelKeeperFasteners', labelSection: 'fastenerPanel',
         joint: `${p.id} recessed field skin ${method} to the ${edge === 'B' ? 'bottom' : 'top'} backing rail/frame`,
         pieceIds: [p.id, 'backing cross-rail / frame'], position: { x, y: yy, z: zBack },
-        notes: isSpk
-          ? 'SPEAKER-height course: SCREW-ONLY, NO glue -> field-replaceable (D-060 Phase 2, rpt 63).'
-          : 'Standard course: GLUED + SCREWED direct to the frame/rail (D-060 Phase 2, rpt 12; HB-RET retired).' });
+        notes: 'SPEAKER-height course: SCREW-ONLY, NO glue -> field-replaceable (D-060 Phase 2, rpt 63; Lee supplies a spare speaker-course panel — owner 2026-07-06). Standard courses are GLUED with no fastener field.' });
       cyl(grp, `${id} ${method} field skin screw shaft`, 0.055, 1.0, x, yy, zBack - 0.5, mats.darkSteel, 'z', { segments: 14 });
       cyl(grp, `${id} field skin screw head`, 0.14, 0.08, x, yy, zBack - 1.0, mats.steel, 'z', { segments: 18 });
     });
@@ -1661,7 +1694,7 @@ panelRows.forEach(row => {
     const cy = (row.y0 + row.y1) / 2;
     const isSpeakerPanel = row.key === 'C3' && col.key !== 'C';    // side-bay speaker skins carry the cutout
     const isSpeakerCourse = row.key === 'C3';                      // the WHOLE speaker-height course (screw-only)
-    const attachMethod = isSpeakerCourse ? 'screw-only (no glue, field-replaceable)' : 'glued+screwed';
+    const attachMethod = isSpeakerCourse ? 'screw-only (no glue, field-replaceable)' : 'glued (no fasteners)';   // owner 2026-07-06 + Lee ACTION-REPORT §4 / 74:37-78:12: standard courses GLUED — no modeled fastener field; ONLY the speaker course is screwed (no glue) so it stays field-replaceable (Lee supplies a spare speaker-course panel)
     frontPanels.push({ id, col: col.key, row: row.key, x0: col.x0, x1: col.x1, y0: row.y0, y1: row.y1, width, height, cx, cy, isSpeakerPanel, isSpeakerCourse, attachMethod });
     const zSkin = skinFrontZ - SPEC.skinTh / 2;                    // recessed: front at -skinReveal, back at -(skinReveal+skinTh)
     if (isSpeakerPanel) {
@@ -1685,7 +1718,7 @@ panelRows.forEach(row => {
     } else {
       box(groups.skins, `${id} ${col.name} ${row.name} recessed field skin 0.875 in (3/16 in reveal behind the proud face-frame)`, width, height, SPEC.skinTh, cx, cy, zSkin, mats.skin, { edgeOpacity: 0.28 });
     }
-    // Field-skin ATTACHMENT (HB-RET retired): standard courses glued+screwed; the C3 speaker course screw-only/no-glue.
+    // Field-skin ATTACHMENT (HB-RET retired): standard courses GLUED, no fastener field (owner 2026-07-06); ONLY the C3 speaker course is screwed (screw-only/no-glue, field-replaceable, Lee spare panel).
     addSkinFieldScrews(frontPanels[frontPanels.length - 1]);
   });
 });
@@ -2108,7 +2141,7 @@ SPEC.courseSeamsAFF.forEach(seamAFF => {
       speakerCourseKey: 'C3',
       speakerCutout: { bottomAFF: SPEC.speaker.bottom, topAFF: SPEC.speaker.top },
       noSeamCrossesSpeakerCutout: SPEC.courseSeamsAFF.every(s => s <= SPEC.speaker.bottom || s >= SPEC.speaker.top),
-      retentionMethodStandard: 'glued+screwed to frame/rails',
+      retentionMethodStandard: 'glued to frame/rails (no fasteners — Lee; owner 2026-07-06)',
       retentionMethodSpeakerCourse: 'screw-only (no glue, field-replaceable)',
       speakerCourseScrewOnlyNoGlue:
         frontPanels.filter(p => p.isSpeakerCourse).length > 0 &&
@@ -2566,7 +2599,7 @@ function addFullBedBase() {
 // (retired) addFullBedBase geometry now lives in bf-geometry.js -> buildBedBase().
 function addDetailedNightstands() {
   // Geometry lives in bf-geometry.js (single source of truth, shared with Nightstands).
-  return buildNightstands({ box, cyl, mats, groups, label, pieceLabel });
+  return buildNightstands({ box, cyl, mats, groups, label, pieceLabel, line3 });
 }
 // (retired) addDetailedNightstands geometry now lives in bf-geometry.js -> buildNightstands().
 
@@ -2720,13 +2753,15 @@ pieceLabel('HB-CD-R', 'center receiver block R', 4, 9.5, -9.1, '2.6 x 15 x 7', '
 window.__BF_WOOD_PIECES = woodPieces;
 window.__BF_FASTENER_TYPES = FASTENER_TYPES;
 window.__BF_FASTENERS = fastenerAssemblies;
-// Lee-call Phase 2: HB-RET retired -> field skins fixed by SKF screws (standard glued+screwed / speaker course screw-only).
+// Owner 2026-07-06 (Lee call, ACTION-REPORT §4 + 74:37-78:12): STANDARD courses are GLUED with NO fastener field —
+// ZERO standard-course screws is the REQUIRED state; every SKF screw must belong to the C3 speaker course
+// (screw-only / no glue, field-replaceable; Lee supplies a spare speaker-course panel).
 const skinFieldScrews = fastenerAssemblies.filter(f => f.type === 'SKF');
 const skinFieldScrewCount = skinFieldScrews.length;
 const speakerCourseScrews = skinFieldScrews.filter(f => /HB-FP-[LCR]-C3/.test(f.joint || ''));
 const standardCourseScrews = skinFieldScrews.filter(f => !/HB-FP-[LCR]-C3/.test(f.joint || ''));
 const speakerCourseScrewOnlyNoGlue = speakerCourseScrews.length > 0 && speakerCourseScrews.every(f => /screw-only/.test(f.joint || '') && !/glued/.test(f.joint || ''));
-const standardCourseGluedScrewed = standardCourseScrews.length > 0 && standardCourseScrews.every(f => /glued\+screwed/.test(f.joint || ''));
+const standardCourseGluedNoFasteners = standardCourseScrews.length === 0;
 const noActiveHbRetFasteners = fastenerAssemblies.filter(f => f.type === 'SKR-IB' || f.type === 'RTF-IB').length === 0;
 const bedBoltAssemblyCount = fastenerAssemblies.filter(f => f.type === 'BB-CD').length;
 const barrelConnectorCutoutPass = bedBoltCutouts.length === bedBoltAssemblyCount;
@@ -2765,14 +2800,14 @@ window.__BF_SKIN_FIELD = {
   allCoursesWithinCap: _sf.allCoursesWithinCap === true,
   noSeamCrossesSpeakerCutout: _sf.noSeamCrossesSpeakerCutout === true,
   speakerCutout: _sf.speakerCutout,
-  retentionMethodStandard: 'glued+screwed direct to frame/rails',
-  retentionMethodSpeakerCourse: 'screw-only / no glue (field-replaceable)',
+  retentionMethodStandard: 'glued direct to frame/rails (no fasteners — owner 2026-07-06)',
+  retentionMethodSpeakerCourse: 'screw-only / no glue (field-replaceable; Lee-supplied spare panel)',
   skinFieldScrews: skinFieldScrewCount,
-  standardCourseGluedScrewed,
+  standardCourseGluedNoFasteners,
   speakerCourseScrewOnlyNoGlue,
   hbRetRetired: noActiveHbRetFasteners && _sf.hbRetRetired === true,
   panels: frontPanels.map(panel => ({ id: panel.id, col: panel.col, row: panel.row, isSpeakerCourse: panel.isSpeakerCourse, attachMethod: panel.attachMethod, speakerCutout: panel.isSpeakerPanel })),
-  notes: 'HB-RET retired (D-092 superseded): recessed 7/8 in field skins glued+screwed direct to the frame/rails; the speaker course (C3) screw-only / no glue (field-replaceable). Screw pattern [TBD-CONFIRM Lee].'
+  notes: 'HB-RET retired (D-092 superseded): recessed 7/8 in field skins GLUED direct to the frame/rails with NO fastener field (owner 2026-07-06 per the Lee call); ONLY the speaker course (C3) is screwed — screw-only / no glue, field-replaceable, Lee-supplied spare panel. Screw pattern [TBD-CONFIRM Lee].'
 };
 window.__BF_SKIN_FIELD.pass =
      frontPanels.length === 12
@@ -2780,7 +2815,7 @@ window.__BF_SKIN_FIELD.pass =
   && JSON.stringify(SPEC.courseSeamsAFF) === JSON.stringify([19, 38, 57])
   && window.__BF_SKIN_FIELD.allCoursesWithinCap === true
   && window.__BF_SKIN_FIELD.noSeamCrossesSpeakerCutout === true
-  && standardCourseGluedScrewed === true
+  && standardCourseGluedNoFasteners === true
   && speakerCourseScrewOnlyNoGlue === true
   && window.__BF_SKIN_FIELD.hbRetRetired === true;
 const fullBedOutsideLength = SPEC.fullBedZ.footFront - SPEC.fullBedZ.headBack;
@@ -2932,12 +2967,19 @@ window.__BF_NIGHTSTANDS = {
   backWidthReveal: _s2has(/back panel bolt plane \(width = skin field/i),
   nightstandSizePreserved: SPEC.nightstand.W === 26 && SPEC.nightstand.D === 20 && SPEC.nightstand.H === 11 && SPEC.nightstand.bottom === 17 && SPEC.nightstand.top === 28,
   oneDrawerTopLipLED: _s2has(/NS-L drawer box/i) && _s2has(/NS-R drawer box/i) && _s2has(/fixed top-lip LED wash/i),
+  // owner 2026-07-06: OVERLAY face (flush; NOT recessed) + the top-lip channel CENTERED over the drawer lip
+  overlayDrawerFace: _s2count(/OVERLAY drawer face \(flush at the cabinet front; NOT recessed/i) === 2 && !_s2has(/NS-[LR] recessed drawer face/i),
+  topLipChannelCenteredOverLip: _s2count(/top-lip 7 mm micro LED channel .*CENTERED over the drawer lip/i) === 2,
+  // owner 2026-07-06: 4 under-nightstand micro-channel runs/side + the single-cable back-bottom wiring route
+  underNightstandLED: _s2count(/under-nightstand 7 mm micro LED channel/i) === 8 && _s2count(/under-LED shared feed hole/i) === 2 && _s2count(/interior back-wall FLUSH junction/i) === 2 && _s2count(/under-LED cable EXIT bore/i) === 2,
   usbCNotOnNightstandTop: !_s2has(/(nightstand|NS-[LR]).*usb-?c/i) && SPEC.nightstand.centerX === 51,   // USB-C stays on the headboard face (D-042), nightstand tops solid
-  note: 'Lee-call Phase 9 (D0-4): 8 bolts/side from the drawer cavity THROUGH the nightstand cabinet back into steel threaded inserts in the headboard skin back (CN-SQ captive-square-nut retired); the nightstand fits BETWEEN the outer side stile + center mullion (back width = skin field 25 - 1/8); size 26x20x11 / AFF 17-28 / one drawer / top-lip LED wash preserved; USB-C stays on the headboard face (solid nightstand tops).'
+  note: 'Lee-call Phase 9 (D0-4) + owner 2026-07-06: 8 bolts/side into steel skin-back inserts (CN-SQ retired); fits BETWEEN the frames (back = skin field 25 - 1/8); size 26x20x11 / AFF 17-28; OVERLAY drawer face (flush, NOT recessed) with the top-lip 7 mm channel CENTERED over the drawer lip; FOUR under-nightstand micro-channel floor-wash runs/side with the single-cable back-bottom route (shared feed hole -> interior flush junction -> one cable through the back + skin above the AFF-19 rail); USB-C stays on the headboard face.'
 };
 window.__BF_NIGHTSTANDS.pass = window.__BF_NIGHTSTANDS.steelInsertMount && window.__BF_NIGHTSTANDS.noCnSqActive
   && window.__BF_NIGHTSTANDS.betweenFrameFit && window.__BF_NIGHTSTANDS.backWidthReveal
   && window.__BF_NIGHTSTANDS.nightstandSizePreserved && window.__BF_NIGHTSTANDS.oneDrawerTopLipLED
+  && window.__BF_NIGHTSTANDS.overlayDrawerFace && window.__BF_NIGHTSTANDS.topLipChannelCenteredOverLip
+  && window.__BF_NIGHTSTANDS.underNightstandLED
   && window.__BF_NIGHTSTANDS.usbCNotOnNightstandTop;
 
 // Stage 3 — top-cap LED/heatsink detail + speaker detail + mullion gap clearance (3-land W-relief, measured from the scene).
@@ -3013,7 +3055,7 @@ Object.assign(window.__BF_HEADBOARD_GHOST, {
   fastenerSchedulePass: true,
   fastenerAssemblies: fastenerAssemblies.length,
   skinFieldScrews: skinFieldScrewCount,
-  standardCourseGluedScrewed,
+  standardCourseGluedNoFasteners,
   speakerCourseScrewOnlyNoGlue,
   hbRetRetired: window.__BF_SKIN_FIELD.hbRetRetired,
   frontPanelSupportPass: window.__BF_SKIN_FIELD.pass,
@@ -3933,7 +3975,7 @@ document.querySelectorAll('.panel-head[data-collapse]').forEach(h => {
 })();
 </script>
 <!-- BF:BUILDSTAMP:START (generated by `npm run bf:build` — do not hand-edit; updates automatically every build) -->
-<div id="bf-build-stamp" data-built="2026-07-07T06:17:05.999Z" style="position:fixed;left:8px;bottom:6px;z-index:99999;pointer-events:none;font:600 11px/1.3 system-ui,-apple-system,Segoe UI,sans-serif;color:#8b98ac;background:rgba(9,12,18,.66);padding:3px 8px;border-radius:5px;letter-spacing:.02em;box-shadow:0 1px 3px rgba(0,0,0,.35);">Model last updated: 2026-07-06 23:17 MST</div>
+<div id="bf-build-stamp" data-built="2026-07-07T06:35:08.726Z" style="position:fixed;left:8px;bottom:6px;z-index:99999;pointer-events:none;font:600 11px/1.3 system-ui,-apple-system,Segoe UI,sans-serif;color:#8b98ac;background:rgba(9,12,18,.66);padding:3px 8px;border-radius:5px;letter-spacing:.02em;box-shadow:0 1px 3px rgba(0,0,0,.35);">Model last updated: 2026-07-06 23:35 MST</div>
 <!-- BF:BUILDSTAMP:END -->
 </body>
 </html>
