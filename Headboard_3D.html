@@ -464,7 +464,7 @@ const SPEC = Object.freeze({
     bottom: 43.995,                    // acoustic center held at 49.625 AFF (drivers now at ear height); cutH 11.26
     top: 55.255
   },
-  nightstand: { W: 26, D: 20, H: 11, bottom: 17, top: 28, centerX: 51, drwFaceH: 7.5, lipH: 1.0, skinFieldWidth: 25, backReveal: 0.125, mount: 'steel inserts in skin back' },  // lipH 1.4 -> 1.0 (aluminum micro-channel is only 0.276 in tall; D-013). Lee-call Phase 9: fits BETWEEN the two vertical face frames (outer stile + center mullion); back width = visible skin field width (25) - 1/8 (backReveal); mount = bolt through cabinet back into STEEL INSERTS in the skin back (D0-4; CN-SQ retired)
+  nightstand: { W: 26, D: 20, H: 11, bottom: 17, top: 28, centerX: 51, drwFaceH: 9.3, lipH: 1.0, skinFieldWidth: 25, backReveal: 0.125, mount: 'steel inserts in skin back' },  // lipH 1.4 -> 1.0 (aluminum micro-channel is only 0.276 in tall; D-013). Lee-call Phase 9: fits BETWEEN the two vertical face frames (outer stile + center mullion); back width = visible skin field width (25) - 1/8 (backReveal); mount = bolt through cabinet back into STEEL INSERTS in the skin back (D0-4; CN-SQ retired)
   switchPanel: {
     W: 1.5,
     H: 6.0,
@@ -1048,10 +1048,16 @@ function buildNightstands(ctx) {
     const sideName = side < 0 ? 'L' : 'R';
     const z0 = 0.35;
     const zMid = z0 + N.D / 2;
-    box(groups.detailedNightstands, `NS-${sideName} top panel`, N.W, 0.75, N.D, cx, N.top - 0.38, zMid, mats.night, { edgeColor: 0x5f411a, edgeOpacity: 0.44 });
+    // ── (owner 2026-07-06, Lee's build PHOTO) nightstand front language: a PROUD TOP SLAB (~1.25 in) that
+    //    overhangs the case slightly on the front + sides, a thin SHADOW GAP under it (the drawer-lip LED lives
+    //    there), and a FULL-FRONT drawer face below — nearly full height, thin side reveals, no visible pull.
+    //    (Lee's stock photo shows a top wire grommet — NOT modeled: D-014 tops are SOLID, USB-C is on the
+    //    headboard face.) ──
+    const slabT = 1.25, slabOver = 0.25, slabUnderY = N.top - slabT;             // slab 26.75..28; overhangs front + sides
+    box(groups.detailedNightstands, `NS-${sideName} top panel / PROUD TOP SLAB (${slabT} in; overhangs the case ${slabOver} in on the front + sides — Lee photo; solid top, no grommet per D-014)`, N.W + 2 * slabOver, slabT, N.D + slabOver, cx, N.top - slabT / 2, zMid + slabOver / 2, mats.night, { edgeColor: 0x5f411a, edgeOpacity: 0.44 });
     box(groups.detailedNightstands, `NS-${sideName} bottom panel`, N.W, 0.75, N.D, cx, N.bottom + 0.38, zMid, mats.night, { edgeColor: 0x5f411a, edgeOpacity: 0.44 });
-    box(groups.detailedNightstands, `NS-${sideName} outer side panel`, 0.75, N.H, N.D, cx + side * (N.W / 2 - 0.38), (N.top + N.bottom) / 2, zMid, mats.night);
-    box(groups.detailedNightstands, `NS-${sideName} inner side panel`, 0.75, N.H, N.D, cx - side * (N.W / 2 - 0.38), (N.top + N.bottom) / 2, zMid, mats.night);
+    box(groups.detailedNightstands, `NS-${sideName} outer side panel`, 0.75, N.H - slabT, N.D, cx + side * (N.W / 2 - 0.38), (N.bottom + slabUnderY) / 2, zMid, mats.night);
+    box(groups.detailedNightstands, `NS-${sideName} inner side panel`, 0.75, N.H - slabT, N.D, cx - side * (N.W / 2 - 0.38), (N.bottom + slabUnderY) / 2, zMid, mats.night);
     // Lee-call Phase 9 (rpt 54/55): back width = visible skin field width - 1/8 (fits BETWEEN the outer stile + center mullion, not flush to the outer side); bolts through into steel inserts in the skin back (D0-4).
     box(groups.detailedNightstands, `NS-${sideName} back panel bolt plane (width = skin field ${N.skinFieldWidth} - 1/8 = ${N.skinFieldWidth - N.backReveal}; bolts into steel inserts in the skin back, D0-4)`, N.skinFieldWidth - N.backReveal, N.H - 1.5, 0.55, cx, (N.top + N.bottom) / 2, z0 + 0.28, mats.night);
     box(groups.detailedNightstands, `NS-${sideName} between-frame fit marker (fits BETWEEN the outer side stile + the center mullion; not flush to the outer side)`, N.skinFieldWidth - N.backReveal, 0.1, 0.1, cx, N.bottom + 0.3, z0 + 0.1, mats.void, { edgeColor: 0x22d3ee, edgeOpacity: 0.4, cast: false });
@@ -1059,7 +1065,10 @@ function buildNightstands(ctx) {
     // (owner 2026-07-06) the drawer face is an OVERLAY face FLUSH with the cabinet front — NOT recessed (the old
     // 0.638-in recessed face read badly). Same face language as the bed drawers: edge-to-edge overlay, handle-less
     // bottom-edge pull. The top-lip LED channel above is CENTERED over this face plane (the drawer lip).
-    box(groups.detailedNightstands, `NS-${sideName} OVERLAY drawer face (flush at the cabinet front; NOT recessed — owner 2026-07-06; bed-drawer face language)`, N.W - 2.0, N.drwFaceH, 0.55, cx, 21.6, z0 + N.D - 0.275, mats.night, { edgeColor: 0x5f411a, edgeOpacity: 0.54 });
+    // FULL-FRONT face (Lee photo): fills the entire front below the shadow gap — from just above the case bottom
+    // (0.15 reveal) up to the slab shadow gap; full width between the side-panel front edges with 1/8 reveals.
+    const faceY0 = N.bottom + 0.15, faceY1 = slabUnderY - 0.30;                  // 17.15 .. 26.45 (the 0.30 shadow gap sits above)
+    box(groups.detailedNightstands, `NS-${sideName} OVERLAY drawer face (flush at the cabinet front; NOT recessed — owner 2026-07-06; FULL-FRONT per the Lee photo: fills the front below the top-slab shadow gap, thin reveals)`, N.W - 2 * 0.75 - 0.25, faceY1 - faceY0, 0.55, cx, (faceY0 + faceY1) / 2, z0 + N.D - 0.275, mats.night, { edgeColor: 0x5f411a, edgeOpacity: 0.54 });
     // handle-less sharknose pull: flat face + 45 deg beveled BOTTOM edge (nightstand drawer pulls from the bottom bevel)
     const nbev = new THREE.Mesh(new THREE.BoxGeometry(N.W - 4.0, 0.12, 0.6), mats.night);
     nbev.position.set(cx, 18.0, z0 + N.D - 0.28); nbev.rotation.x = Math.PI / 4; nbev.castShadow = false;   // bevel cut INTO the face bottom edge — fully behind the flush face plane (never proud; nightstand.depth parity)
@@ -1067,35 +1076,34 @@ function buildNightstands(ctx) {
     groups.detailedNightstands.add(nbev);
     box(groups.detailedNightstands, `NS-${sideName} left slide`, 0.24, 0.28, N.D - 4.0, cx - 10.2, 22.2, zMid + 0.2, mats.steel, { edgeOpacity: 0.18, cast: false });
     box(groups.detailedNightstands, `NS-${sideName} right slide`, 0.24, 0.28, N.D - 4.0, cx + 10.2, 22.2, zMid + 0.2, mats.steel, { edgeOpacity: 0.18, cast: false });
-    // (owner 2026-07-06) top-lip luminaire = the same 7 mm micro-channel family as the base drawer-lip (D-085),
-    // routed into the FIXED valance underside and CENTERED over the drawer-lip face plane (the overlay face's
-    // thickness centerline) — the wash drops straight down the flush face.
-    const nLipChZ = z0 + N.D - 0.275, nValUnderY = N.top - 0.75 - N.lipH;
-    box(groups.detailedNightstands, `NS-${sideName} top-lip 7 mm micro LED channel (routed into the fixed valance underside; CENTERED over the drawer lip — owner 2026-07-06)`, N.W - 3.0, 0.276, 0.276, cx, nValUnderY + 0.138, nLipChZ, mats.ledChannel, { edgeColor: 0x9aa5b1, edgeOpacity: 0.4, cast: false });
-    box(groups.detailedNightstands, `NS-${sideName} fixed top-lip LED wash (COB strip in the channel; emits DOWN the flush face)`, N.W - 3.4, 0.1, 0.16, cx, nValUnderY + 0.04, nLipChZ, mats.ledWarm, { edgeOpacity: 0.24, cast: false });
-    [-7, 7].forEach(dx => line3(groups.wiring, `NS-${sideName} top-lip down-wash light`, [[cx + dx, nValUnderY, nLipChZ], [cx + dx, 18.2, z0 + N.D + 0.15]], 0xffd166, 0.45));
-    // fixed front top lip / valance (Full-Bed): the wash is hidden in its underside; nightstand reads finished
-    box(groups.detailedNightstands, `NS-${sideName} fixed front top lip / valance`, N.W, N.lipH, 0.7, cx, N.top - 0.75 - N.lipH / 2, z0 + N.D - 0.35, mats.night, { edgeColor: 0x5f411a, edgeOpacity: 0.5 });
+    // (owner 2026-07-06, Lee photo) top-lip luminaire = the same 7 mm micro-channel family as the base drawer-lip
+    // (D-085), routed into the PROUD TOP SLAB's underside at the shadow gap, CENTERED over the drawer-lip face
+    // plane — the wash drops straight down the full-front face. (The separate valance band is RETIRED: in the
+    // photo the top slab itself IS the lip; the shadow gap under it is the light line.)
+    const nLipChZ = z0 + N.D - 0.275;
+    box(groups.detailedNightstands, `NS-${sideName} top-lip 7 mm micro LED channel (routed into the PROUD TOP SLAB underside at the shadow gap; CENTERED over the drawer lip — owner 2026-07-06, Lee photo)`, N.W - 3.0, 0.276, 0.276, cx, slabUnderY + 0.138, nLipChZ, mats.ledChannel, { edgeColor: 0x9aa5b1, edgeOpacity: 0.4, cast: false });
+    box(groups.detailedNightstands, `NS-${sideName} fixed top-lip LED wash (COB strip in the channel; emits DOWN the full-front face through the shadow gap)`, N.W - 3.4, 0.1, 0.16, cx, slabUnderY + 0.04, nLipChZ, mats.ledWarm, { edgeOpacity: 0.24, cast: false });
+    [-7, 7].forEach(dx => line3(groups.wiring, `NS-${sideName} top-lip down-wash light`, [[cx + dx, slabUnderY, nLipChZ], [cx + dx, 18.2, z0 + N.D + 0.15]], 0xffd166, 0.45));
     // real soft-close drawer box (4 walls + bottom) inside the full-extension travel
     const dbW = N.W - 4.0, dbD = N.D - 3.2, dbY = 21.7;
     box(groups.detailedNightstands, `NS-${sideName} drawer box left wall`, 0.4, 6.6, dbD, cx - dbW / 2 + 0.2, dbY, zMid + 0.5, mats.night, { edgeOpacity: 0.3, cast: false });
     box(groups.detailedNightstands, `NS-${sideName} drawer box right wall`, 0.4, 6.6, dbD, cx + dbW / 2 - 0.2, dbY, zMid + 0.5, mats.night, { edgeOpacity: 0.3, cast: false });
     box(groups.detailedNightstands, `NS-${sideName} drawer box back wall`, dbW, 6.6, 0.4, cx, dbY, zMid + 0.5 - dbD / 2 + 0.2, mats.night, { edgeOpacity: 0.3, cast: false });
     box(groups.detailedNightstands, `NS-${sideName} drawer box bottom`, dbW, 0.4, dbD, cx, dbY - 3.1, zMid + 0.5, mats.night, { edgeOpacity: 0.3, cast: false });
-    // ── (owner 2026-07-06) UNDER-NIGHTSTAND FLOOR WASH: FOUR transverse 7 mm micro-channel runs (same channel
-    //    family as the base drawer-lip + the top-lip above), routed into the nightstand bottom underside, EVENLY
-    //    spaced front-to-back (z = D/5, 2D/5, 3D/5, 4D/5). Wiring is the owner-selected route: each strip's feed
-    //    runs along the underside to ONE shared 3/8 in hole at the back-bottom, up the interior BACK wall to a
-    //    FLUSH 4-pair junction, and a SINGLE cable exits through the nightstand back + the headboard skin into the
-    //    rear cavity. The exit bore sits at AFF ~20.7 — just ABOVE the deep AFF-19 backing cross-rail (17.625..
-    //    20.375) so the cable never drills through structure, and at the nightstand centerline x, 3 in clear of
-    //    the nearest NS-INS bolt column (±3). ──
-    const uLen = N.W - 4, uChanY = N.bottom + 0.138, uStripY = N.bottom + 0.03;
+    // ── (owner 2026-07-06, direction CORRECTED same day) UNDER-NIGHTSTAND FLOOR WASH: FOUR 7 mm micro-channel
+    //    runs (same channel family as the base drawer-lip + the top-lip above), routed into the nightstand bottom
+    //    underside, each running FRONT-TO-BACK — from behind the drawer face toward the headboard — and spaced
+    //    EVENLY ACROSS THE WIDTH (x = ±2.2 / ±6.6 off the nightstand centerline). Each run's BACK end lands at the
+    //    back-bottom, so the four feeds converge naturally on ONE shared 3/8 in hole there, up the interior BACK
+    //    wall to a FLUSH 4-pair junction, and a SINGLE cable exits through the nightstand back + the headboard
+    //    skin into the rear cavity. The exit bore sits at AFF ~20.7 — just ABOVE the deep AFF-19 backing
+    //    cross-rail (17.625..20.375), never through structure, clear of the NS-INS bolt columns. ──
+    const uLen = N.D - 3, uzc = z0 + 1.5 + uLen / 2, uChanY = N.bottom + 0.138, uStripY = N.bottom + 0.03;
     [1, 2, 3, 4].forEach(k => {
-      const uz = z0 + (N.D * k) / 5;
-      box(groups.detailedNightstands, `NS-${sideName} under-nightstand 7 mm micro LED channel ${k}/4 (routed into the bottom underside; 4 runs evenly spaced front-to-back; same channel family as the drawer-lip — owner 2026-07-06)`, uLen, 0.276, 0.276, cx, uChanY, uz, mats.ledChannel, { edgeColor: 0x9aa5b1, edgeOpacity: 0.4, cast: false });
-      box(groups.wiring, `NS-${sideName} under-nightstand COB strip ${k}/4 (emits DOWN; floor wash)`, uLen - 1, 0.1, 0.16, cx, uStripY, uz, mats.ledWarm, { edgeColor: 0xffd9a0, edgeOpacity: 0.4, cast: false });
-      line3(groups.wiring, `NS-${sideName} under-LED ${k} feed along the underside to the shared back-bottom hole`, [[cx + side * 9, N.bottom + 0.08, uz], [cx + side * 9, N.bottom + 0.08, z0 + 0.9], [cx, N.bottom + 0.08, z0 + 0.9]], 0x38bdf8, 0.45);
+      const ux = cx + (k * (N.W - 4) / 5 - (N.W - 4) / 2);                       // -6.6 / -2.2 / +2.2 / +6.6 off center
+      box(groups.detailedNightstands, `NS-${sideName} under-nightstand 7 mm micro LED channel ${k}/4 (routed into the bottom underside; runs FRONT-TO-BACK from the drawer face toward the headboard; 4 runs evenly spaced across the width — owner 2026-07-06)`, 0.276, 0.276, uLen, ux, uChanY, uzc, mats.ledChannel, { edgeColor: 0x9aa5b1, edgeOpacity: 0.4, cast: false });
+      box(groups.wiring, `NS-${sideName} under-nightstand COB strip ${k}/4 (emits DOWN; floor wash)`, 0.16, 0.1, uLen - 1, ux, uStripY, uzc, mats.ledWarm, { edgeColor: 0xffd9a0, edgeOpacity: 0.4, cast: false });
+      line3(groups.wiring, `NS-${sideName} under-LED ${k} feed from the run's BACK end to the shared back-bottom hole`, [[ux, N.bottom + 0.08, z0 + 1.5], [ux, N.bottom + 0.08, z0 + 0.9], [cx, N.bottom + 0.08, z0 + 0.9]], 0x38bdf8, 0.45);
     });
     cyl(groups.wiring, `NS-${sideName} under-LED shared feed hole (3/8 in, drilled at the back-bottom; all 4 strip feeds enter here)`, 0.19, 0.85, cx, N.bottom + 0.38, z0 + 0.9, mats.void, 'y', { segments: 20, cast: false });
     box(groups.detailedNightstands, `NS-${sideName} interior back-wall FLUSH junction (the 4 strip pairs join -> ONE cable; flush to the interior wood — owner 2026-07-06)`, 1.8, 1.0, 0.2, cx, 18.4, z0 + 0.66, mats.darkSteel, { edgeOpacity: 0.3, cast: false });
@@ -2344,7 +2352,7 @@ window.__BFS01.pass = window.__BFS01.headboardModules.pass === true
   && window.__BFS01.rear.pass === true;
 </script>
 <!-- BF:BUILDSTAMP:START (generated by `npm run bf:build` — do not hand-edit; updates automatically every build) -->
-<div id="bf-build-stamp" data-built="2026-07-07T06:52:22.912Z" style="position:fixed;left:8px;bottom:6px;z-index:99999;pointer-events:none;font:600 11px/1.3 system-ui,-apple-system,Segoe UI,sans-serif;color:#8b98ac;background:rgba(9,12,18,.66);padding:3px 8px;border-radius:5px;letter-spacing:.02em;box-shadow:0 1px 3px rgba(0,0,0,.35);">Model last updated: 2026-07-06 23:52 MST</div>
+<div id="bf-build-stamp" data-built="2026-07-07T06:59:06.149Z" style="position:fixed;left:8px;bottom:6px;z-index:99999;pointer-events:none;font:600 11px/1.3 system-ui,-apple-system,Segoe UI,sans-serif;color:#8b98ac;background:rgba(9,12,18,.66);padding:3px 8px;border-radius:5px;letter-spacing:.02em;box-shadow:0 1px 3px rgba(0,0,0,.35);">Model last updated: 2026-07-06 23:59 MST</div>
 <!-- BF:BUILDSTAMP:END -->
 </body>
 </html>
