@@ -518,15 +518,16 @@ function makeMaterials() {
     skin: new THREE.MeshStandardMaterial({ color: 0xe8cc98, roughness: 0.82, transparent: true, opacity: 0.48, depthWrite: false }),
     collector: new THREE.MeshStandardMaterial({ color: 0xb9772e, roughness: 0.78, metalness: 0.02 }),
     receiver: new THREE.MeshStandardMaterial({ color: 0x6f9cbc, roughness: 0.68, transparent: true, opacity: 0.78 }),
-    night: new THREE.MeshStandardMaterial({ color: 0x8fb26a, roughness: 0.74, transparent: true, opacity: 0.78 }),
+    night: new THREE.MeshStandardMaterial({ color: 0xd5b171, roughness: 0.74, transparent: true, opacity: 0.78 }),   // ASH like the rest of the bed (owner 2026-07-05: nightstands must not read as a green debug color; subsystem identity = toggles/labels, not paint)
     baseWood: new THREE.MeshStandardMaterial({ color: 0xd4b477, roughness: 0.76, transparent: true, opacity: 0.50, depthWrite: false }),
     baseStructure: new THREE.MeshStandardMaterial({ color: 0xc9974c, roughness: 0.72, transparent: true, opacity: 0.72, depthWrite: false }),
     footWood: new THREE.MeshStandardMaterial({ color: 0xd2aa67, roughness: 0.78, transparent: true, opacity: 0.54, depthWrite: false }),
     void: new THREE.MeshStandardMaterial({ color: 0x22d3ee, transparent: true, opacity: 0.16, depthWrite: false }),
-    speaker: new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.48, transparent: true, opacity: 0.64 }),
+    speaker: new THREE.MeshStandardMaterial({ color: 0x0d1013, roughness: 0.48, transparent: true, opacity: 0.64 }),   // neutral near-black (was blue-navy; owner 2026-07-05: the speaker must read BLACK, not teal)
     grille: new THREE.MeshStandardMaterial({ color: 0x05080d, roughness: 0.66 }),
-    speakerBaffle: new THREE.MeshStandardMaterial({ color: 0x101820, roughness: 0.52, metalness: 0.08 }),
-    speakerCone: new THREE.MeshStandardMaterial({ color: 0x263241, roughness: 0.62, metalness: 0.04 }),
+    speakerBaffle: new THREE.MeshStandardMaterial({ color: 0x0a0c0e, roughness: 0.56, metalness: 0.06 }),   // matte black baffle (was blue-tinted)
+    speakerCone: new THREE.MeshStandardMaterial({ color: 0x1a1d21, roughness: 0.58, metalness: 0.05 }),     // charcoal-black cone (was slate blue)
+    speakerTrim: new THREE.MeshStandardMaterial({ color: 0x111417, roughness: 0.44, metalness: 0.22 }),     // woofer/tweeter trim rings + basket rim
     driverRubber: new THREE.MeshStandardMaterial({ color: 0x030712, roughness: 0.70, metalness: 0.02 }),
     steel: new THREE.MeshStandardMaterial({ color: 0xcbd5e1, roughness: 0.28, metalness: 0.82 }),
     darkSteel: new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.36, metalness: 0.76 }),
@@ -1052,15 +1053,15 @@ function buildNightstands(ctx) {
     const sideName = side < 0 ? 'L' : 'R';
     const z0 = 0.35;
     const zMid = z0 + N.D / 2;
-    box(groups.detailedNightstands, `NS-${sideName} top panel`, N.W, 0.75, N.D, cx, N.top - 0.38, zMid, mats.night, { edgeColor: 0x425830, edgeOpacity: 0.44 });
-    box(groups.detailedNightstands, `NS-${sideName} bottom panel`, N.W, 0.75, N.D, cx, N.bottom + 0.38, zMid, mats.night, { edgeColor: 0x425830, edgeOpacity: 0.44 });
+    box(groups.detailedNightstands, `NS-${sideName} top panel`, N.W, 0.75, N.D, cx, N.top - 0.38, zMid, mats.night, { edgeColor: 0x5f411a, edgeOpacity: 0.44 });
+    box(groups.detailedNightstands, `NS-${sideName} bottom panel`, N.W, 0.75, N.D, cx, N.bottom + 0.38, zMid, mats.night, { edgeColor: 0x5f411a, edgeOpacity: 0.44 });
     box(groups.detailedNightstands, `NS-${sideName} outer side panel`, 0.75, N.H, N.D, cx + side * (N.W / 2 - 0.38), (N.top + N.bottom) / 2, zMid, mats.night);
     box(groups.detailedNightstands, `NS-${sideName} inner side panel`, 0.75, N.H, N.D, cx - side * (N.W / 2 - 0.38), (N.top + N.bottom) / 2, zMid, mats.night);
     // Lee-call Phase 9 (rpt 54/55): back width = visible skin field width - 1/8 (fits BETWEEN the outer stile + center mullion, not flush to the outer side); bolts through into steel inserts in the skin back (D0-4).
     box(groups.detailedNightstands, `NS-${sideName} back panel bolt plane (width = skin field ${N.skinFieldWidth} - 1/8 = ${N.skinFieldWidth - N.backReveal}; bolts into steel inserts in the skin back, D0-4)`, N.skinFieldWidth - N.backReveal, N.H - 1.5, 0.55, cx, (N.top + N.bottom) / 2, z0 + 0.28, mats.night);
     box(groups.detailedNightstands, `NS-${sideName} between-frame fit marker (fits BETWEEN the outer side stile + the center mullion; not flush to the outer side)`, N.skinFieldWidth - N.backReveal, 0.1, 0.1, cx, N.bottom + 0.3, z0 + 0.1, mats.void, { edgeColor: 0x22d3ee, edgeOpacity: 0.4, cast: false });
-    box(groups.detailedNightstands, `NS-${sideName} drawer box full-extension ghost`, N.W - 4.0, 7.0, N.D - 3.2, cx, 21.7, zMid + 0.5, mats.ghost, { edgeColor: 0xd9f99d, edgeOpacity: 0.42, cast: false });
-    box(groups.detailedNightstands, `NS-${sideName} recessed drawer face`, N.W - 2.0, N.drwFaceH, 0.55, cx, 21.6, z0 + N.D - 0.9125, mats.night, { edgeColor: 0x425830, edgeOpacity: 0.54 });  // face FRONT recessed 0.638 in, centered under the channel (D-093)
+    box(groups.detailedNightstands, `NS-${sideName} drawer box full-extension ghost`, N.W - 4.0, 7.0, N.D - 3.2, cx, 21.7, zMid + 0.5, mats.ghost, { edgeColor: 0xe2e8f0, edgeOpacity: 0.42, cast: false });
+    box(groups.detailedNightstands, `NS-${sideName} recessed drawer face`, N.W - 2.0, N.drwFaceH, 0.55, cx, 21.6, z0 + N.D - 0.9125, mats.night, { edgeColor: 0x5f411a, edgeOpacity: 0.54 });  // face FRONT recessed 0.638 in, centered under the channel (D-093)
     // handle-less sharknose pull: flat face + 45 deg beveled BOTTOM edge (nightstand drawer pulls from the bottom bevel)
     const nbev = new THREE.Mesh(new THREE.BoxGeometry(N.W - 4.0, 0.12, 0.6), mats.night);
     nbev.position.set(cx, 18.0, z0 + N.D - 0.85); nbev.rotation.x = Math.PI / 4; nbev.castShadow = false;
@@ -1070,7 +1071,7 @@ function buildNightstands(ctx) {
     box(groups.detailedNightstands, `NS-${sideName} right slide`, 0.24, 0.28, N.D - 4.0, cx + 10.2, 22.2, zMid + 0.2, mats.steel, { edgeOpacity: 0.18, cast: false });
     box(groups.detailedNightstands, `NS-${sideName} fixed top-lip LED wash`, N.W - 3.0, 0.22, 0.24, cx, N.top - 1.25, z0 + N.D - 1.15, mats.ledWarm, { edgeOpacity: 0.24, cast: false });
     // fixed front top lip / valance (Full-Bed): the wash is hidden in its underside; nightstand reads finished
-    box(groups.detailedNightstands, `NS-${sideName} fixed front top lip / valance`, N.W, N.lipH, 0.7, cx, N.top - 0.75 - N.lipH / 2, z0 + N.D - 0.35, mats.night, { edgeColor: 0x425830, edgeOpacity: 0.5 });
+    box(groups.detailedNightstands, `NS-${sideName} fixed front top lip / valance`, N.W, N.lipH, 0.7, cx, N.top - 0.75 - N.lipH / 2, z0 + N.D - 0.35, mats.night, { edgeColor: 0x5f411a, edgeOpacity: 0.5 });
     // real soft-close drawer box (4 walls + bottom) inside the full-extension travel
     const dbW = N.W - 4.0, dbD = N.D - 3.2, dbY = 21.7;
     box(groups.detailedNightstands, `NS-${sideName} drawer box left wall`, 0.4, 6.6, dbD, cx - dbW / 2 + 0.2, dbY, zMid + 0.5, mats.night, { edgeOpacity: 0.3, cast: false });
@@ -1425,7 +1426,9 @@ addBuiltUpLFrameMember({
 // outer face (±38), where the side skins tuck under the center mullion face → one clean 4-in line.
 HB_SEAMS.forEach((sx, i) => {
   const pair = i === 0 ? 'HB-MOD-L | HB-MOD-C' : 'HB-MOD-C | HB-MOD-R';
-  box(groups.lattice, `HB-MOD boundary seam plane at nominal split x=${sx} (${pair}; HB-MOD-C owns the ±36 mullion)`, 0.06, 68, D, sx, 36, zMid, mats.void, { edgeColor: 0x22d3ee, edgeOpacity: 0.5, cast: false });
+  // marker kept BEHIND the recessed skin back plane (z -1.4..-8.0) so its cyan edge can never read as a green
+  // line down the mullion face from the front (owner 2026-07-05); it stays visible in ghost/rear inspection.
+  box(groups.lattice, `HB-MOD boundary seam plane at nominal split x=${sx} (${pair}; HB-MOD-C owns the ±36 mullion)`, 0.06, 68, 6.6, sx, 36, -4.7, mats.void, { edgeColor: 0x22d3ee, edgeOpacity: 0.35, cast: false });
 });
 // Module identity labels (Full-Bed CSS2D; no-op in the standalone model) — three finished bolt-together boxes.
 HB_MODULES.forEach(m => {
@@ -1743,10 +1746,14 @@ const rearRailSegments = [[-63, -38], [-34, 34], [38, 63]];
 // Horizontal course cross-rails: full-depth housed segments behind each AFF 19/38/57 face seam (SPEC.courseSeamsAFF, D0-6).
 // These ARE the rear support bars (D-060 discrete open bracing): each course seats on / clamps to the rail below + above. Three rails x three bay segments. No vertical members (grain is horizontal + courses <=19 in tall, so these rails restrain the cup-prone direction).
 SPEC.courseSeamsAFF.forEach(seamAFF => {
+  // The AFF-19 rail is DEEP (2.75 in, y 17.625..20.375): the LOWER nightstand bolt row (AFF 19.4, D0-4) threads
+  // its 0.44-in steel inserts into this rail — at the old 1.25 in (18.375..19.625) the insert broke out the rail's
+  // top edge with ~0.005 in of wood left (owner review 2026-07-05, fix #9). AFF 38/57 stay 1.25 (no inserts there).
+  const railH = seamAFF === 19 ? 2.75 : 1.25;
   rearRailSegments.forEach(([x0, x1], i) => {
     const suffix = ['L', 'C', 'R'][i];
     const railId = `HB-SR${seamAFF}-${suffix}`;
-    housedRail(groups.lattice, `course cross-rail AFF ${seamAFF} segment=${suffix}`, x0, x1, seamAFF, 1.25, loadRailDepth, loadRailZ, mats.shellGhost);
+    housedRail(groups.lattice, `course cross-rail AFF ${seamAFF} segment=${suffix}`, x0, x1, seamAFF, railH, loadRailDepth, loadRailZ, mats.shellGhost);
     [
       { x: x0, receiver: x0 < -60 ? 'HB-ST-L' : x0 < 0 ? 'HB-MUL-L' : 'HB-MUL-R', tag: 'A' },
       { x: x1, receiver: x1 > 60 ? 'HB-ST-R' : x1 < 0 ? 'HB-MUL-L' : 'HB-MUL-R', tag: 'B' }
@@ -1834,12 +1841,33 @@ SPEC.courseSeamsAFF.forEach(seamAFF => {
   const wooferX = cx + side * 3.075;    // outer (toward room edge)
   box(groups.speakers, `in-wall speaker sealed ghost back box ${side}`, SPEC.speaker.bodyW, SPEC.speaker.bodyH, SPEC.speaker.bodyD, cx, cy, -SPEC.panelTh - SPEC.speaker.bodyD / 2, mats.speaker, { edgeColor: 0x93a4b8, edgeOpacity: 0.52 });
   box(groups.speakers, `in-wall speaker exposed black baffle no grille ${side}`, SPEC.speaker.cutW, SPEC.speaker.cutH, 0.14, cx, cy, 0.08, mats.speakerBaffle, { edgeColor: 0x64748b, edgeOpacity: 0.55 });
-  box(groups.speakers, `speaker gasket / rabbet sample-confirm ${side}`, SPEC.speaker.cutW + 0.8, SPEC.speaker.cutH + 0.8, 0.06, cx, cy, 0.14, mats.void, { edgeColor: 0x38bdf8, edgeOpacity: 0.45, cast: false });
-  cyl(groups.speakers, `in-wall speaker 8 in woofer rubber surround ${side}`, 4.12, 0.16, wooferX, cy, 0.22, mats.driverRubber, 'z', { segments: 72, cast: false });
-  cyl(groups.speakers, `in-wall speaker 8 in woofer cone ${side}`, 3.62, 0.18, wooferX, cy, 0.34, mats.speakerCone, 'z', { segments: 72, cast: false });
-  cyl(groups.speakers, `in-wall speaker dust cap ${side}`, 1.15, 0.2, wooferX, cy, 0.46, mats.darkSteel, 'z', { segments: 48, cast: false });
-  cyl(groups.speakers, `in-wall speaker AMT tweeter waveguide ${side}`, 1.25, 0.16, tweeterX, cy, 0.24, mats.driverRubber, 'z', { segments: 48, cast: false });
-  cyl(groups.speakers, `in-wall speaker AMT tweeter ${side}`, 0.56, 0.2, tweeterX, cy, 0.42, mats.steel, 'z', { segments: 40, cast: false });
+  // gasket marker sits BEHIND the opaque baffle (z -0.02) so its cyan void fill can never tint the black baffle
+  // from the front (owner 2026-07-05: the speaker must read black, not teal); still present for ghost/validators.
+  box(groups.speakers, `speaker gasket / rabbet sample-confirm ${side}`, SPEC.speaker.cutW + 0.8, SPEC.speaker.cutH + 0.8, 0.06, cx, cy, -0.02, mats.void, { edgeColor: 0x38bdf8, edgeOpacity: 0.16, cast: false });
+  // ---- detailed drivers (owner 2026-07-05: render-grade fidelity, all-black — no flat stacked discs). Custom
+  //      meshes (torus / open cone / dome) are built directly like the bevel-pull example; names keep the
+  //      woofer/tweeter/cone/surround/dust-cap vocabulary the validators + export driver classifier key on. ----
+  const spkMesh = (geo, mat, name, x, y, z, rx = 0) => {
+    const m = new THREE.Mesh(geo, mat); m.name = name; m.position.set(x, y, z); if (rx) m.rotation.x = rx;
+    m.castShadow = false; groups.speakers.add(m); return m;
+  };
+  // 8 in woofer: proud trim ring + 8 hex mounting screws + raised rubber half-roll surround (torus) +
+  // rearward-sloping open cone + dome dust cap — a real driver stack.
+  spkMesh(new THREE.TorusGeometry(4.32, 0.14, 12, 64), mats.speakerTrim, `in-wall speaker 8 in woofer mounting trim ring ${side}`, wooferX, cy, 0.30);
+  for (let k = 0; k < 8; k++) {
+    const a = k * Math.PI / 4 + Math.PI / 8;
+    cyl(groups.speakers, `in-wall speaker 8 in woofer mounting hex screw ${side}-${k + 1}`, 0.085, 0.09, wooferX + 4.32 * Math.cos(a), cy + 4.32 * Math.sin(a), 0.36, mats.darkSteel, 'z', { segments: 6, cast: false });
+  }
+  spkMesh(new THREE.TorusGeometry(3.78, 0.30, 14, 64), mats.driverRubber, `in-wall speaker 8 in woofer rubber surround ${side}`, wooferX, cy, 0.24);
+  spkMesh(new THREE.CylinderGeometry(1.16, 3.55, 0.42, 64, 1, true), mats.speakerCone, `in-wall speaker 8 in woofer cone ${side}`, wooferX, cy, 0.05, -Math.PI / 2);
+  spkMesh(new THREE.SphereGeometry(1.14, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2), mats.speakerCone, `in-wall speaker dust cap ${side}`, wooferX, cy, -0.04, Math.PI / 2);
+  // AMT tweeter: square faceplate + 4 corner screws + receding waveguide throat + pleated AMT strip.
+  spkMesh(new THREE.BoxGeometry(3.5, 3.5, 0.12), mats.speakerTrim, `in-wall speaker AMT tweeter faceplate ${side}`, tweeterX, cy, 0.20);
+  [-1.35, 1.35].forEach(sx => [-1.35, 1.35].forEach(sy =>
+    cyl(groups.speakers, `in-wall speaker AMT tweeter faceplate screw ${side} ${sx < 0 ? 'L' : 'R'}${sy < 0 ? 'B' : 'T'}`, 0.07, 0.08, tweeterX + sx, cy + sy, 0.28, mats.darkSteel, 'z', { segments: 6, cast: false })));
+  spkMesh(new THREE.CylinderGeometry(0.72, 1.52, 0.22, 48, 1, true), mats.speakerBaffle, `in-wall speaker AMT tweeter waveguide ${side}`, tweeterX, cy, 0.16, -Math.PI / 2);
+  box(groups.speakers, `in-wall speaker AMT tweeter ${side}`, 0.72, 1.3, 0.10, tweeterX, cy, 0.10, mats.darkSteel, { edges: false, cast: false });
+  [-0.18, 0, 0.18].forEach((fx, fi) => box(groups.speakers, `in-wall speaker AMT tweeter pleat fin ${side}-${fi + 1}`, 0.05, 1.18, 0.11, tweeterX + fx, cy, 0.11, mats.steel, { edges: false, cast: false }));
   box(groups.speakers, `in-wall speaker rear terminal cup ${side}`, 2.1, 1.15, 0.18, cx + side * 3.9, SPEC.speaker.bottom + 2.0, -6.15, mats.darkSteel, { edgeColor: 0x94a3b8, edgeOpacity: 0.48, cast: false });
   // 12 AWG speaker cable -- fully grounded ORTHOGONAL route that never spears solid wood: amp in cubby -> centre
   // foot-rail bore -> UP THE CENTRE base chase -> bottom-frame bore into the OPEN REAR CAVITY -> up behind the panels
@@ -2348,7 +2376,7 @@ tick();
 </script>
 
 <!-- BF:BUILDSTAMP:START (generated by `npm run bf:build` — do not hand-edit; updates automatically every build) -->
-<div id="bf-build-stamp" data-built="2026-07-05T22:41:47.675Z" style="position:fixed;left:8px;bottom:6px;z-index:99999;pointer-events:none;font:600 11px/1.3 system-ui,-apple-system,Segoe UI,sans-serif;color:#8b98ac;background:rgba(9,12,18,.66);padding:3px 8px;border-radius:5px;letter-spacing:.02em;box-shadow:0 1px 3px rgba(0,0,0,.35);">Model last updated: 2026-07-05 15:41 MST</div>
+<div id="bf-build-stamp" data-built="2026-07-07T03:20:47.217Z" style="position:fixed;left:8px;bottom:6px;z-index:99999;pointer-events:none;font:600 11px/1.3 system-ui,-apple-system,Segoe UI,sans-serif;color:#8b98ac;background:rgba(9,12,18,.66);padding:3px 8px;border-radius:5px;letter-spacing:.02em;box-shadow:0 1px 3px rgba(0,0,0,.35);">Model last updated: 2026-07-06 20:20 MST</div>
 <!-- BF:BUILDSTAMP:END -->
 </body>
 </html>
